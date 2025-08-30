@@ -1,22 +1,25 @@
 {
   "expo": {
-    "name": "tracker-app",
-    "slug": "tracker-app",
+    "name": "Morgenroutine Tracker",
+    "slug": "morgenroutine-tracker",
     "version": "1.0.0",
+    "description": "Tracke deine Morgenroutine mit einem einfachen Streak-Zähler und täglichen Erinnerungen",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "trackerapp",
+    "scheme": "morgenroutine",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.trackerapp.morgenroutine"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.trackerapp.morgenroutine"
     },
     "web": {
       "bundler": "metro",

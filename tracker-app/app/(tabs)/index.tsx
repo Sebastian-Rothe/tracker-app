@@ -3,13 +3,15 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Button, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
+import { StreakWidget, updateStreakWidget } from '@/components/StreakWidget';
 
 const STREAK_KEY = 'streak';
 const LAST_CONFIRMED_KEY = 'lastConfirmed';
+const DEBUG_MODE = false; // Setze auf true für Debug-Button
 
 function getTodayString() {
   const today = new Date();
-  return today.toISOString().slice(0, 10);
+  return today.toISOString().slice(0, 10); // Zurück auf Tag-genau
 }
 
 export default function HomeScreen() {
@@ -66,17 +68,23 @@ export default function HomeScreen() {
       await AsyncStorage.setItem(LAST_CONFIRMED_KEY, today);
       setStreak(newStreak);
       setLastConfirmed(today);
+      
+      // Widget aktualisieren
+      await updateStreakWidget(newStreak);
     } else {
       await AsyncStorage.setItem(STREAK_KEY, '0');
       setStreak(0);
       setLastConfirmed('');
+      
+      // Widget aktualisieren
+      await updateStreakWidget(0);
     }
   }
 
   async function scheduleNotification() {
     await Notifications.cancelAllScheduledNotificationsAsync();
     
-    // Plane für in 24 Stunden (jeden Tag)
+    // PRODUKTIV-MODUS: Alle 24 Stunden (täglich um 7 Uhr)
     await Notifications.scheduleNotificationAsync({
       content: {
         title: 'Morgenroutine',
@@ -93,12 +101,19 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      <StreakWidget />
       <Text style={styles.streakText}>🔥 {streak} Tage in Folge</Text>
       <View style={styles.buttonRow}>
         <Button title="Ja" onPress={() => confirmRoutine(true)} color="#4CAF50" />
         <Button title="Nein" onPress={() => confirmRoutine(false)} color="#F44336" />
       </View>
       <Text style={styles.infoText}>Nur ein Klick pro Tag nötig – super einfach!</Text>
+      {DEBUG_MODE && (
+        <View style={styles.debugRow}>
+          <Button title="Reset Streak" onPress={() => {setStreak(0); AsyncStorage.setItem(STREAK_KEY, '0'); updateStreakWidget(0);}} color="#FF9800" />
+        </View>
+      )}
+      {DEBUG_MODE && <Text style={styles.debugText}>Letzter Check: {lastConfirmed}</Text>}
     </View>
   );
 }
@@ -123,5 +138,13 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 16,
     color: '#888',
+    marginBottom: 16,
+  },
+  debugRow: {
+    marginBottom: 16,
+  },
+  debugText: {
+    fontSize: 12,
+    color: '#666',
   },
 });

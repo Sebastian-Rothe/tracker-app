@@ -1,50 +1,87 @@
-# Welcome to your Expo app 👋
+# 🔥 Morgenroutine Tracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Eine minimalistische React Native App, um deine Morgenroutine zu tracken und eine Streak aufzubauen.
 
-## Get started
+## ✨ Features
 
-1. Install dependencies
+- **Streak-Zähler**: Zeigt an, wie viele Tage in Folge du deine Routine gemacht hast
+- **Tägliche Erinnerungen**: Push-Notifications jeden Tag
+- **Einfache Bedienung**: Nur ein Klick pro Tag - "Ja" oder "Nein"
+- **Lokale Speicherung**: Deine Daten bleiben auf deinem Gerät
+- **Motivierendes Design**: Mit Feuer-Emoji und gamifizierten Elementen
 
-   ```bash
-   npm install
-   ```
+## 🚀 Installation
 
-2. Start the app
+### Voraussetzungen
+- Node.js (18+)
+- Expo CLI (`npm install -g @expo/cli`)
+- Expo Go App auf deinem Smartphone
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### Setup
 ```bash
-npm run reset-project
+# Repository klonen
+git clone <repository-url>
+cd tracker-app/tracker-app
+
+# Dependencies installieren
+npm install
+
+# Entwicklungsserver starten
+npm start
+
+# App auf dem Handy öffnen
+# Scanne den QR Code mit der Expo Go App
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 📱 Verwendung
 
-## Learn more
+1. **Erste Einrichtung**: Die App fragt nach Notification-Berechtigungen
+2. **Tägliche Routine**: Jeden Tag bekommst du eine Erinnerung
+3. **Bestätigung**: Klicke "Ja" wenn du deine Routine gemacht hast
+4. **Streak aufbauen**: Dein Zähler steigt mit jedem erfolgreichen Tag
+5. **Reset**: Bei verpassten Tagen wird der Streak automatisch zurückgesetzt
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🛠️ Tech Stack
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- **React Native** mit Expo
+- **TypeScript** für Type Safety
+- **AsyncStorage** für lokale Datenspeicherung
+- **Expo Notifications** für Push-Benachrichtigungen
 
-## Join the community
+## 📦 Deployment
 
-Join our community of developers creating universal apps.
+### Android (Play Store)
+```bash
+expo build:android
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### iOS (App Store)
+```bash
+expo build:ios
+```
+
+## 🔧 Konfiguration
+
+- **Notification-Zeit**: Standardmäßig alle 24 Stunden
+- **Bundle ID**: `com.trackerapp.morgenroutine`
+- **Icons**: Anpassbar in `assets/images/`
+
+## 📝 Geplante Features
+
+- [ ] Widget für Homescreen (iOS/Android)
+- [ ] Backup/Sync mit Cloud
+- [ ] Kalender-Ansicht
+- [ ] Motivationszitate
+- [ ] Custom Notification-Zeiten
+
+## 👨‍💻 Entwicklung
+
+Für lokale Entwicklung mit Test-Modus (Notifications alle 10 Sekunden):
+```typescript
+// In app/(tabs)/index.tsx
+seconds: 10, // Statt 86400
+```
+
+## 📄 Lizenz
+
+MIT License
