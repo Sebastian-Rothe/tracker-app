@@ -316,14 +316,20 @@ export const updateRoutine = async (request: UpdateRoutineRequest): Promise<Rout
  */
 export const deleteRoutine = async (routineId: string): Promise<boolean> => {
   try {
+    console.log('deleteRoutine called for ID:', routineId);
     const routines = await loadRoutines();
+    console.log('Loaded routines for deletion:', routines.length);
     const filteredRoutines = routines.filter(r => r.id !== routineId);
+    console.log('Filtered routines (after deletion):', filteredRoutines.length);
     
     if (filteredRoutines.length === routines.length) {
+      console.error('Routine not found for deletion:', routineId);
       throw new Error(`Routine with id ${routineId} not found`);
     }
     
+    console.log('Saving filtered routines after deletion...');
     await saveRoutines(filteredRoutines);
+    console.log('Routine deleted successfully');
     return true;
   } catch (error) {
     console.error('Error deleting routine:', error);

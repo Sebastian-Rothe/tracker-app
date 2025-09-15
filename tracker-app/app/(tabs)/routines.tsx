@@ -190,26 +190,29 @@ export default function RoutineManagementScreen() {
   };
 
   const handleDelete = (routine: Routine) => {
-    Alert.alert(
-      TEXTS.confirmDelete,
-      TEXTS.deleteMessage(routine.name),
-      [
-        { text: TEXTS.cancel, style: 'cancel' },
-        {
-          text: TEXTS.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteRoutine(routine.id);
-              await loadRoutineData();
-            } catch (error) {
-              console.error('Error deleting routine:', error);
-              Alert.alert('Error', 'Failed to delete routine');
-            }
-          },
-        },
-      ]
-    );
+    console.log('handleDelete called for routine:', routine.name);
+    
+    // Use window.confirm for web compatibility
+    const confirmMessage = `${TEXTS.confirmDelete}\n\n${TEXTS.deleteMessage(routine.name)}`;
+    const confirmed = window.confirm ? window.confirm(confirmMessage) : true;
+    
+    if (confirmed) {
+      const performDelete = async () => {
+        try {
+          console.log('Deleting routine:', routine.id);
+          await deleteRoutine(routine.id);
+          console.log('Routine deleted successfully, reloading data...');
+          await loadRoutineData();
+          console.log('Data reloaded after deletion');
+        } catch (error) {
+          console.error('Error deleting routine:', error);
+          Alert.alert('Error', 'Failed to delete routine');
+        }
+      };
+      performDelete();
+    } else {
+      console.log('Delete cancelled by user');
+    }
   };
 
   const formatLastConfirmed = (lastConfirmed: string): string => {
