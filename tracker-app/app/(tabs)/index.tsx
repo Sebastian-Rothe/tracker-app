@@ -18,6 +18,11 @@ import {
   performAutoMigration,
   deleteRoutine
 } from '@/utils/settingsStorage';
+import { 
+  scheduleRoutineNotifications,
+  setupNotificationHandlers,
+  requestNotificationPermissions 
+} from '@/utils/notificationManager';
 import { Routine, RoutineState } from '@/types/routine';
 
 const TEXTS = {
@@ -74,6 +79,18 @@ export default function MultiRoutineTrackerScreen() {
     }, [])
   );
 
+  // Setup notification handlers
+  useEffect(() => {
+    const cleanup = setupNotificationHandlers();
+    
+    // Request permissions on app start
+    requestNotificationPermissions().then(granted => {
+      console.log('Notification permissions granted:', granted);
+    });
+
+    return cleanup;
+  }, []);
+
   const loadData = async (isRefresh = false) => {
     try {
       console.log('loadData called, isRefresh:', isRefresh);
@@ -99,6 +116,11 @@ export default function MultiRoutineTrackerScreen() {
       setRoutineState(state);
       
       console.log('State updated - routines count:', loadedRoutines.filter(r => r.isActive).length);
+
+      // Schedule notifications for active routines (only on first load, not refresh)
+      if (!isRefresh) {
+        await scheduleRoutineNotifications();
+      }
     } catch (error) {
       console.error('Error loading routine data:', error);
       setError('Failed to load routines');

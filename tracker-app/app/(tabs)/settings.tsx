@@ -10,6 +10,7 @@ import {
   Switch,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scheduleRoutineNotifications, cancelAllNotifications } from '@/utils/notificationManager';
 
 const STREAK_KEY = 'streak';
 const LAST_CONFIRMED_KEY = 'lastConfirmed';
@@ -38,14 +39,25 @@ const TEXTS = {
   debugTitle: 'Debug Settings',
   debugMode: 'Debug Mode',
   debugDescription: 'Show debug information and reset button on main screen.',
+  notificationTitle: 'Notifications',
+  notificationEnabled: 'Enable Daily Reminders',
+  notificationDescription: 'Get daily reminders for your routines.',
+  notificationTimeLabel: 'Reminder Time:',
+  notificationTimeDescription: 'Time when you want to be reminded (24-hour format)',
+  timeInvalid: 'Invalid time format. Please use HH:MM (e.g., 07:30)',
+  notificationUpdated: 'Notification settings updated successfully!',
 };
 
 interface SettingsData {
   debugMode: boolean;
+  notificationEnabled: boolean;
+  notificationTime: string;
 }
 
 const defaultSettings: SettingsData = {
   debugMode: false,
+  notificationEnabled: true,
+  notificationTime: '07:00',
 };
 
 export default function SettingsScreen() {
@@ -53,6 +65,7 @@ export default function SettingsScreen() {
   const [newStreakInput, setNewStreakInput] = useState<string>('');
   const [settings, setSettings] = useState<SettingsData>(defaultSettings);
   const [lastConfirmed, setLastConfirmed] = useState<string>('');
+  const [notificationTimeInput, setNotificationTimeInput] = useState<string>('07:00');
 
   useEffect(() => {
     loadData();
@@ -73,7 +86,9 @@ export default function SettingsScreen() {
       const settingsValue = await AsyncStorage.getItem(SETTINGS_KEY);
       if (settingsValue) {
         const parsedSettings = JSON.parse(settingsValue);
-        setSettings({ ...defaultSettings, ...parsedSettings });
+        const loadedSettings = { ...defaultSettings, ...parsedSettings };
+        setSettings(loadedSettings);
+        setNotificationTimeInput(loadedSettings.notificationTime);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -156,6 +171,39 @@ export default function SettingsScreen() {
     saveSettings(newSettings);
   };
 
+  const validateTimeFormat = (time: string): boolean => {
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return timeRegex.test(time);
+  };
+
+  const toggleNotifications = async (value: boolean) => {
+    const newSettings = { ...settings, notificationEnabled: value };
+    await saveSettings(newSettings);
+    
+    if (value) {
+      await scheduleRoutineNotifications();
+    } else {
+      await cancelAllNotifications();
+    }
+  };
+
+  const updateNotificationTime = async () => {
+    if (!validateTimeFormat(notificationTimeInput)) {
+      Alert.alert(TEXTS.invalidInput, TEXTS.timeInvalid);
+      return;
+    }
+    
+    const newSettings = { ...settings, notificationTime: notificationTimeInput };
+    await saveSettings(newSettings);
+    
+    // Reschedule notifications with new time
+    if (settings.notificationEnabled) {
+      await scheduleRoutineNotifications();
+    }
+    
+    Alert.alert(TEXTS.success, TEXTS.notificationUpdated);
+  };
+
   const formatDate = (dateString: string) => {
     if (dateString === 'Never') return dateString;
     try {
@@ -222,6 +270,44 @@ export default function SettingsScreen() {
             thumbColor={settings.debugMode ? '#f5dd4b' : '#f4f3f4'}
           />
         </View>
+      </View>
+
+      {/* Notification Settings */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{TEXTS.notificationTitle}</Text>
+        
+        <View style={styles.switchRow}>
+          <View style={styles.switchTextContainer}>
+            <Text style={styles.switchLabel}>{TEXTS.notificationEnabled}</Text>
+            <Text style={styles.switchDescription}>{TEXTS.notificationDescription}</Text>
+          </View>
+          <Switch
+            value={settings.notificationEnabled}
+            onValueChange={toggleNotifications}
+            trackColor={{ false: '#767577', true: '#81b0ff' }}
+            thumbColor={settings.notificationEnabled ? '#f5dd4b' : '#f4f3f4'}
+          />
+        </View>
+
+        {settings.notificationEnabled && (
+          <View style={styles.timeInputContainer}>
+            <Text style={styles.inputLabel}>{TEXTS.notificationTimeLabel}</Text>
+            <Text style={styles.description}>{TEXTS.notificationTimeDescription}</Text>
+            <View style={styles.timeRow}>
+              <TextInput
+                style={styles.timeInput}
+                value={notificationTimeInput}
+                onChangeText={setNotificationTimeInput}
+                placeholder="07:00"
+                keyboardType="default"
+                maxLength={5}
+              />
+              <TouchableOpacity style={styles.updateTimeButton} onPress={updateNotificationTime}>
+                <Text style={styles.updateButtonText}>Update</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Reset Data */}
@@ -356,5 +442,30 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  timeInputContainer: {
+    marginTop: 15,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  timeInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: '#fff',
+    flex: 1,
+    textAlign: 'center',
+  },
+  updateTimeButton: {
+    backgroundColor: '#2196F3',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
   },
 });

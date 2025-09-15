@@ -8,6 +8,7 @@ import {
   ROUTINE_COLORS,
   ROUTINE_ICONS 
 } from '../types/routine';
+import { scheduleRoutineNotifications } from './notificationManager';
 
 export interface SettingsData {
   debugMode: boolean;
@@ -243,6 +244,10 @@ export const saveRoutines = async (routines: Routine[]): Promise<void> => {
     console.log('Routines saved to AsyncStorage successfully');
     await updateRoutineState(routines);
     console.log('Routine state updated successfully');
+    
+    // Reschedule notifications when routines change
+    await scheduleRoutineNotifications();
+    console.log('Notifications rescheduled after routine changes');
   } catch (error) {
     console.error('Error saving routines:', error);
     throw error;
@@ -271,6 +276,10 @@ export const createRoutine = async (request: CreateRoutineRequest): Promise<Rout
     
     const updatedRoutines = [...routines, newRoutine];
     await saveRoutines(updatedRoutines);
+    
+    // Reschedule notifications after creating new routine
+    await scheduleRoutineNotifications();
+    console.log('Notifications rescheduled after creating routine:', newRoutine.name);
     
     return newRoutine;
   } catch (error) {
@@ -304,6 +313,10 @@ export const updateRoutine = async (request: UpdateRoutineRequest): Promise<Rout
     routines[routineIndex] = updatedRoutine;
     await saveRoutines(routines);
     
+    // Reschedule notifications after updating routine
+    await scheduleRoutineNotifications();
+    console.log('Notifications rescheduled after updating routine:', updatedRoutine.name);
+    
     return updatedRoutine;
   } catch (error) {
     console.error('Error updating routine:', error);
@@ -330,6 +343,11 @@ export const deleteRoutine = async (routineId: string): Promise<boolean> => {
     console.log('Saving filtered routines after deletion...');
     await saveRoutines(filteredRoutines);
     console.log('Routine deleted successfully');
+    
+    // Reschedule notifications after deleting routine
+    await scheduleRoutineNotifications();
+    console.log('Notifications rescheduled after deleting routine:', routineId);
+    
     return true;
   } catch (error) {
     console.error('Error deleting routine:', error);

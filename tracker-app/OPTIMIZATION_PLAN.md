@@ -82,14 +82,14 @@ Flexibler Routine-Tracker für mehrere Gewohnheiten mit manueller Streak-Eingabe
 - [x] Color & Icon Customization
 - [x] Legacy Data Migration
 - [x] New Tab Navigation
+- [x] Manual Streak Input per Routine
+- [x] Delete-Funktionalität mit Bestätigung
+- [x] Debug-Funktionen für Troubleshooting
 
 **Dateien:** `types/routine.ts`, `app/(tabs)/routines.tsx`, `app/(tabs)/index.tsx`, `utils/settingsStorage.ts`, `app/(tabs)/_layout.tsx`
 **Abgeschlossen:** 2025-09-15
-- [ ] Individual Streak-Tracking
 
-**Dateien:** `types/routine.ts`, `utils/routineStorage.ts`, `app/(tabs)/index.tsx`
-
-### **PHASE 4: Enhanced Notifications** ⏳ Status: GEPLANT
+### **PHASE 4: Enhanced Notifications** 🚀 Status: IN ARBEIT
 **Ziel:** Intelligente, zeitbasierte Benachrichtigungen
 **Aufwand:** 2 Stunden
 
