@@ -24,6 +24,8 @@ import {
   requestNotificationPermissions 
 } from '@/utils/notificationManager';
 import { Routine, RoutineState } from '@/types/routine';
+import { Button, Card, Badge, ProgressBar } from '@/components/ui';
+import { Theme } from '@/constants/Theme';
 
 const TEXTS = {
   title: 'Routine Tracker',
@@ -281,12 +283,17 @@ export default function MultiRoutineTrackerScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      <Card style={styles.header} shadow="sm" borderRadius="xl">
         <Text style={styles.title}>{TEXTS.title}</Text>
         <Text style={styles.subtitle}>
           {TEXTS.subtitle(routineState.activeRoutineCount, routineState.totalStreakDays)}
         </Text>
-      </View>
+        <ProgressBar 
+          progress={routineState.totalStreakDays / Math.max(routineState.totalStreakDays + 10, 30)} 
+          style={styles.progressBar}
+          progressColor={Theme.Colors.primary[500]}
+        />
+      </Card>
 
       {routines.length === 0 ? (
         <ScrollView
@@ -312,13 +319,14 @@ export default function MultiRoutineTrackerScreen() {
             const isCompleted = isRoutineCompletedToday(routine);
             
             return (
-              <View
+              <Card
                 key={routine.id}
-                style={[
-                  styles.routineCard,
-                  { borderLeftColor: routine.color },
-                  isCompleted && styles.completedCard,
-                ]}
+                style={{
+                  ...styles.routineCard,
+                  borderLeftColor: routine.color, 
+                  borderLeftWidth: 4,
+                  ...(isCompleted && styles.completedCard)
+                }}
               >
                 <View style={styles.routineHeader}>
                   <View style={[styles.routineIconContainer, { backgroundColor: routine.color + '20' }]}>
@@ -342,27 +350,31 @@ export default function MultiRoutineTrackerScreen() {
                   </Text>
                   
                   {isCompleted ? (
-                    <View style={styles.completedBadge}>
-                      <Text style={styles.completedText}>{TEXTS.alreadyDone}</Text>
-                    </View>
+                    <Badge 
+                      count={routine.streak}
+                      variant="success"
+                      style={styles.completedBadge}
+                    />
                   ) : (
                     <View style={styles.actionButtons}>
-                      <TouchableOpacity
-                        style={[styles.actionButton, styles.skipButton]}
+                      <Button
+                        title={TEXTS.confirmNo}
+                        variant="warning"
+                        size="sm"
                         onPress={() => handleRoutineAction(routine, false)}
-                      >
-                        <Text style={styles.skipButtonText}>{TEXTS.confirmNo}</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.actionButton, styles.doneButton]}
+                        style={styles.actionButton}
+                      />
+                      <Button
+                        title={TEXTS.confirmYes}
+                        variant="success"
+                        size="sm"
                         onPress={() => handleRoutineAction(routine, true)}
-                      >
-                        <Text style={styles.doneButtonText}>{TEXTS.confirmYes}</Text>
-                      </TouchableOpacity>
+                        style={styles.actionButton}
+                      />
                     </View>
                   )}
                 </View>
-              </View>
+              </Card>
             );
           })}
         </ScrollView>
@@ -374,23 +386,22 @@ export default function MultiRoutineTrackerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Theme.Colors.gray[50],
   },
   header: {
-    padding: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    margin: Theme.Spacing.lg,
+    marginBottom: Theme.Spacing.md,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: Theme.Typography.fontSize['3xl'],
+    fontWeight: Theme.Typography.fontWeight.bold,
+    color: Theme.Colors.text.primary,
+    marginBottom: Theme.Spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
+    fontSize: Theme.Typography.fontSize.base,
+    color: Theme.Colors.text.secondary,
+    marginBottom: Theme.Spacing.sm,
   },
   loadingContainer: {
     flex: 1,
@@ -451,49 +462,42 @@ const styles = StyleSheet.create({
   },
   routineList: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: 0,
+    paddingTop: Theme.Spacing.sm,
   },
   routineCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    borderLeftWidth: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    marginHorizontal: Theme.Spacing.lg,
+    marginBottom: Theme.Spacing.lg,
+    padding: 0, // Card component handles padding
   },
   completedCard: {
-    backgroundColor: '#f8fff8',
+    backgroundColor: Theme.Colors.success[50],
     opacity: 0.8,
   },
   routineHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Theme.Spacing.lg,
   },
   routineIconContainer: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: Theme.BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: Theme.Spacing.lg,
   },
   routineIcon: {
-    fontSize: 24,
+    fontSize: Theme.Typography.fontSize['2xl'],
   },
   routineInfo: {
     flex: 1,
   },
   routineName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: Theme.Typography.fontSize.xl,
+    fontWeight: Theme.Typography.fontWeight.bold,
+    color: Theme.Colors.text.primary,
+    marginBottom: Theme.Spacing.xs,
   },
   routineDescription: {
     fontSize: 14,
@@ -518,43 +522,14 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 4,
+    gap: Theme.Spacing.sm,
+    marginTop: Theme.Spacing.sm,
   },
   actionButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    minWidth: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  doneButton: {
-    backgroundColor: '#4CAF50',
-  },
-  doneButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  skipButton: {
-    backgroundColor: '#ff4444',
-  },
-  skipButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    flex: 1,
   },
   completedBadge: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  completedText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    alignSelf: 'flex-start',
   },
   deleteButton: {
     width: 32,
@@ -570,5 +545,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     lineHeight: 20,
+  },
+  progressBar: {
+    marginTop: Theme.Spacing.md,
+    height: 6,
   },
 });
