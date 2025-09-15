@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "Morgenroutine Tracker",
-    "slug": "morgenroutine-tracker",
+    "name": "Routine Tracker",
+    "slug": "routine-tracker",
     "version": "1.0.0",
-    "description": "Tracke deine Morgenroutine mit einem einfachen Streak-Zähler und täglichen Erinnerungen",
+    "description": "Track your daily routines with simple streak counters and daily reminders",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "morgenroutine",
+    "scheme": "routine-tracker",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.trackerapp.morgenroutine"
+      "bundleIdentifier": "com.routinetracker.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +19,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.trackerapp.morgenroutine"
+      "package": "com.routinetracker.app"
     },
     "web": {
       "bundler": "metro",
@@ -47,6 +47,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d0f268d8-e327-4def-90fc-ac35f67e19ae"
+      }
     }
   }
 }

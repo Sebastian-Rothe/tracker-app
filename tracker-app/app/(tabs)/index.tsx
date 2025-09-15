@@ -1,13 +1,29 @@
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, Button, StyleSheet, Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { StreakWidget, updateStreakWidget } from '@/components/StreakWidget';
+import { loadSettings, loadStreak, loadLastConfirmed, saveStreak, saveLastConfirmed, SettingsData } from '@/utils/settingsStorage';
 
 const STREAK_KEY = 'streak';
 const LAST_CONFIRMED_KEY = 'lastConfirmed';
-const DEBUG_MODE = false; // Setze auf true für Debug-Button
+
+// English text constants
+const TEXTS = {
+  streakText: (days: number) => `🔥 ${days} days in a row`,
+  buttonYes: 'Yes',
+  buttonNo: 'No',
+  infoText: 'Only one click per day needed – super simple!',
+  resetButton: 'Reset Streak',
+  lastCheck: 'Last check:',
+  alreadyConfirmed: 'Already confirmed!',
+  alreadyConfirmedMessage: 'You have already confirmed your routine today.',
+  permissionRequired: 'Permission Required',
+  permissionMessage: 'Please allow notifications for the app.',
+  notificationTitle: 'Daily Routine',
+  notificationBody: 'Did you complete your routine today? 🔥',
+};
 
 function getTodayString() {
   const today = new Date();
@@ -18,9 +34,10 @@ export default function HomeScreen() {
   const [streak, setStreak] = useState(0);
   const [lastConfirmed, setLastConfirmed] = useState('');
   const [today, setToday] = useState(getTodayString());
+  const [settings, setSettings] = useState<SettingsData>({ debugMode: false, notificationEnabled: true });
 
   useEffect(() => {
-    loadStreak();
+    loadData();
     requestNotificationPermission();
     scheduleNotification();
   }, []);
@@ -29,17 +46,31 @@ export default function HomeScreen() {
     checkStreakReset();
   }, [today, lastConfirmed]);
 
-  async function loadStreak() {
-    const streakValue = await AsyncStorage.getItem(STREAK_KEY);
-    const lastDate = await AsyncStorage.getItem(LAST_CONFIRMED_KEY);
-    setStreak(streakValue ? parseInt(streakValue) : 0);
-    setLastConfirmed(lastDate || '');
+  async function loadData() {
+    try {
+      const [streakValue, lastDate, settingsData] = await Promise.all([
+        loadStreak(),
+        loadLastConfirmed(),
+        loadSettings(),
+      ]);
+      
+      setStreak(streakValue);
+      setLastConfirmed(lastDate || '');
+      setSettings(settingsData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
   }
 
   async function requestNotificationPermission() {
+    // Skip notifications on web platform
+    if (Platform.OS === 'web') {
+      return;
+    }
+    
     const { status } = await Notifications.requestPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Berechtigung erforderlich', 'Bitte erlaube Benachrichtigungen für die App.');
+      Alert.alert(TEXTS.permissionRequired, TEXTS.permissionMessage);
     }
   }
 
@@ -51,7 +82,7 @@ export default function HomeScreen() {
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().slice(0, 10);
       if (lastConfirmed !== yesterdayStr) {
-        await AsyncStorage.setItem(STREAK_KEY, '0');
+        await saveStreak(0);
         setStreak(0);
       }
     }
@@ -60,40 +91,45 @@ export default function HomeScreen() {
   async function confirmRoutine(didRoutine: boolean) {
     if (didRoutine) {
       if (lastConfirmed === today) {
-        Alert.alert('Schon bestätigt!', 'Du hast heute bereits deine Routine bestätigt.');
+        Alert.alert(TEXTS.alreadyConfirmed, TEXTS.alreadyConfirmedMessage);
         return;
       }
       const newStreak = streak + 1;
-      await AsyncStorage.setItem(STREAK_KEY, newStreak.toString());
-      await AsyncStorage.setItem(LAST_CONFIRMED_KEY, today);
+      await saveStreak(newStreak);
+      await saveLastConfirmed(today);
       setStreak(newStreak);
       setLastConfirmed(today);
       
-      // Widget aktualisieren
+      // Update widget
       await updateStreakWidget(newStreak);
     } else {
-      await AsyncStorage.setItem(STREAK_KEY, '0');
+      await saveStreak(0);
       setStreak(0);
       setLastConfirmed('');
       
-      // Widget aktualisieren
+      // Update widget
       await updateStreakWidget(0);
     }
   }
 
   async function scheduleNotification() {
+    // Skip notifications on web platform
+    if (Platform.OS === 'web') {
+      return;
+    }
+    
     await Notifications.cancelAllScheduledNotificationsAsync();
     
-    // PRODUKTIV-MODUS: Alle 24 Stunden (täglich um 7 Uhr)
+    // PRODUCTION MODE: Every 24 hours (daily at 7 AM)
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Morgenroutine',
-        body: 'Hast du deine Morgenroutine gemacht? 🔥',
+        title: TEXTS.notificationTitle,
+        body: TEXTS.notificationBody,
         data: { routine: true },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: 86400, // 24 Stunden
+        seconds: 86400, // 24 hours
         repeats: true,
       },
     });
@@ -102,18 +138,18 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <StreakWidget />
-      <Text style={styles.streakText}>🔥 {streak} Tage in Folge</Text>
+      <Text style={styles.streakText}>{TEXTS.streakText(streak)}</Text>
       <View style={styles.buttonRow}>
-        <Button title="Ja" onPress={() => confirmRoutine(true)} color="#4CAF50" />
-        <Button title="Nein" onPress={() => confirmRoutine(false)} color="#F44336" />
+        <Button title={TEXTS.buttonYes} onPress={() => confirmRoutine(true)} color="#4CAF50" />
+        <Button title={TEXTS.buttonNo} onPress={() => confirmRoutine(false)} color="#F44336" />
       </View>
-      <Text style={styles.infoText}>Nur ein Klick pro Tag nötig – super einfach!</Text>
-      {DEBUG_MODE && (
+      <Text style={styles.infoText}>{TEXTS.infoText}</Text>
+      {settings.debugMode && (
         <View style={styles.debugRow}>
-          <Button title="Reset Streak" onPress={() => {setStreak(0); AsyncStorage.setItem(STREAK_KEY, '0'); updateStreakWidget(0);}} color="#FF9800" />
+          <Button title={TEXTS.resetButton} onPress={() => {setStreak(0); AsyncStorage.setItem(STREAK_KEY, '0'); updateStreakWidget(0);}} color="#FF9800" />
         </View>
       )}
-      {DEBUG_MODE && <Text style={styles.debugText}>Letzter Check: {lastConfirmed}</Text>}
+      {settings.debugMode && <Text style={styles.debugText}>{TEXTS.lastCheck} {lastConfirmed}</Text>}
     </View>
   );
 }

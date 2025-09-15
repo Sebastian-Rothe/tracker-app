@@ -1,0 +1,360 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  Switch,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STREAK_KEY = 'streak';
+const LAST_CONFIRMED_KEY = 'lastConfirmed';
+const SETTINGS_KEY = 'settings';
+
+// Settings texts
+const TEXTS = {
+  title: 'Settings',
+  manualStreakTitle: 'Manual Streak Input',
+  manualStreakDescription: 'If you\'ve been following your routine before using this app, you can set your current streak here.',
+  currentStreak: 'Current Streak:',
+  newStreakLabel: 'Enter new streak:',
+  newStreakPlaceholder: '0',
+  updateStreakButton: 'Update Streak',
+  resetDataTitle: 'Reset Data',
+  resetDataDescription: 'This will permanently delete all your progress.',
+  resetButton: 'Reset All Data',
+  confirmReset: 'Confirm Reset',
+  confirmResetMessage: 'Are you sure you want to reset all data? This cannot be undone.',
+  cancel: 'Cancel',
+  success: 'Success',
+  streakUpdated: 'Streak updated successfully!',
+  dataReset: 'All data has been reset.',
+  invalidInput: 'Invalid Input',
+  invalidInputMessage: 'Please enter a valid number between 0 and 9999.',
+  debugTitle: 'Debug Settings',
+  debugMode: 'Debug Mode',
+  debugDescription: 'Show debug information and reset button on main screen.',
+};
+
+interface SettingsData {
+  debugMode: boolean;
+}
+
+const defaultSettings: SettingsData = {
+  debugMode: false,
+};
+
+export default function SettingsScreen() {
+  const [currentStreak, setCurrentStreak] = useState<number>(0);
+  const [newStreakInput, setNewStreakInput] = useState<string>('');
+  const [settings, setSettings] = useState<SettingsData>(defaultSettings);
+  const [lastConfirmed, setLastConfirmed] = useState<string>('');
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      // Load current streak
+      const streakValue = await AsyncStorage.getItem(STREAK_KEY);
+      const streak = streakValue ? parseInt(streakValue, 10) : 0;
+      setCurrentStreak(streak);
+
+      // Load last confirmed date
+      const lastDate = await AsyncStorage.getItem(LAST_CONFIRMED_KEY);
+      setLastConfirmed(lastDate || 'Never');
+
+      // Load settings
+      const settingsValue = await AsyncStorage.getItem(SETTINGS_KEY);
+      if (settingsValue) {
+        const parsedSettings = JSON.parse(settingsValue);
+        setSettings({ ...defaultSettings, ...parsedSettings });
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  };
+
+  const saveSettings = async (newSettings: SettingsData) => {
+    try {
+      await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+      setSettings(newSettings);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    }
+  };
+
+  const validateStreakInput = (input: string): number | null => {
+    const num = parseInt(input, 10);
+    if (isNaN(num) || num < 0 || num > 9999) {
+      return null;
+    }
+    return num;
+  };
+
+  const updateStreak = async () => {
+    const newStreak = validateStreakInput(newStreakInput);
+    
+    if (newStreak === null) {
+      Alert.alert(TEXTS.invalidInput, TEXTS.invalidInputMessage);
+      return;
+    }
+
+    try {
+      await AsyncStorage.setItem(STREAK_KEY, newStreak.toString());
+      
+      // If setting a new streak, also update the last confirmed date to today
+      if (newStreak > 0) {
+        const today = new Date().toISOString().slice(0, 10);
+        await AsyncStorage.setItem(LAST_CONFIRMED_KEY, today);
+        setLastConfirmed(today);
+      }
+      
+      setCurrentStreak(newStreak);
+      setNewStreakInput('');
+      Alert.alert(TEXTS.success, TEXTS.streakUpdated);
+    } catch (error) {
+      console.error('Error updating streak:', error);
+      Alert.alert('Error', 'Failed to update streak. Please try again.');
+    }
+  };
+
+  const resetAllData = () => {
+    Alert.alert(
+      TEXTS.confirmReset,
+      TEXTS.confirmResetMessage,
+      [
+        { text: TEXTS.cancel, style: 'cancel' },
+        { 
+          text: TEXTS.confirmReset, 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AsyncStorage.multiRemove([STREAK_KEY, LAST_CONFIRMED_KEY, SETTINGS_KEY]);
+              setCurrentStreak(0);
+              setLastConfirmed('Never');
+              setSettings(defaultSettings);
+              setNewStreakInput('');
+              Alert.alert(TEXTS.success, TEXTS.dataReset);
+            } catch (error) {
+              console.error('Error resetting data:', error);
+              Alert.alert('Error', 'Failed to reset data. Please try again.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const toggleDebugMode = (value: boolean) => {
+    const newSettings = { ...settings, debugMode: value };
+    saveSettings(newSettings);
+  };
+
+  const formatDate = (dateString: string) => {
+    if (dateString === 'Never') return dateString;
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <Text style={styles.title}>{TEXTS.title}</Text>
+
+      {/* Current Status */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Current Status</Text>
+        <View style={styles.statusRow}>
+          <Text style={styles.statusLabel}>{TEXTS.currentStreak}</Text>
+          <Text style={styles.statusValue}>🔥 {currentStreak} days</Text>
+        </View>
+        <View style={styles.statusRow}>
+          <Text style={styles.statusLabel}>Last Check:</Text>
+          <Text style={styles.statusValue}>{formatDate(lastConfirmed)}</Text>
+        </View>
+      </View>
+
+      {/* Manual Streak Input */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{TEXTS.manualStreakTitle}</Text>
+        <Text style={styles.description}>{TEXTS.manualStreakDescription}</Text>
+        
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>{TEXTS.newStreakLabel}</Text>
+          <TextInput
+            style={styles.textInput}
+            value={newStreakInput}
+            onChangeText={setNewStreakInput}
+            placeholder={TEXTS.newStreakPlaceholder}
+            keyboardType="numeric"
+            maxLength={4}
+          />
+          <TouchableOpacity style={styles.updateButton} onPress={updateStreak}>
+            <Text style={styles.updateButtonText}>{TEXTS.updateStreakButton}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Debug Settings */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{TEXTS.debugTitle}</Text>
+        <View style={styles.switchRow}>
+          <View style={styles.switchTextContainer}>
+            <Text style={styles.switchLabel}>{TEXTS.debugMode}</Text>
+            <Text style={styles.switchDescription}>{TEXTS.debugDescription}</Text>
+          </View>
+          <Switch
+            value={settings.debugMode}
+            onValueChange={toggleDebugMode}
+            trackColor={{ false: '#767577', true: '#81b0ff' }}
+            thumbColor={settings.debugMode ? '#f5dd4b' : '#f4f3f4'}
+          />
+        </View>
+      </View>
+
+      {/* Reset Data */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{TEXTS.resetDataTitle}</Text>
+        <Text style={styles.description}>{TEXTS.resetDataDescription}</Text>
+        
+        <TouchableOpacity style={styles.resetButton} onPress={resetAllData}>
+          <Text style={styles.resetButtonText}>{TEXTS.resetButton}</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  contentContainer: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: 'center',
+    color: '#333',
+  },
+  section: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#333',
+  },
+  description: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 15,
+    lineHeight: 22,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  statusLabel: {
+    fontSize: 16,
+    color: '#666',
+  },
+  statusValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  inputContainer: {
+    marginTop: 10,
+  },
+  inputLabel: {
+    fontSize: 16,
+    marginBottom: 8,
+    color: '#333',
+    fontWeight: '500',
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 15,
+    backgroundColor: '#fff',
+  },
+  updateButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  updateButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  switchTextContainer: {
+    flex: 1,
+    marginRight: 15,
+  },
+  switchLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 4,
+  },
+  switchDescription: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 18,
+  },
+  resetButton: {
+    backgroundColor: '#f44336',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  resetButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
