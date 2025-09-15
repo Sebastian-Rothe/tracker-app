@@ -14,9 +14,7 @@ import {
   loadRoutines, 
   confirmRoutine, 
   loadRoutineState,
-  checkAndUpdateStreaks,
-  performAutoMigration,
-  deleteRoutine
+  checkAndUpdateStreaks 
 } from '@/utils/settingsStorage';
 import { Routine, RoutineState } from '@/types/routine';
 
@@ -49,11 +47,6 @@ const TEXTS = {
   loading: 'Loading routines...',
   errorLoading: 'Error loading routines',
   retryLoading: 'Tap to retry',
-  deleteRoutine: 'Delete Routine',
-  deleteConfirmTitle: 'Delete Routine?',
-  deleteConfirmMessage: (name: string) => `Are you sure you want to delete "${name}"? This will permanently remove all streak data.`,
-  routineDeleted: 'Routine Deleted',
-  routineDeletedMessage: (name: string) => `"${name}" has been deleted successfully.`,
 };
 
 export default function MultiRoutineTrackerScreen() {
@@ -76,12 +69,8 @@ export default function MultiRoutineTrackerScreen() {
 
   const loadData = async (isRefresh = false) => {
     try {
-      console.log('loadData called, isRefresh:', isRefresh);
       if (!isRefresh) setIsLoading(true);
       setError(null);
-
-      // Perform auto-migration from legacy data if needed
-      await performAutoMigration();
 
       // Check and update streaks for missed days
       await checkAndUpdateStreaks();
@@ -92,13 +81,8 @@ export default function MultiRoutineTrackerScreen() {
         loadRoutineState(),
       ]);
 
-      console.log('Loaded routines from storage:', loadedRoutines);
-      console.log('Loaded state from storage:', state);
-
       setRoutines(loadedRoutines.filter(r => r.isActive));
       setRoutineState(state);
-      
-      console.log('State updated - routines count:', loadedRoutines.filter(r => r.isActive).length);
     } catch (error) {
       console.error('Error loading routine data:', error);
       setError('Failed to load routines');
@@ -114,14 +98,6 @@ export default function MultiRoutineTrackerScreen() {
   };
 
   const handleRoutineAction = (routine: Routine, completed: boolean) => {
-    console.log('Button pressed:', routine.name, completed ? 'completed' : 'skipped');
-    
-    // For debugging: directly call confirmRoutineAction without Alert
-    // TODO: Add back Alert or make it optional in settings
-    confirmRoutineAction(routine, completed);
-    
-    // Original Alert code commented out for debugging:
-    /*
     Alert.alert(
       TEXTS.confirmationTitle,
       TEXTS.confirmationMessage(routine.name),
@@ -134,14 +110,11 @@ export default function MultiRoutineTrackerScreen() {
         },
       ]
     );
-    */
   };
 
   const confirmRoutineAction = async (routine: Routine, completed: boolean) => {
     try {
-      console.log('confirmRoutineAction called:', routine.name, completed);
       const updatedRoutine = await confirmRoutine(routine.id, completed);
-      console.log('confirmRoutine returned:', updatedRoutine);
       
       if (updatedRoutine) {
         if (completed) {
@@ -159,12 +132,9 @@ export default function MultiRoutineTrackerScreen() {
         }
         
         // Reload data to reflect changes
-        console.log('Reloading data...');
         await loadData();
-        console.log('Data reloaded');
       }
     } catch (error) {
-      console.error('Error in confirmRoutineAction:', error);
       if (error instanceof Error && error.message.includes('already confirmed')) {
         Alert.alert(
           TEXTS.alreadyConfirmed,
@@ -172,42 +142,8 @@ export default function MultiRoutineTrackerScreen() {
         );
       } else {
         console.error('Error confirming routine:', error);
-        Alert.alert('Error', `Failed to update routine: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        Alert.alert('Error', 'Failed to update routine. Please try again.');
       }
-    }
-  };
-
-  const handleDeleteRoutine = (routine: Routine) => {
-    Alert.alert(
-      TEXTS.deleteConfirmTitle,
-      TEXTS.deleteConfirmMessage(routine.name),
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => confirmDeleteRoutine(routine),
-        },
-      ]
-    );
-  };
-
-  const confirmDeleteRoutine = async (routine: Routine) => {
-    try {
-      console.log('confirmDeleteRoutine called for:', routine.name);
-      await deleteRoutine(routine.id);
-      console.log('deleteRoutine completed successfully');
-      Alert.alert(
-        TEXTS.routineDeleted,
-        TEXTS.routineDeletedMessage(routine.name),
-        [{ text: 'OK', style: 'default' }]
-      );
-      console.log('Reloading data after delete...');
-      await loadData();
-      console.log('Data reloaded after delete');
-    } catch (error) {
-      console.error('Error deleting routine:', error);
-      Alert.alert('Error', 'Failed to delete routine. Please try again.');
     }
   };
 
@@ -311,7 +247,6 @@ export default function MultiRoutineTrackerScreen() {
                       🔥 {TEXTS.streakDays(routine.streak)}
                     </Text>
                   </View>
-                  {/* Delete button removed from tracker - only available in routines management */}
                 </View>
 
                 <View style={styles.routineFooter}>
@@ -497,15 +432,13 @@ const styles = StyleSheet.create({
   actionButtons: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 4,
   },
   actionButton: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 20,
     minWidth: 80,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   doneButton: {
     backgroundColor: '#4CAF50',
@@ -533,20 +466,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
-  },
-  deleteButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#ff4444',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  deleteButtonText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    lineHeight: 20,
   },
 });
