@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  SafeAreaView,
   RefreshControl,
+  Platform,
+  Dimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { 
   loadRoutines, 
@@ -18,6 +20,7 @@ import {
   performAutoMigration,
   deleteRoutine
 } from '@/utils/settingsStorage';
+import { StreakCounter, AchievementBadge, StatsGrid } from '../../components/ProgressIndicators';
 import { 
   scheduleRoutineNotifications,
   setupNotificationHandlers,
@@ -64,6 +67,33 @@ const TEXTS = {
 };
 
 export default function MultiRoutineTrackerScreen() {
+  const insets = useSafeAreaInsets();
+  const screenHeight = Dimensions.get('window').height;
+  
+  // Enhanced bottom padding calculation for Android
+  const getBottomPadding = () => {
+    if (Platform.OS === 'ios') {
+      return Math.max(insets.bottom + 20, 120);
+    }
+    
+    // Android: Account for different navigation modes AND our dynamic tab bar
+    const hasPhysicalNavBar = insets.bottom === 0; // Physical buttons
+    const hasGestureNav = insets.bottom > 0; // Gesture navigation
+    const tabBarHeight = 70; // Our tab bar base height
+    const systemNavSpace = Math.max(insets.bottom, 0); // System navigation space
+    
+    if (hasPhysicalNavBar) {
+      // Physical buttons: Tab bar + extra space for hardware buttons
+      return tabBarHeight + 50; // More space for physical buttons
+    } else if (hasGestureNav) {
+      // Gesture navigation: Tab bar + system space + buffer
+      return tabBarHeight + systemNavSpace + 30; // Account for gesture area
+    } else {
+      // Fallback: safe default
+      return tabBarHeight + 60;
+    }
+  };
+
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [routineState, setRoutineState] = useState<RoutineState>({
     routines: [],
@@ -73,6 +103,7 @@ export default function MultiRoutineTrackerScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [completionTriggers, setCompletionTriggers] = useState<{ [key: string]: boolean }>({});
 
   // Load data when screen comes into focus
   useFocusEffect(
@@ -164,6 +195,15 @@ export default function MultiRoutineTrackerScreen() {
   const confirmRoutineAction = async (routine: Routine, completed: boolean) => {
     try {
       console.log('confirmRoutineAction called:', routine.name, completed);
+      
+      // Trigger bounce animation for completion
+      if (completed) {
+        setCompletionTriggers(prev => ({ ...prev, [routine.id]: true }));
+        setTimeout(() => {
+          setCompletionTriggers(prev => ({ ...prev, [routine.id]: false }));
+        }, 500);
+      }
+      
       const updatedRoutine = await confirmRoutine(routine.id, completed);
       console.log('confirmRoutine returned:', updatedRoutine);
       
@@ -260,74 +300,153 @@ export default function MultiRoutineTrackerScreen() {
 
   if (isLoading && !isRefreshing) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { 
+        paddingTop: insets.top, 
+        paddingBottom: Math.max(insets.bottom, 20), 
+        paddingLeft: insets.left, 
+        paddingRight: insets.right 
+      }]}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>{TEXTS.loading}</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (error && !isRefreshing) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { 
+        paddingTop: insets.top, 
+        paddingBottom: Math.max(insets.bottom, 20), 
+        paddingLeft: insets.left, 
+        paddingRight: insets.right 
+      }]}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{TEXTS.errorLoading}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => loadData()}>
             <Text style={styles.retryButtonText}>{TEXTS.retryLoading}</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Card style={styles.header} shadow="sm" borderRadius="xl">
-        <Text style={styles.title}>{TEXTS.title}</Text>
-        <Text style={styles.subtitle}>
-          {TEXTS.subtitle(routineState.activeRoutineCount, routineState.totalStreakDays)}
-        </Text>
-        <ProgressBar 
-          progress={routineState.totalStreakDays / Math.max(routineState.totalStreakDays + 10, 30)} 
-          style={styles.progressBar}
-          progressColor={Theme.Colors.primary[500]}
-        />
-      </Card>
+    <View style={[styles.container, { paddingTop: insets.top, paddingLeft: insets.left, paddingRight: insets.right }]}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: getBottomPadding() }]}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        <Card style={styles.header} shadow="sm" borderRadius="xl">
+          <Text style={styles.title}>{TEXTS.title}</Text>
+          <Text style={styles.subtitle}>
+            {TEXTS.subtitle(routineState.activeRoutineCount, routineState.totalStreakDays)}
+          </Text>
+          <ProgressBar 
+            progress={routineState.totalStreakDays / Math.max(routineState.totalStreakDays + 10, 30)} 
+            style={styles.progressBar}
+            progressColor={Theme.Colors.primary[500]}
+            animated={true}
+          />
+        </Card>
 
-      {routines.length === 0 ? (
-        <ScrollView
-          contentContainerStyle={styles.emptyContainer}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-          }
-        >
+        {/* Enhanced Progress Indicators */}
+        <View style={styles.progressIndicatorsContainer}>
+          {/* Streak Counter */}
+          <StreakCounter
+            count={routineState.totalStreakDays}
+            variant="fire"
+            animated={true}
+            style={styles.streakIndicator}
+          />
+
+          {/* Stats Grid */}
+          <StatsGrid
+            stats={[
+              {
+                label: 'Active Routines',
+                value: routineState.activeRoutineCount,
+                icon: '🎯',
+                color: Theme.Colors.primary[500],
+              },
+              {
+                label: 'Completed Today',
+                value: routines.filter(r => isRoutineCompletedToday(r)).length,
+                icon: '✅',
+                color: Theme.Colors.success[500],
+              },
+              {
+                label: 'Current Streak',
+                value: routineState.totalStreakDays,
+                icon: '🔥',
+                color: Theme.Colors.warning[500],
+              },
+              {
+                label: 'Total Routines',
+                value: routines.length,
+                icon: '📊',
+                color: Theme.Colors.info[500],
+              },
+            ]}
+            animated={true}
+            style={styles.statsGrid}
+          />
+
+          {/* Achievement Badges */}
+          <View style={styles.achievementsContainer}>
+            <AchievementBadge
+              title="First Steps"
+              description="Complete your first routine"
+              icon="🚀"
+              unlocked={routineState.totalStreakDays > 0}
+              animated={true}
+            />
+            <AchievementBadge
+              title="Week Warrior"
+              description="Maintain a 7-day streak"
+              icon="⚔️"
+              unlocked={routineState.totalStreakDays >= 7}
+              progress={Math.min(routineState.totalStreakDays / 7, 1)}
+              animated={true}
+            />
+            <AchievementBadge
+              title="Consistency Champion"
+              description="Maintain a 30-day streak"
+              icon="👑"
+              unlocked={routineState.totalStreakDays >= 30}
+              progress={Math.min(routineState.totalStreakDays / 30, 1)}
+              animated={true}
+            />
+          </View>
+        </View>
+
+        {routines.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>📝</Text>
             <Text style={styles.emptyText}>{TEXTS.noRoutines}</Text>
             <Text style={styles.emptySubtext}>{TEXTS.noRoutinesSubtext}</Text>
           </View>
-        </ScrollView>
-      ) : (
-        <ScrollView
-          style={styles.routineList}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-          }
-        >
-          {routines.map((routine) => {
-            const isCompleted = isRoutineCompletedToday(routine);
-            
-            return (
-              <Card
-                key={routine.id}
-                style={{
-                  ...styles.routineCard,
-                  borderLeftColor: routine.color, 
-                  borderLeftWidth: 4,
-                  ...(isCompleted && styles.completedCard)
-                }}
-              >
+        ) : (
+          <View style={styles.routineListContainer}>
+            {routines.map((routine, index) => {
+              const isCompleted = isRoutineCompletedToday(routine);
+              
+              return (
+                <View 
+                  key={routine.id}
+                >
+                  <Card
+                    style={{
+                      ...styles.routineCard,
+                      borderLeftColor: routine.color, 
+                      borderLeftWidth: 4,
+                      ...(isCompleted && styles.completedCard)
+                    }}
+                  >
                 <View style={styles.routineHeader}>
                   <View style={[styles.routineIconContainer, { backgroundColor: routine.color + '20' }]}>
                     <Text style={styles.routineIcon}>{routine.icon}</Text>
@@ -373,13 +492,15 @@ export default function MultiRoutineTrackerScreen() {
                       />
                     </View>
                   )}
+                    </View>
+                  </Card>
                 </View>
-              </Card>
-            );
-          })}
-        </ScrollView>
-      )}
-    </SafeAreaView>
+              );
+            })}
+          </View>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -387,6 +508,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Theme.Colors.gray[50],
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 120, // Will be overridden by dynamic padding
+    flexGrow: 1,
   },
   header: {
     margin: Theme.Spacing.lg,
@@ -549,5 +677,22 @@ const styles = StyleSheet.create({
   progressBar: {
     marginTop: Theme.Spacing.md,
     height: 6,
+  },
+  progressIndicatorsContainer: {
+    paddingHorizontal: Theme.Spacing.lg,
+    paddingVertical: Theme.Spacing.md,
+  },
+  streakIndicator: {
+    marginBottom: Theme.Spacing.lg,
+  },
+  statsGrid: {
+    marginBottom: Theme.Spacing.lg,
+  },
+  achievementsContainer: {
+    marginBottom: Theme.Spacing.lg,
+  },
+  routineListContainer: {
+    flex: 1,
+    paddingBottom: Theme.Spacing.lg,
   },
 });

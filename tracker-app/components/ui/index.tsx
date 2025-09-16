@@ -1,6 +1,6 @@
 /**
  * Modern UI Components for Enhanced UX
- * Based on the new Design System
+ * Based on the new Design System (simplified without animations)
  */
 
 import React from 'react';
@@ -28,7 +28,7 @@ export interface ButtonProps extends TouchableOpacityProps {
   iconPosition?: 'left' | 'right';
 }
 
-// Modern Button Component
+// Modern Button Component (Simplified)
 export const Button: React.FC<ButtonProps> = ({
   title,
   variant = 'primary',
@@ -167,13 +167,14 @@ export interface ProgressBarProps {
   style?: ViewStyle;
 }
 
-// Modern Progress Bar Component
+// Modern Progress Bar Component (Simplified)
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   progress,
   height = 8,
   backgroundColor = Theme.Colors.gray[200],
   progressColor = Theme.Colors.success[500],
   borderRadius = Theme.BorderRadius.full,
+  animated = true,
   style,
 }) => {
   const clampedProgress = Math.max(0, Math.min(1, progress));
@@ -194,9 +195,9 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         style={[
           styles.progressBar,
           {
-            width: `${clampedProgress * 100}%`,
             backgroundColor: progressColor,
             borderRadius,
+            width: `${clampedProgress * 100}%`,
           },
         ]}
       />

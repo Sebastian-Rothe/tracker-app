@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { Routine } from '@/types/routine';
-import { loadRoutines, loadSettings } from './settingsStorage';
+import { NotificationScheduleData } from '@/types/notifications';
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -116,12 +116,19 @@ export const scheduleDailyNotification = async (
         body,
         data: data || {},
       },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-        hour: hours,
-        minute: minutes,
-        repeats: true,
-      },
+      trigger: Platform.OS === 'ios' 
+        ? {
+            type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+            hour: hours,
+            minute: minutes,
+            repeats: true,
+          } as any
+        : {
+            type: Notifications.SchedulableTriggerInputTypes.DAILY,
+            hour: hours,
+            minute: minutes,
+            channelId: 'default',
+          } as any,
     });
 
     console.log('Notification scheduled with ID:', notificationId);
@@ -152,18 +159,18 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
       return;
     }
 
-    // Load settings and routines
-    const settings = await loadSettings();
-    const routines = await loadRoutines();
-    const activeRoutines = routines.filter(r => r.isActive);
+    // Load data from external source (breaks circular dependency)
+    const dataLoader = (await import('./settingsStorage')).getNotificationData;
+    const { routines, settings } = await dataLoader();
+    const activeRoutines = routines.filter((r: Routine) => r.isActive);
 
-    if (!settings.notificationEnabled || activeRoutines.length === 0) {
+    if (!settings.enabled || activeRoutines.length === 0) {
       console.log('Notifications disabled or no active routines');
       return;
     }
 
     // Prepare notification content
-    const routineNames = activeRoutines.map(r => r.name).join(', ');
+    const routineNames = activeRoutines.map((r: Routine) => r.name).join(', ');
     const title = activeRoutines.length === 1 
       ? `Time for your routine!`
       : `Time for your routines!`;
@@ -173,13 +180,13 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
       : `Don't forget: ${routineNames}`;
 
     // Schedule notification
-    const notificationTime = settings.notificationTime || '07:00';
+    const notificationTime = settings.time || '07:00';
     await scheduleDailyNotification(
       notificationTime,
       title,
       body,
       { 
-        routines: activeRoutines.map(r => ({ id: r.id, name: r.name })),
+        routines: activeRoutines.map((r: Routine) => ({ id: r.id, name: r.name })),
         type: 'routine_reminder'
       }
     );

@@ -8,7 +8,7 @@ import {
   ROUTINE_COLORS,
   ROUTINE_ICONS 
 } from '../types/routine';
-import { scheduleRoutineNotifications } from './notificationManager';
+import { NotificationScheduleData } from '../types/notifications';
 
 export interface SettingsData {
   debugMode: boolean;
@@ -245,9 +245,16 @@ export const saveRoutines = async (routines: Routine[]): Promise<void> => {
     await updateRoutineState(routines);
     console.log('Routine state updated successfully');
     
-    // Reschedule notifications when routines change
-    await scheduleRoutineNotifications();
-    console.log('Notifications rescheduled after routine changes');
+    // Reschedule notifications when routines change (async to avoid circular dependency)
+    setTimeout(async () => {
+      try {
+        const { scheduleRoutineNotifications } = await import('./notificationManager');
+        await scheduleRoutineNotifications();
+        console.log('Notifications rescheduled after routine changes');
+      } catch (error) {
+        console.warn('Failed to reschedule notifications:', error);
+      }
+    }, 0);
   } catch (error) {
     console.error('Error saving routines:', error);
     throw error;
@@ -277,9 +284,16 @@ export const createRoutine = async (request: CreateRoutineRequest): Promise<Rout
     const updatedRoutines = [...routines, newRoutine];
     await saveRoutines(updatedRoutines);
     
-    // Reschedule notifications after creating new routine
-    await scheduleRoutineNotifications();
-    console.log('Notifications rescheduled after creating routine:', newRoutine.name);
+    // Reschedule notifications after creating new routine (async to avoid circular dependency)
+    setTimeout(async () => {
+      try {
+        const { scheduleRoutineNotifications } = await import('./notificationManager');
+        await scheduleRoutineNotifications();
+        console.log('Notifications rescheduled after creating routine:', newRoutine.name);
+      } catch (error) {
+        console.warn('Failed to reschedule notifications:', error);
+      }
+    }, 0);
     
     return newRoutine;
   } catch (error) {
@@ -313,9 +327,16 @@ export const updateRoutine = async (request: UpdateRoutineRequest): Promise<Rout
     routines[routineIndex] = updatedRoutine;
     await saveRoutines(routines);
     
-    // Reschedule notifications after updating routine
-    await scheduleRoutineNotifications();
-    console.log('Notifications rescheduled after updating routine:', updatedRoutine.name);
+    // Reschedule notifications after updating routine (async to avoid circular dependency)
+    setTimeout(async () => {
+      try {
+        const { scheduleRoutineNotifications } = await import('./notificationManager');
+        await scheduleRoutineNotifications();
+        console.log('Notifications rescheduled after updating routine:', updatedRoutine.name);
+      } catch (error) {
+        console.warn('Failed to reschedule notifications:', error);
+      }
+    }, 0);
     
     return updatedRoutine;
   } catch (error) {
@@ -344,9 +365,16 @@ export const deleteRoutine = async (routineId: string): Promise<boolean> => {
     await saveRoutines(filteredRoutines);
     console.log('Routine deleted successfully');
     
-    // Reschedule notifications after deleting routine
-    await scheduleRoutineNotifications();
-    console.log('Notifications rescheduled after deleting routine:', routineId);
+    // Reschedule notifications after deleting routine (async to avoid circular dependency)
+    setTimeout(async () => {
+      try {
+        const { scheduleRoutineNotifications } = await import('./notificationManager');
+        await scheduleRoutineNotifications();
+        console.log('Notifications rescheduled after deleting routine:', routineId);
+      } catch (error) {
+        console.warn('Failed to reschedule notifications:', error);
+      }
+    }, 0);
     
     return true;
   } catch (error) {
@@ -639,4 +667,20 @@ export const performAutoMigration = async (): Promise<void> => {
     console.error('Auto-migration failed:', error);
     // Don't throw - app should continue working even if migration fails
   }
+};
+
+/**
+ * Get notification data (breaks circular dependency)
+ */
+export const getNotificationData = async (): Promise<NotificationScheduleData> => {
+  const routines = await loadRoutines();
+  const settings = await loadSettings();
+  
+  return {
+    routines,
+    settings: {
+      enabled: settings.notificationEnabled,
+      time: settings.notificationTime,
+    },
+  };
 };
