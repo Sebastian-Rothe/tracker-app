@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useAchievements } from '@/contexts/AchievementContext';
 import { 
   loadRoutines, 
@@ -70,6 +72,7 @@ const TEXTS = {
 };
 
 export default function MultiRoutineTrackerScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const screenHeight = Dimensions.get('window').height;
   
@@ -351,10 +354,20 @@ export default function MultiRoutineTrackerScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Card style={styles.header} shadow="sm" borderRadius="xl">
-          <Text style={styles.title}>{TEXTS.title}</Text>
-          <Text style={styles.subtitle}>
-            {TEXTS.subtitle(routineState.activeRoutineCount, routineState.totalStreakDays)}
-          </Text>
+          <View style={styles.headerContent}>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>{TEXTS.title}</Text>
+              <Text style={styles.subtitle}>
+                {TEXTS.subtitle(routineState.activeRoutineCount, routineState.totalStreakDays)}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.analyticsButton}
+              onPress={() => router.push('/analytics')}
+            >
+              <Ionicons name="analytics-outline" size={24} color={Theme.Colors.primary[500]} />
+            </TouchableOpacity>
+          </View>
           <ProgressBar 
             progress={routineState.totalStreakDays / Math.max(routineState.totalStreakDays + 10, 30)} 
             style={styles.progressBar}
@@ -538,6 +551,21 @@ const styles = StyleSheet.create({
   header: {
     margin: Theme.Spacing.lg,
     marginBottom: Theme.Spacing.md,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Theme.Spacing.sm,
+  },
+  headerText: {
+    flex: 1,
+  },
+  analyticsButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: Theme.Colors.primary[50],
+    marginLeft: 12,
   },
   title: {
     fontSize: Theme.Typography.fontSize['3xl'],
