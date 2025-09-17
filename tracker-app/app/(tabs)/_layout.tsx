@@ -100,11 +100,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
+          title: 'History',
           tabBarIcon: ({ color, focused }) => (
             <IconSymbol 
               size={focused ? 26 : 24} 
-              name={focused ? "paperplane.fill" : "paperplane"} 
+              name={focused ? "chart.bar.fill" : "chart.bar"} 
               color={color} 
             />
           ),

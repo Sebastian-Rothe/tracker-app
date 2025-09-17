@@ -9,6 +9,7 @@ import {
   ROUTINE_ICONS 
 } from '../types/routine';
 import { NotificationScheduleData } from '../types/notifications';
+import { saveHistoryEntry } from './historyManager';
 
 export interface SettingsData {
   debugMode: boolean;
@@ -403,6 +404,9 @@ export const confirmRoutine = async (routineId: string, confirmed: boolean): Pro
     const today = getTodayString();
     console.log('Current routine state:', { name: routine.name, streak: routine.streak, lastConfirmed: routine.lastConfirmed, today });
     
+    // Store the streak before modification for history
+    const streakBeforeChange = routine.streak;
+    
     // Check if already confirmed today - but allow re-confirmation for debugging
     if (routine.lastConfirmed === today) {
       console.log('Already confirmed today - but allowing re-confirmation for debugging');
@@ -428,6 +432,15 @@ export const confirmRoutine = async (routineId: string, confirmed: boolean): Pro
     routines[routineIndex] = routine;
     await saveRoutines(routines);
     console.log('Routine saved successfully');
+    
+    // Save history entry
+    try {
+      await saveHistoryEntry(routine, confirmed, streakBeforeChange);
+      console.log('History entry saved successfully');
+    } catch (historyError) {
+      console.warn('Failed to save history entry:', historyError);
+      // Don't fail the main operation if history saving fails
+    }
     
     return routine;
   } catch (error) {
