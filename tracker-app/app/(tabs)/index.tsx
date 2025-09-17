@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAchievements } from '@/contexts/AchievementContext';
 import { 
   loadRoutines, 
   confirmRoutine, 
@@ -104,6 +105,7 @@ export default function MultiRoutineTrackerScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [completionTriggers, setCompletionTriggers] = useState<{ [key: string]: boolean }>({});
+  const { checkAndUpdateAchievements } = useAchievements();
 
   // Load data when screen comes into focus
   useFocusEffect(
@@ -206,6 +208,11 @@ export default function MultiRoutineTrackerScreen() {
       
       const updatedRoutine = await confirmRoutine(routine.id, completed);
       console.log('confirmRoutine returned:', updatedRoutine);
+      
+      // Check for achievement unlocks after completing a routine
+      if (completed) {
+        await checkAndUpdateAchievements();
+      }
       
       if (updatedRoutine) {
         if (completed) {

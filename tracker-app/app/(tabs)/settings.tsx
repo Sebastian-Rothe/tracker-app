@@ -10,6 +10,7 @@ import {
   Switch,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
 import { scheduleRoutineNotifications, cancelAllNotifications } from '@/utils/notificationManager';
 
 const STREAK_KEY = 'streak';
@@ -310,6 +311,19 @@ export default function SettingsScreen() {
         )}
       </View>
 
+      {/* Achievements */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🏆 Achievements</Text>
+        <Text style={styles.description}>Track your progress and unlock rewards for your dedication.</Text>
+        
+        <TouchableOpacity 
+          style={styles.achievementButton} 
+          onPress={() => router.push('/achievements')}
+        >
+          <Text style={styles.achievementButtonText}>View Achievements</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Reset Data */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{TEXTS.resetDataTitle}</Text>
@@ -467,5 +481,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  achievementButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  achievementButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

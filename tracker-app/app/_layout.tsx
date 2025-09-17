@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { AchievementProvider } from '@/contexts/AchievementContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -19,13 +20,16 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" backgroundColor="transparent" translucent={true} />
-      </ThemeProvider>
+      <AchievementProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="achievements" options={{ headerShown: true, title: "Achievements" }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="auto" backgroundColor="transparent" translucent={true} />
+        </ThemeProvider>
+      </AchievementProvider>
     </SafeAreaProvider>
   );
 }
