@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, Animated, TouchableOpacity } from 'react-native';
 import { Theme } from '@/constants/Theme';
 import { AchievementCard, AchievementGrid, AchievementProgress } from '@/components/AchievementComponents';
 import { Achievement, updateAchievements } from '@/utils/achievementManager';
+import { SocialShareManager } from '@/utils/socialShareManager';
 
 export default function AchievementsPage() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -42,11 +43,50 @@ export default function AchievementsPage() {
       ? `Achievement unlocked on ${new Date(achievement.unlockedAt!).toLocaleDateString()}`
       : `Progress: ${Math.round(achievement.progress * 100)}%`;
     
+    const buttons = achievement.isUnlocked 
+      ? [
+          { text: 'Share', onPress: () => handleShareAchievement(achievement) },
+          { text: 'OK', style: 'cancel' as const }
+        ]
+      : [{ text: 'OK' }];
+    
     Alert.alert(
       achievement.title,
       `${achievement.description}\n\n${message}`,
-      [{ text: 'OK' }]
+      buttons
     );
+  };
+
+  const handleShareAchievement = async (achievement: Achievement) => {
+    try {
+      const userStats = {
+        streakDays: 0, // This would come from actual user data
+        totalRoutines: 0,
+        completedToday: 0,
+        monthlyRate: 0,
+        achievementsUnlocked: unlockedCount,
+      };
+      
+      await SocialShareManager.shareAchievement(achievement, userStats);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share achievement. Please try again.');
+    }
+  };
+
+  const handleShareProgress = async () => {
+    try {
+      const userStats = {
+        streakDays: 0, // This would come from actual user data
+        totalRoutines: achievements.length,
+        completedToday: 0,
+        monthlyRate: 75, // Example data
+        achievementsUnlocked: unlockedCount,
+      };
+      
+      await SocialShareManager.shareProgress(userStats);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share progress. Please try again.');
+    }
   };
 
   const renderCategorySection = (category: Achievement['category'], title: string, icon: string) => {
@@ -99,11 +139,19 @@ export default function AchievementsPage() {
         </View>
 
         {/* Progress Summary */}
-        <AchievementProgress
-          total={achievements.length}
-          unlocked={unlockedCount}
-          style={styles.progressSection}
-        />
+        <View style={styles.progressSectionContainer}>
+          <AchievementProgress
+            total={achievements.length}
+            unlocked={unlockedCount}
+            style={styles.progressSection}
+          />
+          
+          {unlockedCount > 0 && (
+            <TouchableOpacity style={styles.shareButton} onPress={handleShareProgress}>
+              <Text style={styles.shareButtonText}>📤 Share Progress</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* Recent Unlocks */}
         {(() => {
@@ -201,6 +249,22 @@ const styles = StyleSheet.create({
   },
   progressSection: {
     margin: Theme.Spacing.lg,
+  },
+  progressSectionContainer: {
+    margin: Theme.Spacing.lg,
+  },
+  shareButton: {
+    backgroundColor: Theme.Colors.primary[500],
+    paddingVertical: Theme.Spacing.md,
+    paddingHorizontal: Theme.Spacing.lg,
+    borderRadius: Theme.BorderRadius.lg,
+    alignItems: 'center',
+    marginTop: Theme.Spacing.md,
+  },
+  shareButtonText: {
+    color: '#ffffff',
+    fontSize: Theme.Typography.fontSize.base,
+    fontWeight: Theme.Typography.fontWeight.medium,
   },
   recentSection: {
     marginHorizontal: Theme.Spacing.lg,

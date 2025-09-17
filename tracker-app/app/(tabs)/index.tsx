@@ -22,6 +22,8 @@ import {
   deleteRoutine
 } from '@/utils/settingsStorage';
 import { StreakCounter, AchievementBadge, StatsGrid } from '../../components/ProgressIndicators';
+import { MotivationalDashboard } from '../../components/MotivationalDashboard';
+import { QuickAchievementBanner } from '../../components/QuickAchievementBanner';
 import { 
   scheduleRoutineNotifications,
   setupNotificationHandlers,
@@ -430,6 +432,16 @@ export default function MultiRoutineTrackerScreen() {
             />
           </View>
         </View>
+
+        {/* Motivational Dashboard */}
+        <MotivationalDashboard
+          totalStreakDays={routineState.totalStreakDays}
+          completedToday={routines.filter(r => isRoutineCompletedToday(r)).length}
+          totalRoutines={routines.length}
+        />
+
+        {/* Quick Achievement Access */}
+        <QuickAchievementBanner />
 
         {routines.length === 0 ? (
           <View style={styles.emptyState}>

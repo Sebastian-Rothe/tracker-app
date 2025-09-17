@@ -324,6 +324,19 @@ export default function SettingsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Community */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>👥 Community</Text>
+        <Text style={styles.description}>Connect with others, compare progress, and stay motivated together.</Text>
+        
+        <TouchableOpacity 
+          style={styles.communityButton} 
+          onPress={() => router.push('/community')}
+        >
+          <Text style={styles.communityButtonText}>Join Community</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Reset Data */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{TEXTS.resetDataTitle}</Text>
@@ -491,6 +504,19 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   achievementButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  communityButton: {
+    backgroundColor: '#9C27B0',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  communityButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',

@@ -1,0 +1,381 @@
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import { Theme } from '@/constants/Theme';
+import { Achievement, getRecentlyUnlocked, getAchievementStats } from '@/utils/achievementManager';
+import { getMonthlyStats } from '@/utils/historyManager';
+
+interface MotivationalDashboardProps {
+  totalStreakDays: number;
+  completedToday: number;
+  totalRoutines: number;
+  style?: any;
+}
+
+const { width } = Dimensions.get('window');
+
+export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
+  totalStreakDays,
+  completedToday,
+  totalRoutines,
+  style
+}) => {
+  const [recentAchievements, setRecentAchievements] = useState<Achievement[]>([]);
+  const [achievementStats, setAchievementStats] = useState({ total: 0, unlocked: 0, progress: 0 });
+  const [monthlyStats, setMonthlyStats] = useState({ totalDays: 0, completedDays: 0, completionRate: 0 });
+  const [motivationMessage, setMotivationMessage] = useState('');
+  const [fadeAnim] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [totalStreakDays, completedToday]);
+
+  const loadDashboardData = async () => {
+    try {
+      // Load recent achievements
+      const recent = await getRecentlyUnlocked();
+      setRecentAchievements(recent.slice(0, 2)); // Show max 2 recent
+
+      // Load achievement stats
+      const stats = await getAchievementStats();
+      setAchievementStats(stats);
+
+      // Load monthly stats
+      const monthlyStatsArray = await getMonthlyStats();
+      const now = new Date();
+      const currentMonthString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      
+      const currentMonthStats = monthlyStatsArray.find(
+        stats => stats.month === currentMonthString
+      );
+      
+      if (currentMonthStats) {
+        setMonthlyStats({
+          totalDays: currentMonthStats.totalDays,
+          completedDays: currentMonthStats.completedDays,
+          completionRate: currentMonthStats.averageCompletionRate
+        });
+      } else {
+        setMonthlyStats({ totalDays: 0, completedDays: 0, completionRate: 0 });
+      }
+
+      // Generate motivation message
+      const message = generateMotivationMessage();
+      setMotivationMessage(message);
+
+      // Animate in
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }).start();
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    }
+  };
+
+  const generateMotivationMessage = (): string => {
+    const messages = {
+      streak: [
+        "🔥 You're on fire! Keep that streak alive!",
+        "💪 Consistency is key - you're crushing it!",
+        "🌟 Every day counts. You're building something amazing!",
+        "🚀 Your dedication is paying off. Keep going!",
+      ],
+      completion: [
+        "✨ Great job completing your routines today!",
+        "🎯 You're hitting your targets like a champion!",
+        "🏆 Another successful day in the books!",
+        "💯 Your commitment is inspiring!",
+      ],
+      encouragement: [
+        "🌱 Small steps lead to big changes!",
+        "⭐ You're building habits that will last a lifetime!",
+        "🎪 Progress, not perfection - you're doing great!",
+        "🌈 Every routine completed is a victory!",
+      ],
+      milestone: [
+        "🎉 Look how far you've come! Amazing progress!",
+        "💎 Your persistence is turning into real results!",
+        "🏅 You're becoming the person you want to be!",
+        "🌟 Your future self will thank you for this dedication!",
+      ]
+    };
+
+    // Choose message type based on current state
+    if (totalStreakDays >= 7) {
+      return messages.streak[Math.floor(Math.random() * messages.streak.length)];
+    } else if (completedToday > 0) {
+      return messages.completion[Math.floor(Math.random() * messages.completion.length)];
+    } else if (totalStreakDays >= 30) {
+      return messages.milestone[Math.floor(Math.random() * messages.milestone.length)];
+    } else {
+      return messages.encouragement[Math.floor(Math.random() * messages.encouragement.length)];
+    }
+  };
+
+  const getProgressColor = (progress: number): string => {
+    if (progress >= 0.8) return Theme.Colors.success[500];
+    if (progress >= 0.5) return Theme.Colors.warning[500];
+    return Theme.Colors.primary[500];
+  };
+
+  const formatStreak = (days: number): string => {
+    if (days === 0) return "Start your journey today!";
+    if (days === 1) return "1 day strong! 💪";
+    if (days < 7) return `${days} days rolling! 🔥`;
+    if (days < 30) return `${days} days streak! 🌟`;
+    if (days < 100) return `${days} days unstoppable! 🚀`;
+    return `${days} days legendary! 👑`;
+  };
+
+  return (
+    <Animated.View style={[styles.container, { opacity: fadeAnim }, style]}>
+      {/* Motivation Message */}
+      <View style={styles.motivationSection}>
+        <Text style={styles.motivationText}>{motivationMessage}</Text>
+      </View>
+
+      {/* Stats Grid */}
+      <View style={styles.statsGrid}>
+        {/* Streak Display */}
+        <View style={[styles.statCard, styles.streakCard]}>
+          <Text style={styles.statIcon}>🔥</Text>
+          <Text style={styles.statValue}>{totalStreakDays}</Text>
+          <Text style={styles.statLabel}>Day Streak</Text>
+          <Text style={styles.streakSubtext}>{formatStreak(totalStreakDays)}</Text>
+        </View>
+
+        {/* Today's Progress */}
+        <View style={[styles.statCard, styles.progressCard]}>
+          <Text style={styles.statIcon}>📋</Text>
+          <Text style={styles.statValue}>{completedToday}/{totalRoutines}</Text>
+          <Text style={styles.statLabel}>Today</Text>
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBarBackground}>
+              <View 
+                style={[
+                  styles.progressBarFill,
+                  { 
+                    width: `${totalRoutines > 0 ? (completedToday / totalRoutines) * 100 : 0}%`,
+                    backgroundColor: getProgressColor(totalRoutines > 0 ? completedToday / totalRoutines : 0)
+                  }
+                ]} 
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Monthly Stats */}
+        <View style={[styles.statCard, styles.monthCard]}>
+          <Text style={styles.statIcon}>📅</Text>
+          <Text style={styles.statValue}>{Math.round(monthlyStats.completionRate * 100)}%</Text>
+          <Text style={styles.statLabel}>This Month</Text>
+          <Text style={styles.monthSubtext}>
+            {monthlyStats.completedDays}/{monthlyStats.totalDays} days
+          </Text>
+        </View>
+
+        {/* Achievement Progress */}
+        <View style={[styles.statCard, styles.achievementCard]}>
+          <Text style={styles.statIcon}>🏆</Text>
+          <Text style={styles.statValue}>{achievementStats.unlocked}/{achievementStats.total}</Text>
+          <Text style={styles.statLabel}>Achievements</Text>
+          <Text style={styles.achievementSubtext}>
+            {Math.round(achievementStats.progress * 100)}% unlocked
+          </Text>
+        </View>
+      </View>
+
+      {/* Recent Achievements */}
+      {recentAchievements.length > 0 && (
+        <View style={styles.recentAchievements}>
+          <Text style={styles.sectionTitle}>🎉 Recent Unlocks</Text>
+          {recentAchievements.map((achievement, index) => (
+            <View key={achievement.id} style={styles.achievementItem}>
+              <Text style={styles.achievementIcon}>{achievement.icon}</Text>
+              <View style={styles.achievementInfo}>
+                <Text style={styles.achievementTitle}>{achievement.title}</Text>
+                <Text style={styles.achievementDate}>
+                  {achievement.unlockedAt ? new Date(achievement.unlockedAt).toLocaleDateString() : 'Recently'}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Next Milestone */}
+      <View style={styles.nextMilestone}>
+        <Text style={styles.milestoneTitle}>🎯 Next Milestone</Text>
+        <Text style={styles.milestoneText}>
+          {(() => {
+            if (totalStreakDays < 7) return `${7 - totalStreakDays} days to Week Warrior! 🔥`;
+            if (totalStreakDays < 30) return `${30 - totalStreakDays} days to Month Master! 👑`;
+            if (totalStreakDays < 100) return `${100 - totalStreakDays} days to Hundred Club! 💯`;
+            return "You're a legend! Keep going! 🌟";
+          })()}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#ffffff',
+    borderRadius: Theme.BorderRadius.lg,
+    margin: Theme.Spacing.md,
+    padding: Theme.Spacing.lg,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  motivationSection: {
+    alignItems: 'center',
+    marginBottom: Theme.Spacing.lg,
+    paddingVertical: Theme.Spacing.md,
+    backgroundColor: Theme.Colors.primary[50],
+    borderRadius: Theme.BorderRadius.md,
+  },
+  motivationText: {
+    fontSize: Theme.Typography.fontSize.lg,
+    fontWeight: Theme.Typography.fontWeight.medium,
+    color: Theme.Colors.primary[700],
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: Theme.Spacing.lg,
+  },
+  statCard: {
+    width: '48%',
+    backgroundColor: Theme.Colors.gray[50],
+    borderRadius: Theme.BorderRadius.md,
+    padding: Theme.Spacing.md,
+    alignItems: 'center',
+    marginBottom: Theme.Spacing.md,
+    minHeight: 100,
+  },
+  streakCard: {
+    backgroundColor: Theme.Colors.warning[50],
+    borderColor: Theme.Colors.warning[200],
+    borderWidth: 1,
+  },
+  progressCard: {
+    backgroundColor: Theme.Colors.primary[50],
+    borderColor: Theme.Colors.primary[200],
+    borderWidth: 1,
+  },
+  monthCard: {
+    backgroundColor: Theme.Colors.info[50],
+    borderColor: Theme.Colors.info[200],
+    borderWidth: 1,
+  },
+  achievementCard: {
+    backgroundColor: Theme.Colors.success[50],
+    borderColor: Theme.Colors.success[200],
+    borderWidth: 1,
+  },
+  statIcon: {
+    fontSize: 24,
+    marginBottom: Theme.Spacing.xs,
+  },
+  statValue: {
+    fontSize: Theme.Typography.fontSize.xl,
+    fontWeight: Theme.Typography.fontWeight.bold,
+    color: Theme.Colors.text.primary,
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: Theme.Typography.fontSize.sm,
+    color: Theme.Colors.text.secondary,
+    fontWeight: Theme.Typography.fontWeight.medium,
+  },
+  streakSubtext: {
+    fontSize: Theme.Typography.fontSize.xs,
+    color: Theme.Colors.warning[600],
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  monthSubtext: {
+    fontSize: Theme.Typography.fontSize.xs,
+    color: Theme.Colors.info[600],
+    marginTop: 2,
+  },
+  achievementSubtext: {
+    fontSize: Theme.Typography.fontSize.xs,
+    color: Theme.Colors.success[600],
+    marginTop: 2,
+  },
+  progressBarContainer: {
+    width: '100%',
+    marginTop: Theme.Spacing.xs,
+  },
+  progressBarBackground: {
+    height: 4,
+    backgroundColor: Theme.Colors.gray[200],
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  recentAchievements: {
+    marginBottom: Theme.Spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: Theme.Typography.fontSize.base,
+    fontWeight: Theme.Typography.fontWeight.bold,
+    color: Theme.Colors.text.primary,
+    marginBottom: Theme.Spacing.md,
+  },
+  achievementItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Theme.Colors.success[50],
+    borderRadius: Theme.BorderRadius.md,
+    padding: Theme.Spacing.md,
+    marginBottom: Theme.Spacing.sm,
+    borderLeftWidth: 3,
+    borderLeftColor: Theme.Colors.success[500],
+  },
+  achievementIcon: {
+    fontSize: 20,
+    marginRight: Theme.Spacing.md,
+  },
+  achievementInfo: {
+    flex: 1,
+  },
+  achievementTitle: {
+    fontSize: Theme.Typography.fontSize.sm,
+    fontWeight: Theme.Typography.fontWeight.medium,
+    color: Theme.Colors.text.primary,
+  },
+  achievementDate: {
+    fontSize: Theme.Typography.fontSize.xs,
+    color: Theme.Colors.text.secondary,
+  },
+  nextMilestone: {
+    backgroundColor: Theme.Colors.primary[50],
+    borderRadius: Theme.BorderRadius.md,
+    padding: Theme.Spacing.md,
+    alignItems: 'center',
+  },
+  milestoneTitle: {
+    fontSize: Theme.Typography.fontSize.base,
+    fontWeight: Theme.Typography.fontWeight.bold,
+    color: Theme.Colors.primary[700],
+    marginBottom: Theme.Spacing.xs,
+  },
+  milestoneText: {
+    fontSize: Theme.Typography.fontSize.sm,
+    color: Theme.Colors.primary[600],
+    textAlign: 'center',
+  },
+});
