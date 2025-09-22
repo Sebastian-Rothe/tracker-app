@@ -261,7 +261,7 @@ export const createRoutine = async (request: CreateRoutineRequest): Promise<Rout
       id: generateRoutineId(),
       name: request.name.trim(),
       description: request.description?.trim(),
-      streak: 0,
+      streak: request.initialStreak || 0,
       lastConfirmed: '',
       createdAt: new Date().toISOString(),
       color: request.color,

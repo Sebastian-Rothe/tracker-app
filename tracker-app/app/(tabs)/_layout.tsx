@@ -61,7 +61,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tracker',
+          title: 'Main',
           tabBarIcon: ({ color, focused }) => (
             <IconSymbol 
               size={focused ? 26 : 24} 
@@ -72,13 +72,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="routines"
+        name="status"
         options={{
-          title: 'Routines',
+          title: 'Status',
           tabBarIcon: ({ color, focused }) => (
             <IconSymbol 
               size={focused ? 26 : 24} 
-              name="list.bullet" 
+              name={focused ? "chart.bar.fill" : "chart.bar"} 
               color={color} 
             />
           ),
@@ -97,17 +97,17 @@ export default function TabLayout() {
           ),
         }}
       />
+      {/* Hide old tabs */}
+      <Tabs.Screen
+        name="routines"
+        options={{
+          href: null, // Hide from tab bar
+        }}
+      />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'History',
-          tabBarIcon: ({ color, focused }) => (
-            <IconSymbol 
-              size={focused ? 26 : 24} 
-              name={focused ? "chart.bar.fill" : "chart.bar"} 
-              color={color} 
-            />
-          ),
+          href: null, // Hide from tab bar
         }}
       />
     </Tabs>

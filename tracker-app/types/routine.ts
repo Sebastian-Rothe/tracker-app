@@ -28,6 +28,7 @@ export interface CreateRoutineRequest {
   color: string;
   icon: string;
   reminderTime?: string;
+  initialStreak?: number;
 }
 
 export interface UpdateRoutineRequest {

@@ -11,6 +11,10 @@ import {
   Platform,
   Dimensions,
   ListRenderItem,
+  ActionSheetIOS,
+  Modal,
+  TextInput,
+  SafeAreaView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -23,7 +27,9 @@ import {
   loadRoutineState,
   checkAndUpdateStreaks,
   performAutoMigration,
-  deleteRoutine
+  deleteRoutine,
+  createRoutine,
+  updateRoutine
 } from '@/utils/settingsStorage';
 import { StreakCounter, AchievementBadge, StatsGrid } from '../../components/ProgressIndicators';
 import { MotivationalDashboard } from '../../components/MotivationalDashboard';
@@ -33,22 +39,34 @@ import {
   setupNotificationHandlers,
   requestNotificationPermissions 
 } from '@/utils/notificationManager';
-import { Routine, RoutineState } from '@/types/routine';
+import { Routine, RoutineState, CreateRoutineRequest, ROUTINE_COLORS, ROUTINE_ICONS, RoutineColor, RoutineIcon } from '@/types/routine';
 import { Button, Card, Badge, ProgressBar } from '@/components/ui';
 import { Theme } from '@/constants/Theme';
 
 const TEXTS = {
-  title: 'Routine Tracker',
+  title: 'My Routines',
   subtitle: (activeCount: number, totalDays: number) => 
     `${activeCount} active routine${activeCount !== 1 ? 's' : ''} • ${totalDays} total streak days`,
   noRoutines: 'No routines yet!',
-  noRoutinesSubtext: 'Add your first routine in the Routines tab to start tracking.',
+  noRoutinesSubtext: 'Tap the + button to add your first routine and start tracking.',
   addFirstRoutine: 'Add Routine',
   streakDays: (days: number) => `${days} day${days !== 1 ? 's' : ''}`,
   confirmYes: 'Done ✓',
   confirmNo: 'Skip ✗',
   alreadyDone: 'Done Today ✓',
   lastCompleted: 'Last completed',
+  editRoutine: 'Edit Routine',
+  deleteRoutine: 'Delete Routine',
+  cancel: 'Cancel',
+  confirmDelete: 'Confirm Delete',
+  deleteMessage: (name: string) => `Are you sure you want to delete "${name}"? This cannot be undone.`,
+  routineName: 'Routine Name',
+  routineDescription: 'Description (optional)',
+  chooseColor: 'Choose Color', 
+  chooseIcon: 'Choose Icon',
+  save: 'Save',
+  addRoutine: 'Add New Routine',
+  viewStats: 'View Statistics',
   never: 'Never',
   today: 'Today',
   yesterday: 'Yesterday',
@@ -66,11 +84,26 @@ const TEXTS = {
   loading: 'Loading routines...',
   errorLoading: 'Error loading routines',
   retryLoading: 'Tap to retry',
-  deleteRoutine: 'Delete Routine',
   deleteConfirmTitle: 'Delete Routine?',
   deleteConfirmMessage: (name: string) => `Are you sure you want to delete "${name}"? This will permanently remove all streak data.`,
   routineDeleted: 'Routine Deleted',
   routineDeletedMessage: (name: string) => `"${name}" has been deleted successfully.`,
+};
+
+interface RoutineFormData {
+  name: string;
+  description: string;
+  color: RoutineColor;
+  icon: RoutineIcon;
+  initialStreak: number;
+}
+
+const INITIAL_FORM_DATA: RoutineFormData = {
+  name: '',
+  description: '',
+  color: ROUTINE_COLORS[0],
+  icon: ROUTINE_ICONS[0],
+  initialStreak: 0,
 };
 
 export default function MultiRoutineTrackerScreen() {
@@ -112,6 +145,12 @@ export default function MultiRoutineTrackerScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [completionTriggers, setCompletionTriggers] = useState<{ [key: string]: boolean }>({});
+  
+  // Form state for adding/editing routines
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
+  const [formData, setFormData] = useState<RoutineFormData>(INITIAL_FORM_DATA);
+  
   const { checkAndUpdateAchievements } = useAchievements();
 
   // Load data when screen comes into focus
@@ -275,6 +314,93 @@ export default function MultiRoutineTrackerScreen() {
     }
   }, [loadData]);
 
+  const handleRoutineCardPress = useCallback((routine: Routine) => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: [TEXTS.cancel, TEXTS.editRoutine, TEXTS.deleteRoutine],
+          destructiveButtonIndex: 2,
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            // Edit routine
+            setEditingRoutine(routine);
+            setFormData({
+              name: routine.name,
+              description: routine.description || '',
+              color: routine.color as RoutineColor,
+              icon: routine.icon as RoutineIcon,
+              initialStreak: 0, // Not used for editing
+            });
+            setIsFormVisible(true);
+          } else if (buttonIndex === 2) {
+            // Delete routine
+            handleDeleteRoutine(routine);
+          }
+        }
+      );
+    } else {
+      // Android: Show simple alert with options
+      Alert.alert(
+        routine.name,
+        'What would you like to do?',
+        [
+          { text: TEXTS.cancel, style: 'cancel' },
+          { text: TEXTS.editRoutine, onPress: () => {
+            setEditingRoutine(routine);
+            setFormData({
+              name: routine.name,
+              description: routine.description || '',
+              color: routine.color as RoutineColor,
+              icon: routine.icon as RoutineIcon,
+              initialStreak: 0, // Not used for editing
+            });
+            setIsFormVisible(true);
+          }},
+          { text: TEXTS.deleteRoutine, style: 'destructive', onPress: () => handleDeleteRoutine(routine) },
+        ]
+      );
+    }
+  }, [handleDeleteRoutine]);
+
+  const handleSaveRoutine = useCallback(async () => {
+    if (!formData.name.trim()) {
+      Alert.alert('Error', 'Please enter a routine name');
+      return;
+    }
+
+    try {
+      if (editingRoutine) {
+        // Update existing routine
+        await updateRoutine({
+          id: editingRoutine.id,
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          color: formData.color,
+          icon: formData.icon,
+        });
+      } else {
+        // Create new routine
+        await createRoutine({
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          color: formData.color,
+          icon: formData.icon,
+          initialStreak: formData.initialStreak,
+        });
+      }
+      
+      setIsFormVisible(false);
+      setEditingRoutine(null);
+      setFormData(INITIAL_FORM_DATA);
+      await loadData();
+    } catch (error) {
+      console.error('Error saving routine:', error);
+      Alert.alert('Error', 'Failed to save routine. Please try again.');
+    }
+  }, [formData, editingRoutine, loadData]);
+
   const formatLastCompleted = useCallback((lastConfirmed: string): string => {
     if (!lastConfirmed) return TEXTS.never;
     
@@ -341,109 +467,37 @@ export default function MultiRoutineTrackerScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        <Card style={styles.header} shadow="sm" borderRadius="xl">
-          <View style={styles.headerContent}>
-            <View style={styles.headerText}>
-              <Text style={styles.title}>{TEXTS.title}</Text>
-              <Text style={styles.subtitle}>
-                {TEXTS.subtitle(routineState.activeRoutineCount, routineState.totalStreakDays)}
-              </Text>
+        {/* Clickable Streak Bar */}
+        <TouchableOpacity 
+          style={styles.streakBar}
+          onPress={() => router.push('/(tabs)/status')}
+          activeOpacity={0.8}
+        >
+          <Card style={styles.streakCard} shadow="sm" borderRadius="xl">
+            <View style={styles.streakContent}>
+              <View style={styles.streakInfo}>
+                <Text style={styles.streakTitle}>🔥 Current Streak</Text>
+                <Text style={styles.streakDays}>
+                  {routineState.totalStreakDays} {routineState.totalStreakDays === 1 ? 'day' : 'days'}
+                </Text>
+                <Text style={styles.streakSubtitle}>
+                  {routineState.activeRoutineCount} active routine{routineState.activeRoutineCount !== 1 ? 's' : ''}
+                </Text>
+              </View>
+              <View style={styles.streakAction}>
+                <Ionicons name="chevron-forward" size={20} color={Theme.Colors.primary[500]} />
+              </View>
             </View>
-            <TouchableOpacity
-              style={styles.analyticsButton}
-              onPress={() => router.push('/analytics')}
-            >
-              <Ionicons name="analytics-outline" size={24} color={Theme.Colors.primary[500]} />
-            </TouchableOpacity>
-          </View>
-          <ProgressBar 
-            progress={routineState.totalStreakDays / Math.max(routineState.totalStreakDays + 10, 30)} 
-            style={styles.progressBar}
-            progressColor={Theme.Colors.primary[500]}
-            animated={true}
-          />
-        </Card>
-
-        {/* Enhanced Progress Indicators */}
-        <View style={styles.progressIndicatorsContainer}>
-          {/* Streak Counter */}
-          <StreakCounter
-            count={routineState.totalStreakDays}
-            variant="fire"
-            animated={true}
-            style={styles.streakIndicator}
-          />
-
-          {/* Stats Grid */}
-          <StatsGrid
-            stats={[
-              {
-                label: 'Active Routines',
-                value: routineState.activeRoutineCount,
-                icon: '🎯',
-                color: Theme.Colors.primary[500],
-              },
-              {
-                label: 'Completed Today',
-                value: routines.filter(r => isRoutineCompletedToday(r)).length,
-                icon: '✅',
-                color: Theme.Colors.success[500],
-              },
-              {
-                label: 'Current Streak',
-                value: routineState.totalStreakDays,
-                icon: '🔥',
-                color: Theme.Colors.warning[500],
-              },
-              {
-                label: 'Total Routines',
-                value: routines.length,
-                icon: '📊',
-                color: Theme.Colors.info[500],
-              },
-            ]}
-            animated={true}
-            style={styles.statsGrid}
-          />
-
-          {/* Achievement Badges */}
-          <View style={styles.achievementsContainer}>
-            <AchievementBadge
-              title="First Steps"
-              description="Complete your first routine"
-              icon="🚀"
-              unlocked={routineState.totalStreakDays > 0}
+            <ProgressBar 
+              progress={routineState.totalStreakDays / Math.max(routineState.totalStreakDays + 10, 30)} 
+              style={styles.progressBar}
+              progressColor={Theme.Colors.primary[500]}
               animated={true}
             />
-            <AchievementBadge
-              title="Week Warrior"
-              description="Maintain a 7-day streak"
-              icon="⚔️"
-              unlocked={routineState.totalStreakDays >= 7}
-              progress={Math.min(routineState.totalStreakDays / 7, 1)}
-              animated={true}
-            />
-            <AchievementBadge
-              title="Consistency Champion"
-              description="Maintain a 30-day streak"
-              icon="👑"
-              unlocked={routineState.totalStreakDays >= 30}
-              progress={Math.min(routineState.totalStreakDays / 30, 1)}
-              animated={true}
-            />
-          </View>
-        </View>
+          </Card>
+        </TouchableOpacity>
 
-        {/* Motivational Dashboard */}
-        <MotivationalDashboard
-          totalStreakDays={routineState.totalStreakDays}
-          completedToday={routines.filter(r => isRoutineCompletedToday(r)).length}
-          totalRoutines={routines.length}
-        />
-
-        {/* Quick Achievement Access */}
-        <QuickAchievementBanner />
-
+        {/* Routines List */}
         {routines.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>📝</Text>
@@ -456,8 +510,10 @@ export default function MultiRoutineTrackerScreen() {
               const isCompleted = isRoutineCompletedToday(routine);
               
               return (
-                <View 
+                <TouchableOpacity 
                   key={routine.id}
+                  activeOpacity={0.7}
+                  onPress={() => handleRoutineCardPress(routine)}
                 >
                   <Card
                     style={{
@@ -514,12 +570,131 @@ export default function MultiRoutineTrackerScreen() {
                   )}
                     </View>
                   </Card>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>
         )}
       </ScrollView>
+      
+      {/* Floating Action Button */}
+      <TouchableOpacity 
+        style={styles.fab}
+        onPress={() => {
+          setEditingRoutine(null);
+          setFormData(INITIAL_FORM_DATA);
+          setIsFormVisible(true);
+        }}
+        activeOpacity={0.8}
+      >
+        <View style={styles.fabInner}>
+          <Ionicons name="add" size={24} color="white" />
+        </View>
+      </TouchableOpacity>
+      
+      {/* Add/Edit Routine Modal */}
+      <Modal
+        visible={isFormVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setIsFormVisible(false)}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setIsFormVisible(false)}>
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>
+              {editingRoutine ? 'Edit Routine' : 'Add New Routine'}
+            </Text>
+            <TouchableOpacity onPress={handleSaveRoutine}>
+              <Text style={styles.modalSaveText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.modalContent}>
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Name *</Text>
+              <TextInput
+                style={styles.formInput}
+                value={formData.name}
+                onChangeText={(text) => setFormData({...formData, name: text})}
+                placeholder="Enter routine name"
+                maxLength={50}
+              />
+            </View>
+            
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Description</Text>
+              <TextInput
+                style={[styles.formInput, styles.formTextArea]}
+                value={formData.description}
+                onChangeText={(text) => setFormData({...formData, description: text})}
+                placeholder="Enter description (optional)"
+                multiline
+                numberOfLines={3}
+                maxLength={200}
+              />
+            </View>
+            
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Color</Text>
+              <View style={styles.colorGrid}>
+                {ROUTINE_COLORS.map((color) => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[
+                      styles.colorOption,
+                      { backgroundColor: color },
+                      formData.color === color && styles.colorOptionSelected
+                    ]}
+                    onPress={() => setFormData({...formData, color})}
+                  />
+                ))}
+              </View>
+            </View>
+            
+            {/* Initial Streak - only show when adding new routine */}
+            {!editingRoutine && (
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Initial Streak (optional)</Text>
+                <TextInput
+                  style={styles.formInput}
+                  value={formData.initialStreak.toString()}
+                  onChangeText={(text) => {
+                    const numValue = parseInt(text) || 0;
+                    setFormData({...formData, initialStreak: Math.max(0, numValue)});
+                  }}
+                  placeholder="0"
+                  keyboardType="numeric"
+                  maxLength={3}
+                />
+                <Text style={styles.formHint}>
+                  Start with an existing streak (e.g. if you've been doing this routine manually)
+                </Text>
+              </View>
+            )}
+            
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Icon</Text>
+              <View style={styles.iconGrid}>
+                {ROUTINE_ICONS.map((icon) => (
+                  <TouchableOpacity
+                    key={icon}
+                    style={[
+                      styles.iconOption,
+                      formData.icon === icon && styles.iconOptionSelected
+                    ]}
+                    onPress={() => setFormData({...formData, icon})}
+                  >
+                    <Text style={styles.iconText}>{icon}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 }
@@ -731,5 +906,162 @@ const styles = StyleSheet.create({
   routineListContainer: {
     flex: 1,
     paddingBottom: Theme.Spacing.lg,
+  },
+  // New streak bar styles
+  streakBar: {
+    marginHorizontal: Theme.Spacing.md,
+    marginBottom: Theme.Spacing.lg,
+  },
+  streakCard: {
+    // Card inherits styling
+  },
+  streakContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Theme.Spacing.sm,
+  },
+  streakInfo: {
+    flex: 1,
+  },
+  streakTitle: {
+    fontSize: Theme.Typography.fontSize.lg,
+    fontWeight: Theme.Typography.fontWeight.semibold,
+    color: Theme.Colors.text.primary,
+    marginBottom: Theme.Spacing.xs,
+  },
+  streakDays: {
+    fontSize: Theme.Typography.fontSize['2xl'],
+    fontWeight: Theme.Typography.fontWeight.bold,
+    color: Theme.Colors.primary[500],
+    marginBottom: Theme.Spacing.xs,
+  },
+  streakSubtitle: {
+    fontSize: Theme.Typography.fontSize.sm,
+    color: Theme.Colors.text.secondary,
+  },
+  streakAction: {
+    padding: Theme.Spacing.sm,
+    borderRadius: Theme.BorderRadius.full,
+    backgroundColor: Theme.Colors.primary[50],
+  },
+  // FAB styles
+  fab: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    zIndex: 1000,
+  },
+  fabInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Theme.Colors.primary[500],
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalCancelText: {
+    fontSize: 16,
+    color: Theme.Colors.primary[500],
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  modalSaveText: {
+    fontSize: 16,
+    color: Theme.Colors.primary[500],
+    fontWeight: '600',
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  formGroup: {
+    marginBottom: 24,
+  },
+  formLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  formInput: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    backgroundColor: '#fff',
+  },
+  formHint: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  formTextArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  colorOption: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  colorOptionSelected: {
+    borderColor: '#333',
+    borderWidth: 3,
+  },
+  iconGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  iconOption: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+  },
+  iconOptionSelected: {
+    borderColor: Theme.Colors.primary[500],
+    backgroundColor: Theme.Colors.primary[50],
+  },
+  iconText: {
+    fontSize: 24,
   },
 });
