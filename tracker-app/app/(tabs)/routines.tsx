@@ -192,27 +192,35 @@ export default function RoutineManagementScreen() {
   const handleDelete = (routine: Routine) => {
     console.log('handleDelete called for routine:', routine.name);
     
-    // Use window.confirm for web compatibility
-    const confirmMessage = `${TEXTS.confirmDelete}\n\n${TEXTS.deleteMessage(routine.name)}`;
-    const confirmed = window.confirm ? window.confirm(confirmMessage) : true;
-    
-    if (confirmed) {
-      const performDelete = async () => {
-        try {
-          console.log('Deleting routine:', routine.id);
-          await deleteRoutine(routine.id);
-          console.log('Routine deleted successfully, reloading data...');
-          await loadRoutineData();
-          console.log('Data reloaded after deletion');
-        } catch (error) {
-          console.error('Error deleting routine:', error);
-          Alert.alert('Error', 'Failed to delete routine');
+    // Use proper React Native Alert with confirmation
+    Alert.alert(
+      TEXTS.confirmDelete,
+      TEXTS.deleteMessage(routine.name),
+      [
+        {
+          text: TEXTS.cancel,
+          style: 'cancel',
+          onPress: () => console.log('Delete cancelled by user')
+        },
+        {
+          text: TEXTS.delete,
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              console.log('Deleting routine:', routine.id);
+              await deleteRoutine(routine.id);
+              console.log('Routine deleted successfully, reloading data...');
+              await loadRoutineData();
+              console.log('Data reloaded after deletion');
+            } catch (error) {
+              console.error('Error deleting routine:', error);
+              Alert.alert('Error', 'Failed to delete routine');
+            }
+          }
         }
-      };
-      performDelete();
-    } else {
-      console.log('Delete cancelled by user');
-    }
+      ],
+      { cancelable: true }
+    );
   };
 
   const formatLastConfirmed = (lastConfirmed: string): string => {
@@ -520,6 +528,7 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     padding: 20,
+    paddingBottom: 100, // Extra space to avoid navbar overlap
   },
   formTitle: {
     fontSize: 24,

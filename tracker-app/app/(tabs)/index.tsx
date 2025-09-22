@@ -36,7 +36,6 @@ import {
 import { Routine, RoutineState } from '@/types/routine';
 import { Button, Card, Badge, ProgressBar } from '@/components/ui';
 import { Theme } from '@/constants/Theme';
-import { getOptimizedFlatListProps } from '@/services/PerformanceOptimization';
 
 const TEXTS = {
   title: 'Routine Tracker',
@@ -632,7 +631,7 @@ const styles = StyleSheet.create({
   routineCard: {
     marginHorizontal: Theme.Spacing.lg,
     marginBottom: Theme.Spacing.lg,
-    padding: 0, // Card component handles padding
+    padding: Theme.Spacing.sm, // Add padding so buttons don't stick to edges
   },
   completedCard: {
     backgroundColor: Theme.Colors.success[50],
@@ -641,7 +640,7 @@ const styles = StyleSheet.create({
   routineHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Theme.Spacing.lg,
+    marginBottom: Theme.Spacing.sm,
   },
   routineIconContainer: {
     width: 50,
@@ -677,20 +676,22 @@ const styles = StyleSheet.create({
   routineFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
+    marginTop: Theme.Spacing.sm,
   },
   lastCompletedText: {
     fontSize: 12,
     color: '#999',
     flex: 1,
+    marginRight: Theme.Spacing.sm,
   },
   actionButtons: {
     flexDirection: 'row',
     gap: Theme.Spacing.sm,
-    marginTop: Theme.Spacing.sm,
+    minWidth: 160, // Ensure consistent button area width
   },
   actionButton: {
-    flex: 1,
+    width: 75, // Fixed width for consistent sizing
   },
   completedBadge: {
     alignSelf: 'flex-start',
