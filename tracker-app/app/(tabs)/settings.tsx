@@ -13,8 +13,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { scheduleRoutineNotifications, cancelAllNotifications } from '@/utils/notificationManager';
 
-const STREAK_KEY = 'streak';
-const LAST_CONFIRMED_KEY = 'lastConfirmed';
 const SETTINGS_KEY = 'settings';
 
 // Settings texts
@@ -50,22 +48,17 @@ const TEXTS = {
 };
 
 interface SettingsData {
-  debugMode: boolean;
   notificationEnabled: boolean;
   notificationTime: string;
 }
 
 const defaultSettings: SettingsData = {
-  debugMode: false,
   notificationEnabled: true,
   notificationTime: '07:00',
 };
 
 export default function SettingsScreen() {
-  const [currentStreak, setCurrentStreak] = useState<number>(0);
-  const [newStreakInput, setNewStreakInput] = useState<string>('');
   const [settings, setSettings] = useState<SettingsData>(defaultSettings);
-  const [lastConfirmed, setLastConfirmed] = useState<string>('');
   const [notificationTimeInput, setNotificationTimeInput] = useState<string>('07:00');
 
   useEffect(() => {
@@ -74,15 +67,6 @@ export default function SettingsScreen() {
 
   const loadData = async () => {
     try {
-      // Load current streak
-      const streakValue = await AsyncStorage.getItem(STREAK_KEY);
-      const streak = streakValue ? parseInt(streakValue, 10) : 0;
-      setCurrentStreak(streak);
-
-      // Load last confirmed date
-      const lastDate = await AsyncStorage.getItem(LAST_CONFIRMED_KEY);
-      setLastConfirmed(lastDate || 'Never');
-
       // Load settings
       const settingsValue = await AsyncStorage.getItem(SETTINGS_KEY);
       if (settingsValue) {
@@ -105,41 +89,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const validateStreakInput = (input: string): number | null => {
-    const num = parseInt(input, 10);
-    if (isNaN(num) || num < 0 || num > 9999) {
-      return null;
-    }
-    return num;
-  };
-
-  const updateStreak = async () => {
-    const newStreak = validateStreakInput(newStreakInput);
-    
-    if (newStreak === null) {
-      Alert.alert(TEXTS.invalidInput, TEXTS.invalidInputMessage);
-      return;
-    }
-
-    try {
-      await AsyncStorage.setItem(STREAK_KEY, newStreak.toString());
-      
-      // If setting a new streak, also update the last confirmed date to today
-      if (newStreak > 0) {
-        const today = new Date().toISOString().slice(0, 10);
-        await AsyncStorage.setItem(LAST_CONFIRMED_KEY, today);
-        setLastConfirmed(today);
-      }
-      
-      setCurrentStreak(newStreak);
-      setNewStreakInput('');
-      Alert.alert(TEXTS.success, TEXTS.streakUpdated);
-    } catch (error) {
-      console.error('Error updating streak:', error);
-      Alert.alert('Error', 'Failed to update streak. Please try again.');
-    }
-  };
-
   const resetAllData = () => {
     Alert.alert(
       TEXTS.confirmReset,
@@ -151,11 +100,8 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await AsyncStorage.multiRemove([STREAK_KEY, LAST_CONFIRMED_KEY, SETTINGS_KEY]);
-              setCurrentStreak(0);
-              setLastConfirmed('Never');
+              await AsyncStorage.multiRemove([SETTINGS_KEY]);
               setSettings(defaultSettings);
-              setNewStreakInput('');
               Alert.alert(TEXTS.success, TEXTS.dataReset);
             } catch (error) {
               console.error('Error resetting data:', error);
@@ -165,11 +111,6 @@ export default function SettingsScreen() {
         }
       ]
     );
-  };
-
-  const toggleDebugMode = (value: boolean) => {
-    const newSettings = { ...settings, debugMode: value };
-    saveSettings(newSettings);
   };
 
   const validateTimeFormat = (time: string): boolean => {
@@ -205,73 +146,9 @@ export default function SettingsScreen() {
     Alert.alert(TEXTS.success, TEXTS.notificationUpdated);
   };
 
-  const formatDate = (dateString: string) => {
-    if (dateString === 'Never') return dateString;
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Text style={styles.title}>{TEXTS.title}</Text>
-
-      {/* Current Status */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Current Status</Text>
-        <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>{TEXTS.currentStreak}</Text>
-          <Text style={styles.statusValue}>🔥 {currentStreak} days</Text>
-        </View>
-        <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>Last Check:</Text>
-          <Text style={styles.statusValue}>{formatDate(lastConfirmed)}</Text>
-        </View>
-      </View>
-
-      {/* Manual Streak Input */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{TEXTS.manualStreakTitle}</Text>
-        <Text style={styles.description}>{TEXTS.manualStreakDescription}</Text>
-        
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>{TEXTS.newStreakLabel}</Text>
-          <TextInput
-            style={styles.textInput}
-            value={newStreakInput}
-            onChangeText={setNewStreakInput}
-            placeholder={TEXTS.newStreakPlaceholder}
-            keyboardType="numeric"
-            maxLength={4}
-          />
-          <TouchableOpacity style={styles.updateButton} onPress={updateStreak}>
-            <Text style={styles.updateButtonText}>{TEXTS.updateStreakButton}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Debug Settings */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{TEXTS.debugTitle}</Text>
-        <View style={styles.switchRow}>
-          <View style={styles.switchTextContainer}>
-            <Text style={styles.switchLabel}>{TEXTS.debugMode}</Text>
-            <Text style={styles.switchDescription}>{TEXTS.debugDescription}</Text>
-          </View>
-          <Switch
-            value={settings.debugMode}
-            onValueChange={toggleDebugMode}
-            trackColor={{ false: '#767577', true: '#81b0ff' }}
-            thumbColor={settings.debugMode ? '#f5dd4b' : '#f4f3f4'}
-          />
-        </View>
-      </View>
 
       {/* Notification Settings */}
       <View style={styles.section}>
@@ -321,19 +198,6 @@ export default function SettingsScreen() {
           onPress={() => router.push('/achievements')}
         >
           <Text style={styles.achievementButtonText}>View Achievements</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Community */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>👥 Community</Text>
-        <Text style={styles.description}>Connect with others, compare progress, and stay motivated together.</Text>
-        
-        <TouchableOpacity 
-          style={styles.communityButton} 
-          onPress={() => router.push('/community')}
-        >
-          <Text style={styles.communityButtonText}>Join Community</Text>
         </TouchableOpacity>
       </View>
 
@@ -392,45 +256,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     lineHeight: 22,
   },
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  statusLabel: {
-    fontSize: 16,
-    color: '#666',
-  },
-  statusValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  inputContainer: {
-    marginTop: 10,
-  },
   inputLabel: {
     fontSize: 16,
     marginBottom: 8,
     color: '#333',
     fontWeight: '500',
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-  },
-  updateButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
   },
   updateButtonText: {
     color: 'white',
@@ -504,19 +334,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   achievementButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  communityButton: {
-    backgroundColor: '#9C27B0',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  communityButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
