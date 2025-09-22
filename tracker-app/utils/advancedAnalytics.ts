@@ -1,5 +1,6 @@
 import { getMonthlyStats, loadHistory, HistoryEntry } from './historyManager';
 import { loadRoutines } from './settingsStorage';
+import { Routine } from '../types/routine';
 
 export interface AnalyticsData {
   timeMetrics: {
@@ -269,7 +270,7 @@ export class AdvancedAnalytics {
    */
   private static calculateRoutineInsights(
     history: HistoryEntry[], 
-    routines: any[]
+    routines: Routine[]
   ): AnalyticsData['routineInsights'] {
     return routines.map(routine => {
       const routineHistory = history.filter(h => h.routineId === routine.id);
@@ -329,7 +330,7 @@ export class AdvancedAnalytics {
    */
   private static calculatePredictions(
     history: HistoryEntry[], 
-    routines: any[]
+    routines: Routine[]
   ): AnalyticsData['predictions'] {
     // Nächster Meilenstein
     const nextMilestone = this.calculateNextMilestone(history);
@@ -711,7 +712,7 @@ export class AdvancedAnalytics {
     };
   }
 
-  private static calculateGoalRecommendations(history: HistoryEntry[], routines: any[]) {
+  private static calculateGoalRecommendations(history: HistoryEntry[], routines: Routine[]) {
     return [
       {
         suggested: 'Increase daily completion rate to 80%',

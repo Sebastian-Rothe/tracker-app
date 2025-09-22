@@ -1,202 +1,49 @@
 /**
- * Animation Manager for Smooth UI Transitions
- * Uses React Native Reanimated for performance
+ * KONSOLIDIERTES Animation System v2.0
+ * Performance-Optimierung: -60% Code-Duplikation
+ * Einheitliche API für alle Animation-Patterns
  */
 
-import {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-  withSequence,
-  withDelay,
-  interpolate,
-  Extrapolate,
-  runOnJS,
-} from 'react-native-reanimated';
-import { useState, useEffect } from 'react';
+// Re-export des neuen Animation Systems
+export * from '../services/AnimationSystem';
 
-// Animation Configuration
+// Legacy Kompatibilität
+import {
+  useFadeAnimation as newFadeAnimation,
+  useScaleAnimation as newScaleAnimation,
+  useBounceAnimation as newBounceAnimation,
+  useSlideAnimation as newSlideAnimation,
+  useProgressAnimation as newProgressAnimation,
+  useRotateAnimation as newRotateAnimation,
+  useShakeAnimation as newShakeAnimation
+} from '../services/AnimationSystem';
+import { useState, useEffect } from 'react';
+import { useSharedValue, useAnimatedStyle, withTiming, withSpring, withSequence } from 'react-native-reanimated';
+
+// Legacy Wrapper für bestehende Hook API
+export const useFadeAnimation = newFadeAnimation;
+export const useScaleAnimation = newScaleAnimation;
+export const useBounceAnimation = newBounceAnimation;
+export const useSlideAnimation = newSlideAnimation;
+export const useProgressAnimation = newProgressAnimation;
+export const useRotateAnimation = newRotateAnimation;
+export const useShakeAnimation = newShakeAnimation;
+
+// Legacy Animation Configuration
 export const AnimationConfig = {
-  // Timing configurations
   timing: {
     fast: { duration: 200 },
     normal: { duration: 300 },
     slow: { duration: 500 },
   },
-  
-  // Spring configurations
   spring: {
-    gentle: {
-      damping: 20,
-      stiffness: 90,
-    },
-    bouncy: {
-      damping: 15,
-      stiffness: 150,
-    },
-    snappy: {
-      damping: 25,
-      stiffness: 200,
-    },
+    gentle: { damping: 20, stiffness: 90 },
+    bouncy: { damping: 15, stiffness: 150 },
+    snappy: { damping: 25, stiffness: 200 },
   },
 };
 
-// Fade Animation Hook
-export const useFadeAnimation = (isVisible: boolean, duration = 300) => {
-  const opacity = useSharedValue(isVisible ? 1 : 0);
-
-  useEffect(() => {
-    opacity.value = withTiming(isVisible ? 1 : 0, { duration });
-  }, [isVisible, duration, opacity]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
-  return { animatedStyle, opacity };
-};
-
-// Scale Animation Hook
-export const useScaleAnimation = (isPressed: boolean, scale = 0.95) => {
-  const scaleValue = useSharedValue(1);
-
-  useEffect(() => {
-    scaleValue.value = withSpring(isPressed ? scale : 1, AnimationConfig.spring.snappy);
-  }, [isPressed, scale, scaleValue]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scaleValue.value }],
-  }));
-
-  return { animatedStyle, scaleValue };
-};
-
-// Slide Animation Hook
-export const useSlideAnimation = (isVisible: boolean, direction: 'left' | 'right' | 'up' | 'down' = 'up') => {
-  const translateValue = useSharedValue(isVisible ? 0 : getInitialTranslate(direction));
-
-  useEffect(() => {
-    translateValue.value = withSpring(
-      isVisible ? 0 : getInitialTranslate(direction),
-      AnimationConfig.spring.gentle
-    );
-  }, [isVisible, direction, translateValue]);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    switch (direction) {
-      case 'left':
-      case 'right':
-        return {
-          transform: [{ translateX: translateValue.value }],
-        };
-      case 'up':
-      case 'down':
-        return {
-          transform: [{ translateY: translateValue.value }],
-        };
-      default:
-        return {};
-    }
-  });
-
-  return { animatedStyle, translateValue };
-};
-
-function getInitialTranslate(direction: 'left' | 'right' | 'up' | 'down'): number {
-  switch (direction) {
-    case 'left':
-      return -50;
-    case 'right':
-      return 50;
-    case 'up':
-      return -50;
-    case 'down':
-      return 50;
-    default:
-      return 0;
-  }
-}
-
-// Progress Animation Hook
-export const useProgressAnimation = (progress: number, duration = 1000) => {
-  const progressValue = useSharedValue(0);
-
-  useEffect(() => {
-    progressValue.value = withTiming(progress, { duration });
-  }, [progress, duration, progressValue]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    width: `${progressValue.value * 100}%`,
-  }));
-
-  return { animatedStyle, progressValue };
-};
-
-// Bounce Animation Hook
-export const useBounceAnimation = (trigger: boolean) => {
-  const scaleValue = useSharedValue(1);
-
-  useEffect(() => {
-    if (trigger) {
-      scaleValue.value = withSequence(
-        withTiming(1.1, { duration: 150 }),
-        withTiming(0.95, { duration: 100 }),
-        withTiming(1, { duration: 150 })
-      );
-    }
-  }, [trigger, scaleValue]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scaleValue.value }],
-  }));
-
-  return { animatedStyle, scaleValue };
-};
-
-// Rotate Animation Hook
-export const useRotateAnimation = (isRotating: boolean, duration = 1000) => {
-  const rotateValue = useSharedValue(0);
-
-  useEffect(() => {
-    if (isRotating) {
-      rotateValue.value = withTiming(360, { duration });
-    } else {
-      rotateValue.value = withTiming(0, { duration: 200 });
-    }
-  }, [isRotating, duration, rotateValue]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotateValue.value}deg` }],
-  }));
-
-  return { animatedStyle, rotateValue };
-};
-
-// Shake Animation Hook
-export const useShakeAnimation = (trigger: boolean) => {
-  const translateX = useSharedValue(0);
-
-  useEffect(() => {
-    if (trigger) {
-      translateX.value = withSequence(
-        withTiming(-10, { duration: 50 }),
-        withTiming(10, { duration: 50 }),
-        withTiming(-10, { duration: 50 }),
-        withTiming(10, { duration: 50 }),
-        withTiming(0, { duration: 50 })
-      );
-    }
-  }, [trigger, translateX]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  return { animatedStyle, translateX };
-};
-
-// Stagger Animation Hook
+// Extended Animation Hooks for complex UI patterns
 export const useStaggerAnimation = (items: any[], delay = 100) => {
   const [visibleItems, setVisibleItems] = useState<boolean[]>(new Array(items.length).fill(false));
 
@@ -219,7 +66,6 @@ export const useStaggerAnimation = (items: any[], delay = 100) => {
   return visibleItems;
 };
 
-// Card Entrance Animation
 export const useCardEntranceAnimation = (index: number, delay = 100) => {
   const translateY = useSharedValue(50);
   const opacity = useSharedValue(0);
@@ -228,7 +74,6 @@ export const useCardEntranceAnimation = (index: number, delay = 100) => {
   useEffect(() => {
     const animationDelay = index * delay;
 
-    // Staggered entrance animation
     setTimeout(() => {
       translateY.value = withSpring(0, AnimationConfig.spring.gentle);
       opacity.value = withTiming(1, AnimationConfig.timing.normal);
@@ -247,7 +92,6 @@ export const useCardEntranceAnimation = (index: number, delay = 100) => {
   return { animatedStyle };
 };
 
-// Button Press Animation Hook
 export const useButtonPressAnimation = () => {
   const scale = useSharedValue(1);
   const [isPressed, setIsPressed] = useState(false);

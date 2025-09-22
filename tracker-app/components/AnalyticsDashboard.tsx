@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -28,7 +28,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onBack }
     loadAnalytics();
   }, []);
 
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       const data = await AdvancedAnalytics.generateAnalytics();
@@ -39,15 +39,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onBack }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const formatPercentage = (value: number): string => {
+  const formatPercentage = useCallback((value: number): string => {
     return `${Math.round(value * 100)}%`;
-  };
+  }, []);
 
-  const formatNumber = (value: number): string => {
+  const formatNumber = useCallback((value: number): string => {
     return Math.round(value).toString();
-  };
+  }, []);
 
   const getTrendIcon = (trend: 'up' | 'down' | 'same' | 'improving' | 'declining' | 'stable') => {
     switch (trend) {

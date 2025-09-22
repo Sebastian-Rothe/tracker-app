@@ -43,7 +43,6 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
       finalStatus = status;
     }
 
-    console.log('Notification permission status:', finalStatus);
     return finalStatus === 'granted';
   } catch (error) {
     console.error('Error requesting notification permissions:', error);
@@ -61,7 +60,6 @@ export const cancelAllNotifications = async (): Promise<void> => {
 
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
-    console.log('All notifications cancelled');
   } catch (error) {
     console.error('Error cancelling notifications:', error);
   }
@@ -108,8 +106,6 @@ export const scheduleDailyNotification = async (
     const { hours, minutes } = parseTime(time);
     const secondsUntil = getSecondsUntilTime(hours, minutes);
 
-    console.log(`Scheduling notification for ${hours}:${String(minutes).padStart(2, '0')} (in ${secondsUntil} seconds)`);
-
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
         title,
@@ -131,7 +127,6 @@ export const scheduleDailyNotification = async (
           } as any,
     });
 
-    console.log('Notification scheduled with ID:', notificationId);
     return notificationId;
   } catch (error) {
     console.error('Error scheduling notification:', error);
@@ -144,7 +139,6 @@ export const scheduleDailyNotification = async (
  */
 export const scheduleRoutineNotifications = async (): Promise<void> => {
   if (Platform.OS === 'web') {
-    console.log('Notifications not supported on web');
     return;
   }
 
@@ -155,7 +149,6 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
     // Check permissions
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
-      console.log('Notification permissions not granted');
       return;
     }
 
@@ -165,7 +158,6 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
     const activeRoutines = routines.filter((r: Routine) => r.isActive);
 
     if (!settings.enabled || activeRoutines.length === 0) {
-      console.log('Notifications disabled or no active routines');
       return;
     }
 
@@ -190,8 +182,6 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
         type: 'routine_reminder'
       }
     );
-
-    console.log(`Scheduled notification for ${activeRoutines.length} routine(s) at ${notificationTime}`);
   } catch (error) {
     console.error('Error scheduling routine notifications:', error);
   }
@@ -203,17 +193,15 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
 export const setupNotificationHandlers = () => {
   // Handle notification received while app is open
   const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-    console.log('Notification received while app is open:', notification);
+    // Notification received while app is open
   });
 
   // Handle notification tapped/clicked
   const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-    console.log('Notification response received:', response);
     const data = response.notification.request.content.data;
     
     if (data?.type === 'routine_reminder') {
       // TODO: Navigate to tracker screen or show quick action modal
-      console.log('Routine reminder notification tapped');
     }
   });
 
@@ -233,7 +221,6 @@ export const getScheduledNotifications = async (): Promise<Notifications.Notific
 
   try {
     const notifications = await Notifications.getAllScheduledNotificationsAsync();
-    console.log('Scheduled notifications:', notifications.length);
     return notifications;
   } catch (error) {
     console.error('Error getting scheduled notifications:', error);

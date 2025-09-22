@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { routineStorage } from '../services/RoutineStorageService';
 import { 
   Routine, 
   RoutineState, 
@@ -176,18 +177,25 @@ export const exportAllData = async () => {
 /**
  * Import data from backup
  */
-export const importData = async (data: any): Promise<void> => {
+export const importData = async (data: unknown): Promise<void> => {
   try {
-    if (typeof data.streak === 'number' && data.streak >= 0) {
-      await saveStreak(data.streak);
+    // Type guard for import data
+    if (!data || typeof data !== 'object') {
+      throw new Error('Invalid import data format');
     }
     
-    if (typeof data.lastConfirmed === 'string') {
-      await saveLastConfirmed(data.lastConfirmed);
-    }
+    const importData = data as Record<string, unknown>;
     
-    if (data.settings && typeof data.settings === 'object') {
-      await saveSettings({ ...DEFAULT_SETTINGS, ...data.settings });
+    if (typeof importData.streak === 'number' && importData.streak >= 0) {
+      await saveStreak(importData.streak);
+    }
+
+    if (typeof importData.lastConfirmed === 'string') {
+      await saveLastConfirmed(importData.lastConfirmed);
+    }
+
+    if (importData.settings && typeof importData.settings === 'object') {
+      await saveSettings({ ...DEFAULT_SETTINGS, ...importData.settings as Partial<SettingsData> });
     }
   } catch (error) {
     console.error('Error importing data:', error);
@@ -217,21 +225,7 @@ const getTodayString = (): string => {
  * Load all routines from AsyncStorage
  */
 export const loadRoutines = async (): Promise<Routine[]> => {
-  try {
-    console.log('loadRoutines called');
-    const routinesJson = await AsyncStorage.getItem(STORAGE_KEYS.ROUTINES);
-    console.log('Raw routines JSON from AsyncStorage:', routinesJson);
-    if (routinesJson) {
-      const routines = JSON.parse(routinesJson);
-      console.log('Parsed routines:', routines.map((r: any) => `${r.name}: streak ${r.streak}`));
-      return routines;
-    }
-    console.log('No routines found in AsyncStorage, returning empty array');
-    return [];
-  } catch (error) {
-    console.error('Error loading routines:', error);
-    return [];
-  }
+  return await routineStorage.getRoutines();
 };
 
 /**
@@ -239,19 +233,13 @@ export const loadRoutines = async (): Promise<Routine[]> => {
  */
 export const saveRoutines = async (routines: Routine[]): Promise<void> => {
   try {
-    console.log('saveRoutines called with', routines.length, 'routines');
-    console.log('Saving routines:', routines.map(r => `${r.name}: streak ${r.streak}`));
-    await AsyncStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(routines));
-    console.log('Routines saved to AsyncStorage successfully');
-    await updateRoutineState(routines);
-    console.log('Routine state updated successfully');
+    await routineStorage.saveRoutines(routines);
     
     // Reschedule notifications when routines change (async to avoid circular dependency)
     setTimeout(async () => {
       try {
         const { scheduleRoutineNotifications } = await import('./notificationManager');
         await scheduleRoutineNotifications();
-        console.log('Notifications rescheduled after routine changes');
       } catch (error) {
         console.warn('Failed to reschedule notifications:', error);
       }
@@ -290,7 +278,6 @@ export const createRoutine = async (request: CreateRoutineRequest): Promise<Rout
       try {
         const { scheduleRoutineNotifications } = await import('./notificationManager');
         await scheduleRoutineNotifications();
-        console.log('Notifications rescheduled after creating routine:', newRoutine.name);
       } catch (error) {
         console.warn('Failed to reschedule notifications:', error);
       }
@@ -333,7 +320,6 @@ export const updateRoutine = async (request: UpdateRoutineRequest): Promise<Rout
       try {
         const { scheduleRoutineNotifications } = await import('./notificationManager');
         await scheduleRoutineNotifications();
-        console.log('Notifications rescheduled after updating routine:', updatedRoutine.name);
       } catch (error) {
         console.warn('Failed to reschedule notifications:', error);
       }
@@ -389,9 +375,7 @@ export const deleteRoutine = async (routineId: string): Promise<boolean> => {
  */
 export const confirmRoutine = async (routineId: string, confirmed: boolean): Promise<Routine | null> => {
   try {
-    console.log('confirmRoutine called:', { routineId, confirmed });
     const routines = await loadRoutines();
-    console.log('Loaded routines:', routines.length);
     
     const routineIndex = routines.findIndex(r => r.id === routineId);
     
@@ -402,41 +386,34 @@ export const confirmRoutine = async (routineId: string, confirmed: boolean): Pro
     
     const routine = routines[routineIndex];
     const today = getTodayString();
-    console.log('Current routine state:', { name: routine.name, streak: routine.streak, lastConfirmed: routine.lastConfirmed, today });
     
     // Store the streak before modification for history
     const streakBeforeChange = routine.streak;
     
-    // Check if already confirmed today - but allow re-confirmation for debugging
+    // Check if already confirmed today
     if (routine.lastConfirmed === today) {
-      console.log('Already confirmed today - but allowing re-confirmation for debugging');
-      // Don't throw error, just log warning
+      // Don't throw error, just return current routine
+      return routine;
     }
     
     if (confirmed) {
       // Increase streak if confirmed (only increase if not already confirmed today)
       if (routine.lastConfirmed !== today) {
         routine.streak += 1;
-      } else {
-        console.log('Not increasing streak - already confirmed today');
       }
       routine.lastConfirmed = today;
-      console.log('Routine completed, new streak:', routine.streak);
     } else {
       // Reset streak if not confirmed
       routine.streak = 0;
       routine.lastConfirmed = '';
-      console.log('Routine skipped, streak reset to 0');
     }
     
     routines[routineIndex] = routine;
     await saveRoutines(routines);
-    console.log('Routine saved successfully');
     
     // Save history entry
     try {
       await saveHistoryEntry(routine, confirmed, streakBeforeChange);
-      console.log('History entry saved successfully');
     } catch (historyError) {
       console.warn('Failed to save history entry:', historyError);
       // Don't fail the main operation if history saving fails
@@ -473,30 +450,7 @@ const updateRoutineState = async (routines: Routine[]): Promise<void> => {
  * Load routine state summary
  */
 export const loadRoutineState = async (): Promise<RoutineState> => {
-  try {
-    const stateJson = await AsyncStorage.getItem(STORAGE_KEYS.ROUTINE_STATE);
-    if (stateJson) {
-      return JSON.parse(stateJson);
-    }
-    
-    // Generate state from routines if not exists
-    const routines = await loadRoutines();
-    const activeRoutines = routines.filter(r => r.isActive);
-    const totalStreakDays = activeRoutines.reduce((sum, r) => sum + r.streak, 0);
-    
-    return {
-      routines,
-      activeRoutineCount: activeRoutines.length,
-      totalStreakDays,
-    };
-  } catch (error) {
-    console.error('Error loading routine state:', error);
-    return {
-      routines: [],
-      activeRoutineCount: 0,
-      totalStreakDays: 0,
-    };
-  }
+  return await routineStorage.getRoutineState();
 };
 
 /**
@@ -603,20 +557,17 @@ export const migrateFromLegacyData = async (): Promise<boolean> => {
     // Check if routines already exist (migration already done)
     const existingRoutines = await loadRoutines();
     if (existingRoutines.length > 0) {
-      console.log('Migration skipped: Routines already exist');
       return false; // No migration needed
     }
 
     // Load legacy data
-    const [legacyStreak, legacyLastConfirmed] = await Promise.all([
+    const [legacyStreak, legacyLastConfirmed]: [number, string | null] = await Promise.all([
       loadStreak(),
       loadLastConfirmed(),
     ]);
 
     // Only migrate if there's meaningful legacy data
     if (legacyStreak > 0 || legacyLastConfirmed) {
-      console.log('Migrating legacy data:', { legacyStreak, legacyLastConfirmed });
-      
       // Create default routine from legacy data
       const legacyRoutine: Routine = {
         id: generateRoutineId(),
@@ -634,11 +585,9 @@ export const migrateFromLegacyData = async (): Promise<boolean> => {
       // Save migrated routine
       await saveRoutines([legacyRoutine]);
       
-      console.log('Legacy data successfully migrated to new routine:', legacyRoutine);
       return true; // Migration completed
     }
 
-    console.log('No meaningful legacy data to migrate');
     return false; // No migration needed
   } catch (error) {
     console.error('Error during migration:', error);

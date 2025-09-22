@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -77,7 +77,7 @@ export default function MultiRoutineTrackerScreen() {
   const screenHeight = Dimensions.get('window').height;
   
   // Enhanced bottom padding calculation for Android
-  const getBottomPadding = () => {
+  const bottomPadding = useMemo(() => {
     if (Platform.OS === 'ios') {
       return Math.max(insets.bottom + 20, 120);
     }
@@ -98,7 +98,7 @@ export default function MultiRoutineTrackerScreen() {
       // Fallback: safe default
       return tabBarHeight + 60;
     }
-  };
+  }, [insets.bottom]);
 
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [routineState, setRoutineState] = useState<RoutineState>({
@@ -125,15 +125,14 @@ export default function MultiRoutineTrackerScreen() {
     
     // Request permissions on app start
     requestNotificationPermissions().then(granted => {
-      console.log('Notification permissions granted:', granted);
+      // Permissions handled
     });
 
     return cleanup;
   }, []);
 
-  const loadData = async (isRefresh = false) => {
+  const loadData = useCallback(async (isRefresh = false) => {
     try {
-      console.log('loadData called, isRefresh:', isRefresh);
       if (!isRefresh) setIsLoading(true);
       setError(null);
 
@@ -149,13 +148,8 @@ export default function MultiRoutineTrackerScreen() {
         loadRoutineState(),
       ]);
 
-      console.log('Loaded routines from storage:', loadedRoutines);
-      console.log('Loaded state from storage:', state);
-
       setRoutines(loadedRoutines.filter(r => r.isActive));
       setRoutineState(state);
-      
-      console.log('State updated - routines count:', loadedRoutines.filter(r => r.isActive).length);
 
       // Schedule notifications for active routines (only on first load, not refresh)
       if (!isRefresh) {
@@ -168,7 +162,7 @@ export default function MultiRoutineTrackerScreen() {
       setIsLoading(false);
       if (isRefresh) setIsRefreshing(false);
     }
-  };
+  }, [checkAndUpdateAchievements]);
 
   const onRefresh = () => {
     setIsRefreshing(true);
@@ -199,10 +193,8 @@ export default function MultiRoutineTrackerScreen() {
     */
   };
 
-  const confirmRoutineAction = async (routine: Routine, completed: boolean) => {
+  const confirmRoutineAction = useCallback(async (routine: Routine, completed: boolean) => {
     try {
-      console.log('confirmRoutineAction called:', routine.name, completed);
-      
       // Trigger bounce animation for completion
       if (completed) {
         setCompletionTriggers(prev => ({ ...prev, [routine.id]: true }));
@@ -212,7 +204,6 @@ export default function MultiRoutineTrackerScreen() {
       }
       
       const updatedRoutine = await confirmRoutine(routine.id, completed);
-      console.log('confirmRoutine returned:', updatedRoutine);
       
       // Check for achievement unlocks after completing a routine
       if (completed) {
@@ -247,13 +238,12 @@ export default function MultiRoutineTrackerScreen() {
           TEXTS.alreadyConfirmedMessage(routine.name)
         );
       } else {
-        console.error('Error confirming routine:', error);
         Alert.alert('Error', `Failed to update routine: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-  };
+  }, [checkAndUpdateAchievements, loadData]);
 
-  const handleDeleteRoutine = (routine: Routine) => {
+  const handleDeleteRoutine = useCallback((routine: Routine) => {
     Alert.alert(
       TEXTS.deleteConfirmTitle,
       TEXTS.deleteConfirmMessage(routine.name),
@@ -266,28 +256,24 @@ export default function MultiRoutineTrackerScreen() {
         },
       ]
     );
-  };
+  }, []);
 
-  const confirmDeleteRoutine = async (routine: Routine) => {
+  const confirmDeleteRoutine = useCallback(async (routine: Routine) => {
     try {
-      console.log('confirmDeleteRoutine called for:', routine.name);
       await deleteRoutine(routine.id);
-      console.log('deleteRoutine completed successfully');
       Alert.alert(
         TEXTS.routineDeleted,
         TEXTS.routineDeletedMessage(routine.name),
         [{ text: 'OK', style: 'default' }]
       );
-      console.log('Reloading data after delete...');
       await loadData();
-      console.log('Data reloaded after delete');
     } catch (error) {
       console.error('Error deleting routine:', error);
       Alert.alert('Error', 'Failed to delete routine. Please try again.');
     }
-  };
+  }, [loadData]);
 
-  const formatLastCompleted = (lastConfirmed: string): string => {
+  const formatLastCompleted = useCallback((lastConfirmed: string): string => {
     if (!lastConfirmed) return TEXTS.never;
     
     const today = new Date().toISOString().slice(0, 10);
@@ -303,12 +289,12 @@ export default function MultiRoutineTrackerScreen() {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
     return TEXTS.daysAgo(diffDays);
-  };
+  }, []);
 
-  const isRoutineCompletedToday = (routine: Routine): boolean => {
+  const isRoutineCompletedToday = useCallback((routine: Routine): boolean => {
     const today = new Date().toISOString().slice(0, 10);
     return routine.lastConfirmed === today;
-  };
+  }, []);
 
   if (isLoading && !isRefreshing) {
     return (
@@ -347,7 +333,7 @@ export default function MultiRoutineTrackerScreen() {
     <View style={[styles.container, { paddingTop: insets.top, paddingLeft: insets.left, paddingRight: insets.right }]}>
       <ScrollView 
         style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: getBottomPadding() }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPadding }]}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
         }
