@@ -162,46 +162,7 @@ export default function HistoryScreen() {
       Alert.alert('Day Details', message);
     }
   };
-  
-  const handleExportData = async () => {
-    try {
-      Alert.alert(
-        'Export Data',
-        'Choose export format:',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'CSV', 
-            onPress: async () => {
-              try {
-                const { quickExportCSV } = await import('@/utils/dataExporter');
-                await quickExportCSV();
-              } catch (error) {
-                console.error('CSV export error:', error);
-                Alert.alert('Export Failed', 'Could not export data as CSV');
-              }
-            }
-          },
-          { 
-            text: 'JSON', 
-            onPress: async () => {
-              try {
-                const { quickExportJSON } = await import('@/utils/dataExporter');
-                await quickExportJSON();
-              } catch (error) {
-                console.error('JSON export error:', error);
-                Alert.alert('Export Failed', 'Could not export data as JSON');
-              }
-            }
-          }
-        ]
-      );
-    } catch (error) {
-      console.error('Export error:', error);
-      Alert.alert('Export Failed', 'Could not export data');
-    }
-  };
-  
+
   if (isLoading && !isRefreshing) {
     return (
       <View style={[styles.container, { 
@@ -237,12 +198,6 @@ export default function HistoryScreen() {
               <Text style={styles.title}>History & Analytics</Text>
               <Text style={styles.subtitle}>Track your progress over time</Text>
             </View>
-            <TouchableOpacity 
-              style={styles.exportButton}
-              onPress={handleExportData}
-            >
-              <Text style={styles.exportButtonText}>📊 Export</Text>
-            </TouchableOpacity>
           </View>
         </Card>
         
@@ -340,17 +295,6 @@ const styles = StyleSheet.create({
     fontSize: Theme.Typography.fontSize.lg,
     color: Theme.Colors.text.secondary,
     lineHeight: 24,
-  },
-  exportButton: {
-    backgroundColor: Theme.Colors.primary[500],
-    paddingHorizontal: Theme.Spacing.md,
-    paddingVertical: Theme.Spacing.sm,
-    borderRadius: Theme.BorderRadius.md,
-  },
-  exportButtonText: {
-    color: '#ffffff',
-    fontWeight: Theme.Typography.fontWeight.semibold,
-    fontSize: Theme.Typography.fontSize.sm,
   },
   loadingContainer: {
     flex: 1,
