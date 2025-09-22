@@ -151,32 +151,33 @@ export const ACHIEVEMENT_DEFINITIONS: Achievement[] = [
   },
   
   // Special Achievements
-  {
-    id: 'early_bird',
-    title: 'Early Bird',
-    description: 'Complete routines before 8 AM for 7 days',
-    icon: '🌅',
-    category: 'special',
-    requirement: {
-      type: 'consecutive_weeks',
-      value: 1,
-    },
-    isUnlocked: false,
-    progress: 0,
-  },
-  {
-    id: 'weekend_warrior',
-    title: 'Weekend Warrior',
-    description: 'Complete routines on 4 consecutive weekends',
-    icon: '🏋️',
-    category: 'special',
-    requirement: {
-      type: 'consecutive_weeks',
-      value: 4,
-    },
-    isUnlocked: false,
-    progress: 0,
-  },
+  // {
+  //   id: 'early_bird',
+  //   title: 'Early Bird',
+  //   description: 'Complete routines before 8 AM for 7 days',
+  //   icon: '🌅',
+  //   category: 'special',
+  //   requirement: {
+  //     type: 'streak_days', // Would need special time-based logic
+  //     value: 7,
+  //     timeframe: 'daily',
+  //   },
+  //   isUnlocked: false,
+  //   progress: 0,
+  // },
+  // {
+  //   id: 'weekend_warrior',
+  //   title: 'Weekend Warrior',
+  //   description: 'Complete routines on 4 consecutive weekends',
+  //   icon: '🏋️',
+  //   category: 'special',
+  //   requirement: {
+  //     type: 'consecutive_weeks',
+  //     value: 4,
+  //   },
+  //   isUnlocked: false,
+  //   progress: 0,
+  // },
 ];
 
 /**
