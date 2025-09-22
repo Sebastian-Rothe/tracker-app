@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
+  FlatList,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -9,6 +10,7 @@ import {
   RefreshControl,
   Platform,
   Dimensions,
+  ListRenderItem,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -34,6 +36,7 @@ import {
 import { Routine, RoutineState } from '@/types/routine';
 import { Button, Card, Badge, ProgressBar } from '@/components/ui';
 import { Theme } from '@/constants/Theme';
+import { getOptimizedFlatListProps } from '@/services/PerformanceOptimization';
 
 const TEXTS = {
   title: 'Routine Tracker',
