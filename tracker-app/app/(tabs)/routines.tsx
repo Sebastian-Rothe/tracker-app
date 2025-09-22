@@ -9,6 +9,7 @@ import {
   Alert,
   SafeAreaView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
   loadRoutines, 
   createRoutine, 
@@ -70,6 +71,7 @@ const INITIAL_FORM_DATA: RoutineFormData = {
 };
 
 export default function RoutineManagementScreen() {
+  const insets = useSafeAreaInsets();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
@@ -252,7 +254,12 @@ export default function RoutineManagementScreen() {
   if (isFormVisible) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView style={styles.formContainer}>
+        <ScrollView 
+          style={styles.formContainer}
+          contentContainerStyle={{
+            paddingBottom: Math.max(insets.bottom) // Minimal padding to prevent button overlap
+          }}
+        >
           <Text style={styles.formTitle}>
             {editingRoutine ? TEXTS.editRoutine : TEXTS.addRoutine}
           </Text>
@@ -528,7 +535,6 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     padding: 20,
-    paddingBottom: 100, // Extra space to avoid navbar overlap
   },
   formTitle: {
     fontSize: 24,
