@@ -12,6 +12,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { scheduleRoutineNotifications, cancelAllNotifications } from '@/utils/notificationManager';
+import { STORAGE_KEYS } from '@/utils/settingsStorage';
+import { routineStorage } from '@/services/RoutineStorageService';
 
 const SETTINGS_KEY = 'settings';
 
@@ -100,9 +102,34 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await AsyncStorage.multiRemove([SETTINGS_KEY]);
+              // 1. Nuclear option: Clear ALL AsyncStorage data
+              await AsyncStorage.clear();
+              
+              // 2. Invalidate routine storage cache to force reload
+              routineStorage.invalidateCache();
+              
+              // 3. Reset local state
               setSettings(defaultSettings);
-              Alert.alert(TEXTS.success, TEXTS.dataReset);
+              
+              // 4. Cancel any scheduled notifications
+              await cancelAllNotifications();
+              
+              Alert.alert(
+                'Reset Complete', 
+                'All data has been completely reset. Please close and restart the app to see the changes take effect.',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => {
+                      // Try to navigate to different tabs to force refresh
+                      router.push('/');
+                      setTimeout(() => router.push('/(tabs)/routines'), 100);
+                      setTimeout(() => router.push('/(tabs)/explore'), 200);
+                      setTimeout(() => router.push('/'), 300);
+                    }
+                  }
+                ]
+              );
             } catch (error) {
               console.error('Error resetting data:', error);
               Alert.alert('Error', 'Failed to reset data. Please try again.');
