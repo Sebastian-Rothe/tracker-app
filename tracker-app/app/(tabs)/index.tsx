@@ -275,7 +275,7 @@ export default function MultiRoutineTrackerScreen() {
         Alert.alert('Error', `Failed to update routine: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-  }, [checkAndUpdateAchievements, loadData]);
+  }, [checkAndUpdateAchievements, routines]);
 
   const handleDeleteRoutine = useCallback((routine: Routine) => {
     Alert.alert(
@@ -295,17 +295,30 @@ export default function MultiRoutineTrackerScreen() {
   const confirmDeleteRoutine = useCallback(async (routine: Routine) => {
     try {
       await deleteRoutine(routine.id);
-      Alert.alert(
-        TEXTS.routineDeleted,
-        TEXTS.routineDeletedMessage(routine.name),
-        [{ text: 'OK', style: 'default' }]
+      
+      // Remove the routine from state directly - no full page reload or success popup
+      setRoutines(prevRoutines => 
+        prevRoutines.filter(r => r.id !== routine.id)
       );
-      await loadData();
+      
+      // Update routine state for stats
+      const updatedRoutines = routines.filter(r => r.id !== routine.id);
+      const activeRoutines = updatedRoutines.filter(r => r.isActive);
+      const longestStreak = activeRoutines.length > 0 
+        ? Math.max(...activeRoutines.map(r => r.streak))
+        : 0;
+      
+      setRoutineState(prev => ({
+        ...prev,
+        routines: updatedRoutines,
+        activeRoutineCount: activeRoutines.length,
+        totalStreakDays: longestStreak
+      }));
     } catch (error) {
       console.error('Error deleting routine:', error);
       Alert.alert('Error', 'Failed to delete routine. Please try again.');
     }
-  }, [loadData]);
+  }, [routines]);
 
   const handleUndoRoutineToday = useCallback(async (routine: Routine) => {
     try {
