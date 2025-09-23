@@ -427,6 +427,54 @@ export const confirmRoutine = async (routineId: string, confirmed: boolean): Pro
 };
 
 /**
+ * Undo routine completion for today (if completed today)
+ */
+export const undoRoutineToday = async (routineId: string): Promise<Routine | null> => {
+  try {
+    const routines = await loadRoutines();
+    
+    const routineIndex = routines.findIndex(r => r.id === routineId);
+    
+    if (routineIndex === -1) {
+      console.error('Routine not found:', routineId);
+      throw new Error(`Routine with id ${routineId} not found`);
+    }
+    
+    const routine = routines[routineIndex];
+    const today = getTodayString();
+    
+    // Check if routine was completed today
+    if (routine.lastConfirmed !== today) {
+      // Cannot undo - not completed today
+      return null;
+    }
+    
+    // Store the streak before modification for history
+    const streakBeforeChange = routine.streak;
+    
+    // Undo today's completion
+    routine.streak = Math.max(0, routine.streak - 1); // Decrease streak by 1, but don't go below 0
+    routine.lastConfirmed = ''; // Clear last confirmed date
+    
+    routines[routineIndex] = routine;
+    await saveRoutines(routines);
+    
+    // Save history entry for the undo action
+    try {
+      await saveHistoryEntry(routine, false, streakBeforeChange);
+    } catch (historyError) {
+      console.warn('Failed to save undo history entry:', historyError);
+      // Don't fail the main operation if history saving fails
+    }
+    
+    return routine;
+  } catch (error) {
+    console.error('Error undoing routine completion:', error);
+    throw error;
+  }
+};
+
+/**
  * Update routine state summary
  */
 const updateRoutineState = async (routines: Routine[]): Promise<void> => {

@@ -30,7 +30,8 @@ import {
   performAutoMigration,
   deleteRoutine,
   createRoutine,
-  updateRoutine
+  updateRoutine,
+  undoRoutineToday
 } from '@/utils/settingsStorage';
 import { routineStorage } from '@/services/RoutineStorageService';
 import { StreakCounter, StatsGrid } from '../../components/ProgressIndicators';
@@ -59,6 +60,7 @@ const TEXTS = {
   lastCompleted: 'Last completed',
   editRoutine: 'Edit Routine',
   deleteRoutine: 'Delete Routine',
+  undoToday: 'Undo Today',
   cancel: 'Cancel',
   confirmDelete: 'Confirm Delete',
   deleteMessage: (name: string) => `Are you sure you want to delete "${name}"? This cannot be undone.`,
@@ -289,13 +291,44 @@ export default function MultiRoutineTrackerScreen() {
     }
   }, [loadData]);
 
+  const handleUndoRoutineToday = useCallback(async (routine: Routine) => {
+    try {
+      const updatedRoutine = await undoRoutineToday(routine.id);
+      if (updatedRoutine) {
+        await loadData();
+        // No popup - just silent undo for better UX
+      } else {
+        Alert.alert(
+          'Cannot Undo',
+          `"${routine.name}" was not completed today, so there's nothing to undo.`,
+          [{ text: 'OK', style: 'default' }]
+        );
+      }
+    } catch (error) {
+      console.error('Error undoing routine:', error);
+      Alert.alert('Error', 'Failed to undo routine completion. Please try again.');
+    }
+  }, [loadData]);
+
   const handleRoutineCardPress = useCallback((routine: Routine) => {
+    const isCompletedToday = isRoutineCompletedToday(routine);
+    
     if (Platform.OS === 'ios') {
+      // Build options dynamically based on completion status
+      const options = [TEXTS.cancel, TEXTS.editRoutine];
+      if (isCompletedToday) {
+        options.push(TEXTS.undoToday);
+      }
+      options.push(TEXTS.deleteRoutine);
+      
+      const destructiveButtonIndex = options.length - 1; // Delete is always last
+      const cancelButtonIndex = 0;
+      
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: [TEXTS.cancel, TEXTS.editRoutine, TEXTS.deleteRoutine],
-          destructiveButtonIndex: 2,
-          cancelButtonIndex: 0,
+          options,
+          destructiveButtonIndex,
+          cancelButtonIndex,
         },
         (buttonIndex) => {
           if (buttonIndex === 1) {
@@ -309,35 +342,54 @@ export default function MultiRoutineTrackerScreen() {
               initialStreak: 0, // Not used for editing
             });
             setIsFormVisible(true);
-          } else if (buttonIndex === 2) {
-            // Delete routine
+          } else if (isCompletedToday && buttonIndex === 2) {
+            // Undo today (only available if completed today)
+            handleUndoRoutineToday(routine);
+          } else if (buttonIndex === options.length - 1) {
+            // Delete routine (always last option)
             handleDeleteRoutine(routine);
           }
         }
       );
     } else {
       // Android: Show simple alert with options
+      const alertOptions: Array<{text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive'}> = [
+        { text: TEXTS.cancel, style: 'cancel' },
+        { text: TEXTS.editRoutine, onPress: () => {
+          setEditingRoutine(routine);
+          setFormData({
+            name: routine.name,
+            description: routine.description || '',
+            color: routine.color as RoutineColor,
+            icon: routine.icon as RoutineIcon,
+            initialStreak: 0, // Not used for editing
+          });
+          setIsFormVisible(true);
+        }},
+      ];
+      
+      // Add undo option if completed today
+      if (isCompletedToday) {
+        alertOptions.push({ 
+          text: TEXTS.undoToday, 
+          onPress: () => handleUndoRoutineToday(routine) 
+        });
+      }
+      
+      // Add delete option
+      alertOptions.push({ 
+        text: TEXTS.deleteRoutine, 
+        style: 'destructive', 
+        onPress: () => handleDeleteRoutine(routine) 
+      });
+      
       Alert.alert(
         routine.name,
         'What would you like to do?',
-        [
-          { text: TEXTS.cancel, style: 'cancel' },
-          { text: TEXTS.editRoutine, onPress: () => {
-            setEditingRoutine(routine);
-            setFormData({
-              name: routine.name,
-              description: routine.description || '',
-              color: routine.color as RoutineColor,
-              icon: routine.icon as RoutineIcon,
-              initialStreak: 0, // Not used for editing
-            });
-            setIsFormVisible(true);
-          }},
-          { text: TEXTS.deleteRoutine, style: 'destructive', onPress: () => handleDeleteRoutine(routine) },
-        ]
+        alertOptions
       );
     }
-  }, [handleDeleteRoutine]);
+  }, [handleDeleteRoutine, handleUndoRoutineToday]);
 
   const handleSaveRoutine = useCallback(async () => {
     if (!formData.name.trim()) {
