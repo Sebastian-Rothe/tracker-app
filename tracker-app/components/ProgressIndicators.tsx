@@ -6,6 +6,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Theme } from '../constants/Theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Circular Progress Indicator Props
 export interface CircularProgressProps {
@@ -25,31 +26,46 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
   progress,
   size = 120,
   strokeWidth = 8,
-  backgroundColor = Theme.Colors.gray[200],
-  progressColor = Theme.Colors.primary[500],
+  backgroundColor,
+  progressColor,
   animated = true,
   showText = true,
   centerText,
   style,
 }) => {
+  const { theme } = useTheme();
+  
+  const bgColor = backgroundColor || theme.Colors.gray[200];
+  const pColor = progressColor || theme.Colors.primary[500];
+
   return (
-    <View style={[styles.circularContainer, { width: size, height: size }, style]}>
+    <View style={[{
+      justifyContent: 'center',
+      alignItems: 'center',
+      position: 'relative',
+    }, { width: size, height: size }, style]}>
       <View 
-        style={[
-          styles.circularRing,
-          {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            borderWidth: strokeWidth,
-            borderColor: backgroundColor,
-          }
-        ]}
+        style={{
+          position: 'absolute',
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          borderWidth: strokeWidth,
+          borderColor: bgColor,
+        }}
       />
       
       {showText && (
-        <View style={styles.circularTextContainer}>
-          <Text style={styles.circularText}>
+        <View style={{
+          position: 'absolute',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          <Text style={{
+            fontSize: theme.Typography.fontSize.lg,
+            fontWeight: theme.Typography.fontWeight.bold,
+            color: theme.Colors.text.primary,
+          }}>
             {centerText || `${Math.round(progress * 100)}%`}
           </Text>
         </View>
@@ -75,6 +91,7 @@ export const StreakCounter: React.FC<StreakCounterProps> = ({
   variant = 'fire',
   style,
 }) => {
+  const { theme } = useTheme();
   const progress = Math.min(count / maxCount, 1);
   
   const getEmoji = () => {
@@ -88,39 +105,56 @@ export const StreakCounter: React.FC<StreakCounterProps> = ({
   };
 
   const getColor = () => {
-    if (count === 0) return Theme.Colors.gray[400];
-    if (count < 7) return Theme.Colors.warning[500];
-    if (count < 30) return Theme.Colors.primary[500];
-    return Theme.Colors.success[500];
+    if (count === 0) return theme.Colors.gray[400];
+    if (count < 7) return theme.Colors.warning[500];
+    if (count < 30) return theme.Colors.primary[500];
+    return theme.Colors.success[500];
   };
 
   return (
-    <View style={[styles.streakContainer, style]}>
-      <View style={styles.streakIconContainer}>
-        <Text style={styles.streakEmoji}>{getEmoji()}</Text>
+    <View style={[{
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.Colors.surface.card,
+      borderRadius: theme.BorderRadius.lg,
+      padding: theme.Spacing.lg,
+      ...theme.Shadows.sm,
+    }, style]}>
+      <View style={{
+        marginRight: theme.Spacing.md,
+      }}>
+        <Text style={{
+          fontSize: theme.Typography.fontSize['2xl'],
+        }}>{getEmoji()}</Text>
       </View>
       
-      <View style={styles.streakInfo}>
-        <Text style={[styles.streakCount, { color: getColor() }]}>
+      <View style={{ flex: 1 }}>
+        <Text style={[{
+          fontSize: theme.Typography.fontSize.lg,
+          fontWeight: theme.Typography.fontWeight.bold,
+          marginBottom: theme.Spacing.xs,
+        }, { color: getColor() }]}>
           {count} {count === 1 ? 'Day' : 'Days'}
         </Text>
         
         {maxCount && (
-          <View style={styles.streakProgressContainer}>
-            <View 
-              style={[
-                styles.streakProgressBar, 
-                { backgroundColor: Theme.Colors.gray[200] }
-              ]} 
-            />
+          <View style={{
+            height: 4,
+            backgroundColor: theme.Colors.gray[200],
+            borderRadius: theme.BorderRadius.full,
+            overflow: 'hidden',
+            position: 'relative',
+          }}>
             <View
-              style={[
-                styles.streakProgressFill,
-                {
-                  backgroundColor: getColor(),
-                  width: `${progress * 100}%`,
-                },
-              ]}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: `${progress * 100}%`,
+                backgroundColor: getColor(),
+                borderRadius: theme.BorderRadius.full,
+              }}
             />
           </View>
         )}
@@ -150,30 +184,71 @@ export const AchievementBadge: React.FC<AchievementBadgeProps> = ({
   animated = true,
   style,
 }) => {
+  const { theme } = useTheme();
+
   return (
     <View style={[
-      styles.achievementContainer, 
-      { opacity: unlocked ? 1 : 0.4 }, 
+      {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: theme.Colors.surface.card,
+        borderRadius: theme.BorderRadius.lg,
+        padding: theme.Spacing.lg,
+        marginBottom: theme.Spacing.md,
+        ...theme.Shadows.sm,
+        opacity: unlocked ? 1 : 0.4,
+      }, 
       style
     ]}>
-      <View style={[styles.achievementIcon, unlocked && styles.achievementIconUnlocked]}>
-        <Text style={styles.achievementEmoji}>{icon}</Text>
+      <View style={[
+        {
+          width: 50,
+          height: 50,
+          borderRadius: theme.BorderRadius.full,
+          backgroundColor: unlocked ? theme.Colors.success[100] : theme.Colors.gray[200],
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginRight: theme.Spacing.md,
+        }
+      ]}>
+        <Text style={{
+          fontSize: theme.Typography.fontSize.xl,
+        }}>{icon}</Text>
       </View>
       
-      <View style={styles.achievementInfo}>
-        <Text style={[styles.achievementTitle, unlocked && styles.achievementTitleUnlocked]}>
+      <View style={{ flex: 1 }}>
+        <Text style={{
+          fontSize: theme.Typography.fontSize.base,
+          fontWeight: theme.Typography.fontWeight.semibold,
+          color: unlocked ? theme.Colors.text.primary : theme.Colors.gray[500],
+          marginBottom: theme.Spacing.xs,
+        }}>
           {title}
         </Text>
-        <Text style={styles.achievementDescription}>{description}</Text>
+        <Text style={{
+          fontSize: theme.Typography.fontSize.sm,
+          color: theme.Colors.text.secondary,
+          marginBottom: theme.Spacing.xs,
+        }}>{description}</Text>
         
         {!unlocked && progress > 0 && (
-          <View style={styles.achievementProgressContainer}>
-            <View style={styles.achievementProgressBackground} />
+          <View style={{
+            height: 3,
+            backgroundColor: theme.Colors.gray[200],
+            borderRadius: theme.BorderRadius.full,
+            overflow: 'hidden',
+            position: 'relative',
+          }}>
             <View
-              style={[
-                styles.achievementProgressFill,
-                { width: `${progress * 100}%` },
-              ]}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                bottom: 0,
+                backgroundColor: theme.Colors.primary[500],
+                borderRadius: theme.BorderRadius.full,
+                width: `${progress * 100}%`,
+              }}
             />
           </View>
         )}
@@ -200,18 +275,39 @@ export const StatsGrid: React.FC<StatsGridProps> = ({
   animated = true,
   style,
 }) => {
+  const { theme } = useTheme();
+
   return (
-    <View style={[styles.statsGrid, style]}>
+    <View style={[{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }, style]}>
       {stats.map((stat, index) => {
         return (
-          <View key={index} style={styles.statItem}>
-            <Text style={styles.statIcon}>{stat.icon}</Text>
+          <View key={index} style={{
+            width: '48%',
+            backgroundColor: theme.Colors.surface.card,
+            borderRadius: theme.BorderRadius.lg,
+            padding: theme.Spacing.lg,
+            alignItems: 'center',
+            marginBottom: theme.Spacing.md,
+            ...theme.Shadows.sm,
+          }}>
+            <Text style={{
+              fontSize: theme.Typography.fontSize.xl,
+              marginBottom: theme.Spacing.sm,
+            }}>{stat.icon}</Text>
             <View>
-              <Text style={[styles.statValue, { color: stat.color || Theme.Colors.primary[500] }]}>
+              <Text style={[{
+                fontSize: theme.Typography.fontSize['2xl'],
+                fontWeight: theme.Typography.fontWeight.bold,
+                marginBottom: theme.Spacing.xs,
+              }, { color: stat.color || theme.Colors.primary[500] }]}>
                 {stat.value}
               </Text>
             </View>
-            <Text style={styles.statLabel}>{stat.label}</Text>
+            <Text style={{
+              fontSize: theme.Typography.fontSize.sm,
+              color: theme.Colors.text.secondary,
+              textAlign: 'center',
+            }}>{stat.label}</Text>
           </View>
         );
       })}
@@ -220,166 +316,7 @@ export const StatsGrid: React.FC<StatsGridProps> = ({
 };
 
 const styles = StyleSheet.create({
-  // Circular Progress Styles
-  circularContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  circularRing: {
-    position: 'absolute',
-  },
-  circularTextContainer: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  circularText: {
-    fontSize: Theme.Typography.fontSize.lg,
-    fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.text.primary,
-  },
-
-  // Streak Counter Styles
-  streakContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Theme.Colors.surface.card,
-    borderRadius: Theme.BorderRadius.lg,
-    padding: Theme.Spacing.lg,
-    ...Theme.Shadows.sm,
-  },
-  streakIconContainer: {
-    marginRight: Theme.Spacing.md,
-  },
-  streakEmoji: {
-    fontSize: Theme.Typography.fontSize['2xl'],
-  },
-  streakInfo: {
-    flex: 1,
-  },
-  streakCount: {
-    fontSize: Theme.Typography.fontSize.lg,
-    fontWeight: Theme.Typography.fontWeight.bold,
-    marginBottom: Theme.Spacing.xs,
-  },
-  streakProgressContainer: {
-    height: 4,
-    backgroundColor: Theme.Colors.gray[200],
-    borderRadius: Theme.BorderRadius.full,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  streakProgressBar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  streakProgressFill: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    borderRadius: Theme.BorderRadius.full,
-  },
-
-  // Achievement Badge Styles
-  achievementContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Theme.Colors.surface.card,
-    borderRadius: Theme.BorderRadius.lg,
-    padding: Theme.Spacing.lg,
-    marginBottom: Theme.Spacing.md,
-    ...Theme.Shadows.sm,
-  },
-  achievementIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: Theme.BorderRadius.full,
-    backgroundColor: Theme.Colors.gray[200],
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Theme.Spacing.md,
-  },
-  achievementIconUnlocked: {
-    backgroundColor: Theme.Colors.success[100],
-  },
-  achievementEmoji: {
-    fontSize: Theme.Typography.fontSize.xl,
-  },
-  achievementInfo: {
-    flex: 1,
-  },
-  achievementTitle: {
-    fontSize: Theme.Typography.fontSize.base,
-    fontWeight: Theme.Typography.fontWeight.semibold,
-    color: Theme.Colors.gray[500],
-    marginBottom: Theme.Spacing.xs,
-  },
-  achievementTitleUnlocked: {
-    color: Theme.Colors.text.primary,
-  },
-  achievementDescription: {
-    fontSize: Theme.Typography.fontSize.sm,
-    color: Theme.Colors.text.secondary,
-    marginBottom: Theme.Spacing.xs,
-  },
-  achievementProgressContainer: {
-    height: 3,
-    backgroundColor: Theme.Colors.gray[200],
-    borderRadius: Theme.BorderRadius.full,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  achievementProgressBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: Theme.Colors.gray[200],
-  },
-  achievementProgressFill: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    backgroundColor: Theme.Colors.primary[500],
-    borderRadius: Theme.BorderRadius.full,
-  },
-
-  // Stats Grid Styles
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  statItem: {
-    width: '48%',
-    backgroundColor: Theme.Colors.surface.card,
-    borderRadius: Theme.BorderRadius.lg,
-    padding: Theme.Spacing.lg,
-    alignItems: 'center',
-    marginBottom: Theme.Spacing.md,
-    ...Theme.Shadows.sm,
-  },
-  statIcon: {
-    fontSize: Theme.Typography.fontSize.xl,
-    marginBottom: Theme.Spacing.sm,
-  },
-  statValue: {
-    fontSize: Theme.Typography.fontSize['2xl'],
-    fontWeight: Theme.Typography.fontWeight.bold,
-    marginBottom: Theme.Spacing.xs,
-  },
-  statLabel: {
-    fontSize: Theme.Typography.fontSize.sm,
-    color: Theme.Colors.text.secondary,
-    textAlign: 'center',
-  },
+  // Empty StyleSheet - all styles are now dynamic based on theme
 });
 
 export default {

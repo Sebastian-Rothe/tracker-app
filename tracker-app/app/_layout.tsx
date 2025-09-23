@@ -7,11 +7,26 @@ import { useEffect } from 'react';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AchievementProvider } from '@/contexts/AchievementContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { setupGlobalErrorHandling } from '@/services/ErrorHandling';
 
+function RootNavigator() {
+  const { isDarkMode } = useTheme();
+  
+  return (
+    <NavigationThemeProvider value={isDarkMode ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="achievements" options={{ headerShown: true, title: "Achievements" }} />
+        <Stack.Screen name="community" options={{ headerShown: true, title: "Community" }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style={isDarkMode ? "light" : "dark"} backgroundColor="transparent" translucent={true} />
+    </NavigationThemeProvider>
+  );
+}
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -30,15 +45,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AchievementProvider>
-          <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="achievements" options={{ headerShown: true, title: "Achievements" }} />
-              <Stack.Screen name="community" options={{ headerShown: true, title: "Community" }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style="auto" backgroundColor="transparent" translucent={true} />
-          </NavigationThemeProvider>
+          <RootNavigator />
         </AchievementProvider>
       </ThemeProvider>
     </SafeAreaProvider>

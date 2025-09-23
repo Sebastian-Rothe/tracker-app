@@ -579,38 +579,48 @@ export default function MultiRoutineTrackerScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setIsFormVisible(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.Colors.surface.background }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.Colors.gray[200] }]}>
             <TouchableOpacity onPress={() => setIsFormVisible(false)}>
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={[styles.modalCancelText, { color: theme.Colors.primary[500] }]}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>
+            <Text style={[styles.modalTitle, { color: theme.Colors.text.primary }]}>
               {editingRoutine ? 'Edit Routine' : 'Add New Routine'}
             </Text>
             <TouchableOpacity onPress={handleSaveRoutine}>
-              <Text style={styles.modalSaveText}>Save</Text>
+              <Text style={[styles.modalSaveText, { color: theme.Colors.primary[500] }]}>Save</Text>
             </TouchableOpacity>
           </View>
           
           <ScrollView style={styles.modalContent}>
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Name *</Text>
+              <Text style={[styles.formLabel, { color: theme.Colors.text.primary }]}>Name *</Text>
               <TextInput
-                style={styles.formInput}
+                style={[styles.formInput, { 
+                  borderColor: theme.Colors.gray[300], 
+                  backgroundColor: theme.Colors.surface.card,
+                  color: theme.Colors.text.primary 
+                }]}
                 value={formData.name}
                 onChangeText={(text) => setFormData({...formData, name: text})}
                 placeholder="Enter routine name"
+                placeholderTextColor={theme.Colors.text.secondary}
                 maxLength={50}
               />
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Description</Text>
+              <Text style={[styles.formLabel, { color: theme.Colors.text.primary }]}>Description</Text>
               <TextInput
-                style={[styles.formInput, styles.formTextArea]}
+                style={[styles.formInput, styles.formTextArea, { 
+                  borderColor: theme.Colors.gray[300], 
+                  backgroundColor: theme.Colors.surface.card,
+                  color: theme.Colors.text.primary 
+                }]}
                 value={formData.description}
                 onChangeText={(text) => setFormData({...formData, description: text})}
                 placeholder="Enter description (optional)"
+                placeholderTextColor={theme.Colors.text.secondary}
                 multiline
                 numberOfLines={3}
                 maxLength={200}
@@ -618,7 +628,7 @@ export default function MultiRoutineTrackerScreen() {
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Color</Text>
+              <Text style={[styles.formLabel, { color: theme.Colors.text.primary }]}>Color</Text>
               <View style={styles.colorGrid}>
                 {ROUTINE_COLORS.map((color) => (
                   <TouchableOpacity
@@ -637,26 +647,31 @@ export default function MultiRoutineTrackerScreen() {
             {/* Initial Streak - only show when adding new routine */}
             {!editingRoutine && (
               <View style={styles.formGroup}>
-                <Text style={styles.formLabel}>Initial Streak (optional)</Text>
+                <Text style={[styles.formLabel, { color: theme.Colors.text.primary }]}>Initial Streak (optional)</Text>
                 <TextInput
-                  style={styles.formInput}
+                  style={[styles.formInput, { 
+                    borderColor: theme.Colors.gray[300], 
+                    backgroundColor: theme.Colors.surface.card,
+                    color: theme.Colors.text.primary 
+                  }]}
                   value={formData.initialStreak.toString()}
                   onChangeText={(text) => {
                     const numValue = parseInt(text) || 0;
                     setFormData({...formData, initialStreak: Math.max(0, numValue)});
                   }}
                   placeholder="0"
+                  placeholderTextColor={theme.Colors.text.secondary}
                   keyboardType="numeric"
                   maxLength={3}
                 />
-                <Text style={styles.formHint}>
+                <Text style={[styles.formHint, { color: theme.Colors.text.secondary }]}>
                   Start with an existing streak (e.g. if you've been doing this routine manually)
                 </Text>
               </View>
             )}
             
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Icon</Text>
+              <Text style={[styles.formLabel, { color: theme.Colors.text.primary }]}>Icon</Text>
               <View style={styles.iconGrid}>
                 {ROUTINE_ICONS.map((icon) => (
                   <TouchableOpacity
@@ -950,7 +965,6 @@ const styles = StyleSheet.create({
   // Modal styles
   modalContainer: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -959,20 +973,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   modalCancelText: {
     fontSize: 16,
-    color: Theme.Colors.primary[500],
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   modalSaveText: {
     fontSize: 16,
-    color: Theme.Colors.primary[500],
     fontWeight: '600',
   },
   modalContent: {
@@ -986,21 +996,17 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 8,
   },
   formInput: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    backgroundColor: '#fff',
   },
   formHint: {
     fontSize: 12,
-    color: '#666',
     marginTop: 4,
     fontStyle: 'italic',
   },

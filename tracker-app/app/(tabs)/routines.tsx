@@ -10,6 +10,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '@/contexts/ThemeContext';
 import { 
   loadRoutines, 
   createRoutine, 
@@ -72,6 +73,7 @@ const INITIAL_FORM_DATA: RoutineFormData = {
 
 export default function RoutineManagementScreen() {
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
@@ -253,35 +255,45 @@ export default function RoutineManagementScreen() {
 
   if (isFormVisible) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.Colors.surface.background }]}>
         <ScrollView 
-          style={styles.formContainer}
+          style={[styles.formContainer, { backgroundColor: theme.Colors.surface.background }]}
           contentContainerStyle={{
             paddingBottom: Math.max(insets.bottom) // Minimal padding to prevent button overlap
           }}
         >
-          <Text style={styles.formTitle}>
+          <Text style={[styles.formTitle, { color: theme.Colors.text.primary }]}>
             {editingRoutine ? TEXTS.editRoutine : TEXTS.addRoutine}
           </Text>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{TEXTS.routineName}</Text>
+            <Text style={[styles.label, { color: theme.Colors.text.primary }]}>{TEXTS.routineName}</Text>
             <TextInput
-              style={styles.textInput}
+              style={[styles.textInput, { 
+                borderColor: theme.Colors.gray[300], 
+                backgroundColor: theme.Colors.surface.card,
+                color: theme.Colors.text.primary 
+              }]}
               value={formData.name}
               onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
               placeholder="e.g., Morning Exercise"
+              placeholderTextColor={theme.Colors.text.secondary}
               maxLength={50}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{TEXTS.routineDescription}</Text>
+            <Text style={[styles.label, { color: theme.Colors.text.primary }]}>{TEXTS.routineDescription}</Text>
             <TextInput
-              style={[styles.textInput, styles.multilineInput]}
+              style={[styles.textInput, styles.multilineInput, { 
+                borderColor: theme.Colors.gray[300], 
+                backgroundColor: theme.Colors.surface.card,
+                color: theme.Colors.text.primary 
+              }]}
               value={formData.description}
               onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
               placeholder="Brief description of your routine"
+              placeholderTextColor={theme.Colors.text.secondary}
               maxLength={200}
               multiline
               numberOfLines={3}
@@ -289,19 +301,24 @@ export default function RoutineManagementScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{TEXTS.initialStreak}</Text>
+            <Text style={[styles.label, { color: theme.Colors.text.primary }]}>{TEXTS.initialStreak}</Text>
             <TextInput
-              style={styles.textInput}
+              style={[styles.textInput, { 
+                borderColor: theme.Colors.gray[300], 
+                backgroundColor: theme.Colors.surface.card,
+                color: theme.Colors.text.primary 
+              }]}
               value={formData.initialStreak}
               onChangeText={(text) => setFormData(prev => ({ ...prev, initialStreak: text }))}
               placeholder={TEXTS.initialStreakPlaceholder}
+              placeholderTextColor={theme.Colors.text.secondary}
               keyboardType="numeric"
               maxLength={4}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{TEXTS.chooseColor}</Text>
+            <Text style={[styles.label, { color: theme.Colors.text.primary }]}>{TEXTS.chooseColor}</Text>
             <View style={styles.colorPicker}>
               {ROUTINE_COLORS.map((color) => (
                 <TouchableOpacity
@@ -318,7 +335,7 @@ export default function RoutineManagementScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{TEXTS.chooseIcon}</Text>
+            <Text style={[styles.label, { color: theme.Colors.text.primary }]}>{TEXTS.chooseIcon}</Text>
             <View style={styles.iconPicker}>
               {ROUTINE_ICONS.map((icon) => (
                 <TouchableOpacity
@@ -406,28 +423,22 @@ export default function RoutineManagementScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   loadingText: {
     fontSize: 16,
     textAlign: 'center',
     marginTop: 50,
-    color: '#666',
   },
   header: {
     padding: 20,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
     marginTop: 4,
   },
   addButton: {
@@ -548,16 +559,13 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 8,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#fff',
   },
   multilineInput: {
     height: 80,
