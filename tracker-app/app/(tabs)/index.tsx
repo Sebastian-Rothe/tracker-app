@@ -242,11 +242,27 @@ export default function MultiRoutineTrackerScreen() {
       }
       
       if (updatedRoutine) {
-        // Removed success and skip popups for immediate feedback
-        // Just reload data to show the updated state
-        console.log('Reloading data...');
-        await loadData();
-        console.log('Data reloaded');
+        // Update only the specific routine in the state - no full page reload
+        setRoutines(prevRoutines => 
+          prevRoutines.map(r => 
+            r.id === updatedRoutine.id ? updatedRoutine : r
+          )
+        );
+        
+        // Update routine state for stats
+        const updatedRoutines = routines.map(r => 
+          r.id === updatedRoutine.id ? updatedRoutine : r
+        );
+        const activeRoutines = updatedRoutines.filter(r => r.isActive);
+        const longestStreak = activeRoutines.length > 0 
+          ? Math.max(...activeRoutines.map(r => r.streak))
+          : 0;
+        
+        setRoutineState(prev => ({
+          ...prev,
+          routines: updatedRoutines,
+          totalStreakDays: longestStreak
+        }));
       }
     } catch (error) {
       console.error('Error in confirmRoutineAction:', error);
@@ -295,7 +311,27 @@ export default function MultiRoutineTrackerScreen() {
     try {
       const updatedRoutine = await undoRoutineToday(routine.id);
       if (updatedRoutine) {
-        await loadData();
+        // Update only the specific routine in the state - no full page reload
+        setRoutines(prevRoutines => 
+          prevRoutines.map(r => 
+            r.id === updatedRoutine.id ? updatedRoutine : r
+          )
+        );
+        
+        // Update routine state for stats
+        const updatedRoutines = routines.map(r => 
+          r.id === updatedRoutine.id ? updatedRoutine : r
+        );
+        const activeRoutines = updatedRoutines.filter(r => r.isActive);
+        const longestStreak = activeRoutines.length > 0 
+          ? Math.max(...activeRoutines.map(r => r.streak))
+          : 0;
+        
+        setRoutineState(prev => ({
+          ...prev,
+          routines: updatedRoutines,
+          totalStreakDays: longestStreak
+        }));
         // No popup - just silent undo for better UX
       } else {
         Alert.alert(
@@ -308,7 +344,7 @@ export default function MultiRoutineTrackerScreen() {
       console.error('Error undoing routine:', error);
       Alert.alert('Error', 'Failed to undo routine completion. Please try again.');
     }
-  }, [loadData]);
+  }, [routines]);
 
   const handleRoutineCardPress = useCallback((routine: Routine) => {
     const isCompletedToday = isRoutineCompletedToday(routine);
