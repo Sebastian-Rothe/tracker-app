@@ -33,7 +33,7 @@ import {
   updateRoutine
 } from '@/utils/settingsStorage';
 import { routineStorage } from '@/services/RoutineStorageService';
-import { StreakCounter, AchievementBadge, StatsGrid } from '../../components/ProgressIndicators';
+import { StreakCounter, StatsGrid } from '../../components/ProgressIndicators';
 import { MotivationalDashboard } from '../../components/MotivationalDashboard';
 import { QuickAchievementBanner } from '../../components/QuickAchievementBanner';
 import { 
@@ -477,39 +477,7 @@ export default function MultiRoutineTrackerScreen() {
           </Card>
         </TouchableOpacity>
 
-        {/* Smart Achievement Badge */}
-        {routineState.totalStreakDays >= 30 ? (
-          <AchievementBadge
-            title="Consistency Champion"
-            description="30+ day streak achieved! 🎉"
-            icon="👑"
-            unlocked={true}
-            animated={true}
-            style={styles.achievementBadge}
-          />
-        ) : routineState.totalStreakDays >= 7 ? (
-          <AchievementBadge
-            title="Week Warrior"
-            description="Keep going for Champion status!"
-            icon="⚔️"
-            unlocked={true}
-            progress={Math.min(routineState.totalStreakDays / 30, 1)}
-            animated={true}
-            style={styles.achievementBadge}
-          />
-        ) : routineState.totalStreakDays > 0 ? (
-          <AchievementBadge
-            title="Building Momentum"
-            description="On your way to a 7-day streak!"
-            icon="🔥"
-            unlocked={true}
-            progress={Math.min(routineState.totalStreakDays / 7, 1)}
-            animated={true}
-            style={styles.achievementBadge}
-          />
-        ) : null}
-
-        {/* Quick Achievement Banner */}
+        {/* Achievements Section */}
         <QuickAchievementBanner />
 
         {/* Routines List */}
@@ -931,9 +899,6 @@ const styles = StyleSheet.create({
   statsGrid: {
     marginBottom: Theme.Spacing.lg,
   },
-  achievementsContainer: {
-    marginBottom: Theme.Spacing.lg,
-  },
   routineListContainer: {
     flex: 1,
     paddingBottom: Theme.Spacing.lg,
@@ -1086,9 +1051,5 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 24,
-  },
-  achievementBadge: {
-    marginHorizontal: Theme.Spacing.lg,
-    marginBottom: Theme.Spacing.md,
   },
 });
