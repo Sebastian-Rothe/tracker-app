@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Theme } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { MonthlyStats } from '@/utils/historyManager';
 
 interface StatsCardProps {
@@ -18,14 +19,18 @@ const StatsCard: React.FC<StatsCardProps> = ({
   icon, 
   color = Theme.Colors.primary[500] 
 }) => {
+  const { theme } = useTheme();
   return (
-    <View style={[styles.statsCard, { borderLeftColor: color }]}>
+    <View style={[styles.statsCard, { 
+      borderLeftColor: color,
+      backgroundColor: theme.Colors.surface.card
+    }]}>
       <View style={styles.statsHeader}>
         {icon && <Text style={styles.statsIcon}>{icon}</Text>}
-        <Text style={styles.statsTitle}>{title}</Text>
+        <Text style={[styles.statsTitle, { color: theme.Colors.text.secondary }]}>{title}</Text>
       </View>
       <Text style={[styles.statsValue, { color }]}>{value}</Text>
-      {subtitle && <Text style={styles.statsSubtitle}>{subtitle}</Text>}
+      {subtitle && <Text style={[styles.statsSubtitle, { color: theme.Colors.text.secondary }]}>{subtitle}</Text>}
     </View>
   );
 };
@@ -41,8 +46,12 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   color = Theme.Colors.primary[500], 
   height = 8 
 }) => {
+  const { theme } = useTheme();
   return (
-    <View style={[styles.progressContainer, { height }]}>
+    <View style={[styles.progressContainer, { 
+      height,
+      backgroundColor: theme.Colors.surface.overlay
+    }]}>
       <View 
         style={[
           styles.progressBar, 
@@ -70,11 +79,13 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
   monthlyStats, 
   weeklyData 
 }) => {
+  const { theme } = useTheme();
+  
   if (!monthlyStats) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.noDataText}>No data available yet</Text>
-        <Text style={styles.noDataSubtext}>Complete some routines to see your statistics!</Text>
+      <View style={[styles.container, { backgroundColor: theme.Colors.surface.card }]}>
+        <Text style={[styles.noDataText, { color: theme.Colors.text.secondary }]}>No data available yet</Text>
+        <Text style={[styles.noDataSubtext, { color: theme.Colors.text.secondary }]}>Complete some routines to see your statistics!</Text>
       </View>
     );
   }
@@ -83,7 +94,7 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
   const consistency = monthlyStats.completedDays / Math.max(monthlyStats.totalDays, 1);
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.Colors.surface.card }]}>
       {/* Main Stats Grid */}
       <View style={styles.statsGrid}>
         <StatsCard
@@ -119,8 +130,8 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
       <View style={styles.progressSection}>
         <View style={styles.progressItem}>
           <View style={styles.progressHeader}>
-            <Text style={styles.progressTitle}>Average Completion Rate</Text>
-            <Text style={styles.progressValue}>{Math.round(completionRate * 100)}%</Text>
+            <Text style={[styles.progressTitle, { color: theme.Colors.text.primary }]}>Average Completion Rate</Text>
+            <Text style={[styles.progressValue, { color: theme.Colors.text.primary }]}>{Math.round(completionRate * 100)}%</Text>
           </View>
           <ProgressBar 
             progress={completionRate} 
@@ -132,8 +143,8 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
         
         <View style={styles.progressItem}>
           <View style={styles.progressHeader}>
-            <Text style={styles.progressTitle}>Consistency Score</Text>
-            <Text style={styles.progressValue}>{Math.round(consistency * 100)}%</Text>
+            <Text style={[styles.progressTitle, { color: theme.Colors.text.primary }]}>Consistency Score</Text>
+            <Text style={[styles.progressValue, { color: theme.Colors.text.primary }]}>{Math.round(consistency * 100)}%</Text>
           </View>
           <ProgressBar 
             progress={consistency} 
@@ -147,7 +158,7 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
       {/* Weekly Comparison */}
       {weeklyData && (
         <View style={styles.weeklySection}>
-          <Text style={styles.sectionTitle}>Weekly Progress</Text>
+          <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>Weekly Progress</Text>
           <View style={styles.statsGrid}>
             <StatsCard
               title="This Week"
@@ -172,7 +183,7 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
       )}
       
       {/* Motivational Messages */}
-      <View style={styles.motivationSection}>
+      <View style={[styles.motivationSection, { borderTopColor: theme.Colors.surface.border }]}>
         {monthlyStats.streakDays > 7 && (
           <Text style={styles.motivationText}>
             🎉 Amazing! You're on a {monthlyStats.streakDays}-day streak!
@@ -195,7 +206,6 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
     borderRadius: Theme.BorderRadius.lg,
     padding: Theme.Spacing.lg,
     marginBottom: Theme.Spacing.lg,
@@ -212,7 +222,6 @@ const styles = StyleSheet.create({
   },
   statsCard: {
     flex: 1,
-    backgroundColor: Theme.Colors.gray[50],
     borderRadius: Theme.BorderRadius.md,
     padding: Theme.Spacing.md,
     borderLeftWidth: 4,
@@ -229,7 +238,6 @@ const styles = StyleSheet.create({
   statsTitle: {
     fontSize: Theme.Typography.fontSize.sm,
     fontWeight: Theme.Typography.fontWeight.medium,
-    color: Theme.Colors.text.secondary,
     flex: 1,
   },
   statsValue: {
@@ -239,7 +247,6 @@ const styles = StyleSheet.create({
   },
   statsSubtitle: {
     fontSize: Theme.Typography.fontSize.xs,
-    color: Theme.Colors.text.secondary,
   },
   progressSection: {
     marginBottom: Theme.Spacing.lg,
@@ -256,15 +263,12 @@ const styles = StyleSheet.create({
   progressTitle: {
     fontSize: Theme.Typography.fontSize.sm,
     fontWeight: Theme.Typography.fontWeight.medium,
-    color: Theme.Colors.text.primary,
   },
   progressValue: {
     fontSize: Theme.Typography.fontSize.sm,
     fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.text.primary,
   },
   progressContainer: {
-    backgroundColor: Theme.Colors.gray[200],
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -277,13 +281,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: Theme.Typography.fontSize.lg,
     fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.text.primary,
     marginBottom: Theme.Spacing.md,
   },
   motivationSection: {
     paddingTop: Theme.Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Theme.Colors.gray[200],
   },
   motivationText: {
     fontSize: Theme.Typography.fontSize.sm,
@@ -295,13 +297,11 @@ const styles = StyleSheet.create({
   noDataText: {
     fontSize: Theme.Typography.fontSize.lg,
     fontWeight: Theme.Typography.fontWeight.semibold,
-    color: Theme.Colors.text.secondary,
     textAlign: 'center',
     marginBottom: Theme.Spacing.sm,
   },
   noDataSubtext: {
     fontSize: Theme.Typography.fontSize.base,
-    color: Theme.Colors.text.secondary,
     textAlign: 'center',
   },
 });

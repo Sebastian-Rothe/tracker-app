@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Theme } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { DayData } from '@/utils/historyManager';
 
 interface CalendarGridProps {
@@ -22,21 +23,22 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
   isToday, 
   isCurrentMonth 
 }) => {
+  const { theme } = useTheme();
   const day = new Date(dayData.date).getDate();
   
   const getBackgroundColor = () => {
-    if (!isCurrentMonth) return Theme.Colors.gray[100];
-    if (isToday) return Theme.Colors.primary[500];
+    if (!isCurrentMonth) return theme.Colors.surface.overlay;
+    if (isToday) return theme.Colors.primary[500];
     if (dayData.completionRate === 1) return Theme.Colors.success[500];
     if (dayData.completionRate > 0.5) return Theme.Colors.warning[400];
     if (dayData.completionRate > 0) return Theme.Colors.warning[200];
-    return Theme.Colors.gray[50];
+    return theme.Colors.surface.card;
   };
   
   const getTextColor = () => {
-    if (!isCurrentMonth) return Theme.Colors.gray[400];
+    if (!isCurrentMonth) return theme.Colors.text.tertiary;
     if (isToday || dayData.completionRate === 1) return '#ffffff';
-    return Theme.Colors.text.primary;
+    return theme.Colors.text.primary;
   };
   
   return (
@@ -67,6 +69,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   onDayPress, 
   currentMonth 
 }) => {
+  const { theme } = useTheme();
   const screenWidth = Dimensions.get('window').width;
   const dayWidth = (screenWidth - (Theme.Spacing.lg * 2) - (6 * 4)) / 7; // 7 days, 6 gaps
   
@@ -125,12 +128,12 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.Colors.surface.card }]}>
       {/* Weekday headers */}
       <View style={styles.weekdayRow}>
         {weekdays.map((weekday) => (
           <View key={weekday} style={[styles.weekdayContainer, { width: dayWidth }]}>
-            <Text style={styles.weekdayText}>{weekday}</Text>
+            <Text style={[styles.weekdayText, { color: theme.Colors.text.secondary }]}>{weekday}</Text>
           </View>
         ))}
       </View>
@@ -160,18 +163,18 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
       </View>
       
       {/* Legend */}
-      <View style={styles.legend}>
+      <View style={[styles.legend, { borderTopColor: theme.Colors.surface.border }]}>
         <View style={styles.legendRow}>
           <View style={[styles.legendDot, { backgroundColor: Theme.Colors.success[500] }]} />
-          <Text style={styles.legendText}>All completed</Text>
+          <Text style={[styles.legendText, { color: theme.Colors.text.secondary }]}>All completed</Text>
         </View>
         <View style={styles.legendRow}>
           <View style={[styles.legendDot, { backgroundColor: Theme.Colors.warning[400] }]} />
-          <Text style={styles.legendText}>Partially completed</Text>
+          <Text style={[styles.legendText, { color: theme.Colors.text.secondary }]}>Partially completed</Text>
         </View>
         <View style={styles.legendRow}>
-          <View style={[styles.legendDot, { backgroundColor: Theme.Colors.gray[50] }]} />
-          <Text style={styles.legendText}>Not completed</Text>
+          <View style={[styles.legendDot, { backgroundColor: theme.Colors.surface.card }]} />
+          <Text style={[styles.legendText, { color: theme.Colors.text.secondary }]}>Not completed</Text>
         </View>
       </View>
     </View>
@@ -180,7 +183,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
     borderRadius: Theme.BorderRadius.lg,
     padding: Theme.Spacing.md,
     marginBottom: Theme.Spacing.lg,
@@ -201,7 +203,6 @@ const styles = StyleSheet.create({
   weekdayText: {
     fontSize: Theme.Typography.fontSize.sm,
     fontWeight: Theme.Typography.fontWeight.semibold,
-    color: Theme.Colors.text.secondary,
   },
   calendarGrid: {
     marginBottom: Theme.Spacing.md,
@@ -244,7 +245,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingTop: Theme.Spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: Theme.Colors.gray[200],
   },
   legendRow: {
     flexDirection: 'row',
@@ -260,6 +260,5 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: Theme.Typography.fontSize.xs,
-    color: Theme.Colors.text.secondary,
   },
 });

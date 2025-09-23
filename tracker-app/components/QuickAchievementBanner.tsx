@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Theme } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { getAchievementStats, getRecentlyUnlocked } from '@/utils/achievementManager';
 
 export const QuickAchievementBanner: React.FC = () => {
+  const { theme } = useTheme();
   const [achievementStats, setAchievementStats] = useState({ total: 0, unlocked: 0, progress: 0 });
   const [hasRecentUnlock, setHasRecentUnlock] = useState(false);
 
@@ -38,7 +40,11 @@ export const QuickAchievementBanner: React.FC = () => {
     <TouchableOpacity 
       style={[
         styles.container,
-        hasRecentUnlock && styles.containerHighlight
+        {
+          backgroundColor: theme.Colors.surface.card,
+          borderColor: hasRecentUnlock ? Theme.Colors.success[300] : theme.Colors.surface.border
+        },
+        hasRecentUnlock && { backgroundColor: Theme.Colors.success[50] }
       ]}
       onPress={() => router.push('/achievements')}
     >
@@ -46,10 +52,10 @@ export const QuickAchievementBanner: React.FC = () => {
         <View style={styles.leftSection}>
           <Text style={styles.icon}>🏆</Text>
           <View style={styles.textSection}>
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: theme.Colors.text.primary }]}>
               {hasRecentUnlock ? '🎉 New Achievement!' : 'Achievements'}
             </Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, { color: theme.Colors.text.secondary }]}>
               {achievementStats.unlocked}/{achievementStats.total} unlocked
             </Text>
           </View>
@@ -57,7 +63,9 @@ export const QuickAchievementBanner: React.FC = () => {
         
         <View style={styles.rightSection}>
           <View style={styles.progressContainer}>
-            <View style={styles.progressBackground}>
+            <View style={[styles.progressBackground, {
+              backgroundColor: theme.Colors.surface.overlay
+            }]}>
               <View 
                 style={[
                   styles.progressBar,
@@ -69,7 +77,7 @@ export const QuickAchievementBanner: React.FC = () => {
               />
             </View>
           </View>
-          <Text style={styles.progressText}>
+          <Text style={[styles.progressText, { color: theme.Colors.text.secondary }]}>
             {Math.round(achievementStats.progress * 100)}%
           </Text>
         </View>
@@ -86,7 +94,6 @@ export const QuickAchievementBanner: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
     borderRadius: Theme.BorderRadius.lg,
     margin: Theme.Spacing.md,
     padding: Theme.Spacing.lg,
@@ -96,7 +103,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     borderWidth: 1,
-    borderColor: Theme.Colors.gray[200],
     position: 'relative',
   },
   containerHighlight: {
@@ -123,12 +129,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: Theme.Typography.fontSize.base,
     fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.text.primary,
     marginBottom: 2,
   },
   subtitle: {
     fontSize: Theme.Typography.fontSize.sm,
-    color: Theme.Colors.text.secondary,
   },
   rightSection: {
     alignItems: 'flex-end',
@@ -140,7 +144,6 @@ const styles = StyleSheet.create({
   },
   progressBackground: {
     height: 6,
-    backgroundColor: Theme.Colors.gray[200],
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -150,7 +153,6 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: Theme.Typography.fontSize.xs,
-    color: Theme.Colors.text.secondary,
     fontWeight: Theme.Typography.fontWeight.medium,
   },
   newBadge: {
