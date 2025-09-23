@@ -6,7 +6,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { getAchievementStats, getRecentlyUnlocked } from '@/utils/achievementManager';
 
 export const QuickAchievementBanner: React.FC = () => {
-  const { theme } = useTheme();
+  const { theme, isDarkMode } = useTheme();
   const [achievementStats, setAchievementStats] = useState({ total: 0, unlocked: 0, progress: 0 });
   const [hasRecentUnlock, setHasRecentUnlock] = useState(false);
 
@@ -41,10 +41,13 @@ export const QuickAchievementBanner: React.FC = () => {
       style={[
         styles.container,
         {
-          backgroundColor: theme.Colors.surface.card,
-          borderColor: hasRecentUnlock ? Theme.Colors.success[300] : theme.Colors.surface.border
-        },
-        hasRecentUnlock && { backgroundColor: Theme.Colors.success[50] }
+          backgroundColor: hasRecentUnlock 
+            ? (isDarkMode ? Theme.Colors.success[900] : Theme.Colors.success[50])
+            : theme.Colors.surface.card,
+          borderColor: hasRecentUnlock 
+            ? (isDarkMode ? Theme.Colors.success[600] : Theme.Colors.success[300])
+            : theme.Colors.surface.border
+        }
       ]}
       onPress={() => router.push('/achievements')}
     >
@@ -96,6 +99,8 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: Theme.BorderRadius.lg,
     margin: Theme.Spacing.md,
+    marginTop: Theme.Spacing.xs, // Further reduced top margin
+    marginBottom: Theme.Spacing.xl, // Increased bottom margin
     padding: Theme.Spacing.lg,
     elevation: 2,
     shadowColor: '#000',

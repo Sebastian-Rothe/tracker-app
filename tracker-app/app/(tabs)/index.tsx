@@ -484,8 +484,8 @@ export default function MultiRoutineTrackerScreen() {
         {routines.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>📝</Text>
-            <Text style={styles.emptyText}>{TEXTS.noRoutines}</Text>
-            <Text style={styles.emptySubtext}>{TEXTS.noRoutinesSubtext}</Text>
+            <Text style={[styles.emptyText, { color: theme.Colors.text.primary }]}>{TEXTS.noRoutines}</Text>
+            <Text style={[styles.emptySubtext, { color: theme.Colors.text.secondary }]}>{TEXTS.noRoutinesSubtext}</Text>
           </View>
         ) : (
           <View style={styles.routineListContainer}>
@@ -523,7 +523,7 @@ export default function MultiRoutineTrackerScreen() {
                 </View>
 
                 <View style={styles.routineFooter}>
-                  <Text style={styles.lastCompletedText}>
+                  <Text style={[styles.lastCompletedText, { color: theme.Colors.text.secondary }]}>
                     {TEXTS.lastCompleted}: {formatLastCompleted(routine.lastConfirmed)}
                   </Text>
                   
@@ -583,7 +583,7 @@ export default function MultiRoutineTrackerScreen() {
         onRequestClose={() => setIsFormVisible(false)}
       >
         <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.Colors.surface.background }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: theme.Colors.gray[200] }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.Colors.surface.border }]}>
             <TouchableOpacity onPress={() => setIsFormVisible(false)}>
               <Text style={[styles.modalCancelText, { color: theme.Colors.primary[500] }]}>Cancel</Text>
             </TouchableOpacity>
@@ -838,14 +838,14 @@ const styles = StyleSheet.create({
   },
   routineDescription: {
     fontSize: 14,
-    color: '#666',
+    color: Theme.Colors.text.secondary,
     marginBottom: 6,
     lineHeight: 18,
   },
   routineStreak: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ff6b35',
+    color: Theme.Colors.primary[500],
   },
   routineFooter: {
     flexDirection: 'row',
@@ -945,7 +945,7 @@ const styles = StyleSheet.create({
   // FAB styles
   fab: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 20, // Equal to right margin
     right: 20,
     zIndex: 1000,
   },
