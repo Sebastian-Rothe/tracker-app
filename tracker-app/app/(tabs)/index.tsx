@@ -477,6 +477,41 @@ export default function MultiRoutineTrackerScreen() {
           </Card>
         </TouchableOpacity>
 
+        {/* Smart Achievement Badge */}
+        {routineState.totalStreakDays >= 30 ? (
+          <AchievementBadge
+            title="Consistency Champion"
+            description="30+ day streak achieved! 🎉"
+            icon="👑"
+            unlocked={true}
+            animated={true}
+            style={styles.achievementBadge}
+          />
+        ) : routineState.totalStreakDays >= 7 ? (
+          <AchievementBadge
+            title="Week Warrior"
+            description="Keep going for Champion status!"
+            icon="⚔️"
+            unlocked={true}
+            progress={Math.min(routineState.totalStreakDays / 30, 1)}
+            animated={true}
+            style={styles.achievementBadge}
+          />
+        ) : routineState.totalStreakDays > 0 ? (
+          <AchievementBadge
+            title="Building Momentum"
+            description="On your way to a 7-day streak!"
+            icon="🔥"
+            unlocked={true}
+            progress={Math.min(routineState.totalStreakDays / 7, 1)}
+            animated={true}
+            style={styles.achievementBadge}
+          />
+        ) : null}
+
+        {/* Quick Achievement Banner */}
+        <QuickAchievementBanner />
+
         {/* Routines List */}
         {routines.length === 0 ? (
           <View style={styles.emptyState}>
@@ -1051,5 +1086,9 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 24,
+  },
+  achievementBadge: {
+    marginHorizontal: Theme.Spacing.lg,
+    marginBottom: Theme.Spacing.md,
   },
 });

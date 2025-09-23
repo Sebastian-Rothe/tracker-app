@@ -15,9 +15,8 @@ import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CalendarGrid } from '@/components/CalendarGrid';
 import { HistoryStats } from '@/components/HistoryStats';
-import { StreakCounter, AchievementBadge, StatsGrid } from '@/components/ProgressIndicators';
+import { StreakCounter, StatsGrid } from '@/components/ProgressIndicators';
 import { MotivationalDashboard } from '@/components/MotivationalDashboard';
-import { QuickAchievementBanner } from '@/components/QuickAchievementBanner';
 import { 
   getDailyData, 
   getMonthlyStats, 
@@ -249,50 +248,19 @@ export default function StatusScreen() {
               {
                 label: 'This Month',
                 value: monthlyData.filter(d => d.completionRate > 0).length,
-                icon: '�',
+                icon: '📅',
                 color: Theme.Colors.info[500],
               },
               {
                 label: 'Perfect Days',
                 value: monthlyData.filter(d => d.completionRate === 1).length,
-                icon: '�',
+                icon: '💯',
                 color: Theme.Colors.warning[500],
               },
             ]}
             animated={true}
             style={styles.statsGrid}
           />
-
-          {/* Key Achievement Badge - only show most relevant */}
-          <View style={styles.achievementsContainer}>
-            {routineState.totalStreakDays >= 30 ? (
-              <AchievementBadge
-                title="Consistency Champion"
-                description="30+ day streak achieved!"
-                icon="�"
-                unlocked={true}
-                animated={true}
-              />
-            ) : routineState.totalStreakDays >= 7 ? (
-              <AchievementBadge
-                title="Week Warrior"
-                description="Keep going for Champion status!"
-                icon="⚔️"
-                unlocked={true}
-                progress={Math.min(routineState.totalStreakDays / 30, 1)}
-                animated={true}
-              />
-            ) : (
-              <AchievementBadge
-                title={routineState.totalStreakDays > 0 ? "Building Momentum" : "Start Your Journey"}
-                description={routineState.totalStreakDays > 0 ? "On your way to a 7-day streak!" : "Complete your first routine"}
-                icon={routineState.totalStreakDays > 0 ? "🔥" : "�"}
-                unlocked={routineState.totalStreakDays > 0}
-                progress={routineState.totalStreakDays > 0 ? Math.min(routineState.totalStreakDays / 7, 1) : 0}
-                animated={true}
-              />
-            )}
-          </View>
         </View>
 
         {/* Motivational Dashboard */}
@@ -302,9 +270,6 @@ export default function StatusScreen() {
           totalRoutines={activeRoutines.length}
         />
 
-        {/* Quick Achievement Access */}
-        <QuickAchievementBanner />
-        
         {/* Monthly Statistics */}
         <HistoryStats monthlyStats={monthlyStats} />
         
@@ -445,9 +410,6 @@ const styles = StyleSheet.create({
     marginBottom: Theme.Spacing.lg,
   },
   statsGrid: {
-    marginBottom: Theme.Spacing.lg,
-  },
-  achievementsContainer: {
     marginBottom: Theme.Spacing.lg,
   },
 });
