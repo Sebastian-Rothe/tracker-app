@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Colors, Theme } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { CalendarGrid } from '@/components/CalendarGrid';
 import { HistoryStats } from '@/components/HistoryStats';
 import { StreakCounter, AchievementBadge, StatsGrid } from '@/components/ProgressIndicators';
@@ -29,6 +30,7 @@ import { Routine, RoutineState } from '@/types/routine';
 import { Card } from '@/components/ui';
 
 export default function StatusScreen() {
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   
   // State
@@ -184,10 +186,11 @@ export default function StatusScreen() {
       <View style={[styles.container, { 
         paddingTop: insets.top, 
         paddingLeft: insets.left, 
-        paddingRight: insets.right 
+        paddingRight: insets.right,
+        backgroundColor: theme.Colors.surface.background 
       }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading history...</Text>
+          <Text style={[styles.loadingText, { color: theme.Colors.text.primary }]}>Loading history...</Text>
         </View>
       </View>
     );
@@ -197,7 +200,8 @@ export default function StatusScreen() {
     <View style={[styles.container, { 
       paddingTop: insets.top, 
       paddingLeft: insets.left, 
-      paddingRight: insets.right 
+      paddingRight: insets.right,
+      backgroundColor: theme.Colors.surface.background 
     }]}>
       <ScrollView 
         style={styles.scrollView}
@@ -211,8 +215,8 @@ export default function StatusScreen() {
         <Card style={styles.header} shadow="sm" borderRadius="xl">
           <View style={styles.headerContent}>
             <View>
-              <Text style={styles.title}>Status & Analytics</Text>
-              <Text style={styles.subtitle}>Deine Fortschritte und Statistiken</Text>
+              <Text style={[styles.title, { color: theme.Colors.text.primary }]}>Status & Analytics</Text>
+              <Text style={[styles.subtitle, { color: theme.Colors.text.secondary }]}>Deine Fortschritte und Statistiken</Text>
             </View>
           </View>
         </Card>

@@ -432,17 +432,34 @@ export const confirmRoutine = async (routineId: string, confirmed: boolean): Pro
 const updateRoutineState = async (routines: Routine[]): Promise<void> => {
   try {
     const activeRoutines = routines.filter(r => r.isActive);
-    const totalStreakDays = activeRoutines.reduce((sum, r) => sum + r.streak, 0);
+    // Find the longest streak instead of summing all streaks
+    const longestStreak = activeRoutines.length > 0 
+      ? Math.max(...activeRoutines.map(r => r.streak))
+      : 0;
     
     const routineState: RoutineState = {
       routines: routines,
       activeRoutineCount: activeRoutines.length,
-      totalStreakDays,
+      totalStreakDays: longestStreak, // Now represents the longest streak, not total
     };
     
     await AsyncStorage.setItem(STORAGE_KEYS.ROUTINE_STATE, JSON.stringify(routineState));
   } catch (error) {
     console.error('Error updating routine state:', error);
+  }
+};
+
+/**
+ * Force recalculation of routine state (useful after logic changes)
+ */
+export const recalculateRoutineState = async (): Promise<void> => {
+  try {
+    const routines = await loadRoutines();
+    await updateRoutineState(routines);
+    // Also clear the stored routine state to force regeneration
+    await AsyncStorage.removeItem(STORAGE_KEYS.ROUTINE_STATE);
+  } catch (error) {
+    console.error('Error recalculating routine state:', error);
   }
 };
 

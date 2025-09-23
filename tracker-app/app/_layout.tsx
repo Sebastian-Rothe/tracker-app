@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AchievementProvider } from '@/contexts/AchievementContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { setupGlobalErrorHandling } from '@/services/ErrorHandling';
 
 export default function RootLayout() {
@@ -27,17 +28,19 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AchievementProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="achievements" options={{ headerShown: true, title: "Achievements" }} />
-            <Stack.Screen name="community" options={{ headerShown: true, title: "Community" }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="auto" backgroundColor="transparent" translucent={true} />
-        </ThemeProvider>
-      </AchievementProvider>
+      <ThemeProvider>
+        <AchievementProvider>
+          <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="achievements" options={{ headerShown: true, title: "Achievements" }} />
+              <Stack.Screen name="community" options={{ headerShown: true, title: "Community" }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="auto" backgroundColor="transparent" translucent={true} />
+          </NavigationThemeProvider>
+        </AchievementProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

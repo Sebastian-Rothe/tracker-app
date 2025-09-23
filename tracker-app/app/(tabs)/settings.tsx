@@ -14,12 +14,19 @@ import { router } from 'expo-router';
 import { scheduleRoutineNotifications, cancelAllNotifications } from '@/utils/notificationManager';
 import { STORAGE_KEYS } from '@/utils/settingsStorage';
 import { routineStorage } from '@/services/RoutineStorageService';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const SETTINGS_KEY = 'settings';
 
 // Settings texts
 const TEXTS = {
   title: 'Settings',
+  themeTitle: 'Appearance',
+  themeDescription: 'Choose your preferred app appearance',
+  lightMode: 'Light Mode',
+  darkMode: 'Dark Mode',
+  autoMode: 'System Default',
   manualStreakTitle: 'Manual Streak Input',
   manualStreakDescription: 'If you\'ve been following your routine before using this app, you can set your current streak here.',
   currentStreak: 'Current Streak:',
@@ -62,6 +69,7 @@ const defaultSettings: SettingsData = {
 export default function SettingsScreen() {
   const [settings, setSettings] = useState<SettingsData>(defaultSettings);
   const [notificationTimeInput, setNotificationTimeInput] = useState<string>('07:00');
+  const { theme, themeMode, setThemeMode, isDarkMode, isAutoMode } = useTheme();
 
   useEffect(() => {
     loadData();
@@ -174,12 +182,56 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Text style={styles.title}>{TEXTS.title}</Text>
+    <ScrollView style={[styles.container, { backgroundColor: theme.Colors.surface.background }]} contentContainerStyle={styles.contentContainer}>
+      <Text style={[styles.title, { color: theme.Colors.text.primary }]}>{TEXTS.title}</Text>
+
+      {/* Theme Settings */}
+      <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{TEXTS.themeTitle}</Text>
+        <Text style={[styles.sectionDescription, { color: theme.Colors.text.secondary }]}>{TEXTS.themeDescription}</Text>
+        
+        <View style={styles.themeOptions}>
+          <TouchableOpacity
+            style={[
+              styles.themeOption,
+              { borderColor: theme.Colors.surface.border },
+              !isAutoMode && themeMode === 'light' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setThemeMode('light')}
+          >
+            <Ionicons name="sunny" size={24} color={theme.Colors.text.primary} />
+            <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.lightMode}</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.themeOption,
+              { borderColor: theme.Colors.surface.border },
+              !isAutoMode && themeMode === 'dark' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setThemeMode('dark')}
+          >
+            <Ionicons name="moon" size={24} color={theme.Colors.text.primary} />
+            <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.darkMode}</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.themeOption,
+              { borderColor: theme.Colors.surface.border },
+              isAutoMode && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setThemeMode('auto')}
+          >
+            <Ionicons name="phone-portrait" size={24} color={theme.Colors.text.primary} />
+            <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.autoMode}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Notification Settings */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{TEXTS.notificationTitle}</Text>
+      <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{TEXTS.notificationTitle}</Text>
         
         <View style={styles.switchRow}>
           <View style={styles.switchTextContainer}>
@@ -364,5 +416,29 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Theme-related styles
+  sectionDescription: {
+    fontSize: 14,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  themeOptions: {
+    flexDirection: 'row',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  themeOption: {
+    flex: 1,
+    minWidth: 100,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: 'center',
+    gap: 8,
+  },
+  themeOptionText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

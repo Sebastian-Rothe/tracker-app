@@ -15,6 +15,7 @@ import {
   TouchableOpacityProps,
 } from 'react-native';
 import { Theme } from '../../constants/Theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // Button Component Types
 export interface ButtonProps extends TouchableOpacityProps {
@@ -42,10 +43,40 @@ export const Button: React.FC<ButtonProps> = ({
   onPress,
   ...props
 }) => {
+  const { theme } = useTheme();
+  
+  const getButtonColors = (variant: string) => {
+    switch (variant) {
+      case 'primary':
+        return {
+          backgroundColor: theme.Colors.primary[500],
+          color: theme.Colors.text.inverse,
+        };
+      case 'secondary':
+        return {
+          backgroundColor: theme.Colors.gray[100],
+          color: theme.Colors.text.primary,
+        };
+      case 'success':
+        return {
+          backgroundColor: theme.Colors.success[500],
+          color: theme.Colors.text.inverse,
+        };
+      default:
+        return {
+          backgroundColor: theme.Colors.primary[500],
+          color: theme.Colors.text.inverse,
+        };
+    }
+  };
+  
+  const colors = getButtonColors(variant);
   const buttonStyle: any[] = [
     styles.button,
     styles[`button_${size}` as keyof typeof styles],
-    styles[`button_${variant}` as keyof typeof styles],
+    {
+      backgroundColor: colors.backgroundColor,
+    },
     fullWidth && styles.button_fullWidth,
     (disabled || loading) && styles.button_disabled,
     style,
@@ -54,7 +85,9 @@ export const Button: React.FC<ButtonProps> = ({
   const textStyle: any[] = [
     styles.buttonText,
     styles[`buttonText_${size}` as keyof typeof styles],
-    styles[`buttonText_${variant}` as keyof typeof styles],
+    {
+      color: colors.color,
+    },
     (disabled || loading) && styles.buttonText_disabled,
   ];
 
@@ -111,11 +144,15 @@ export const Card: React.FC<CardProps> = ({
   shadow = 'md',
   borderRadius = 'lg',
 }) => {
+  const { theme } = useTheme();
+  
   const cardStyle = [
-    styles.card,
-    { padding: Theme.Spacing[padding] },
-    { borderRadius: Theme.BorderRadius[borderRadius] },
-    Theme.Shadows[shadow],
+    {
+      backgroundColor: theme.Colors.surface.card,
+      padding: theme.Spacing[padding],
+      borderRadius: theme.BorderRadius[borderRadius],
+      ...theme.Shadows[shadow],
+    },
     style,
   ];
 

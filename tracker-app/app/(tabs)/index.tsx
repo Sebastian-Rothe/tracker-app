@@ -21,6 +21,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAchievements } from '@/contexts/AchievementContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { 
   loadRoutines, 
   confirmRoutine, 
@@ -31,6 +32,7 @@ import {
   createRoutine,
   updateRoutine
 } from '@/utils/settingsStorage';
+import { routineStorage } from '@/services/RoutineStorageService';
 import { StreakCounter, AchievementBadge, StatsGrid } from '../../components/ProgressIndicators';
 import { MotivationalDashboard } from '../../components/MotivationalDashboard';
 import { QuickAchievementBanner } from '../../components/QuickAchievementBanner';
@@ -45,8 +47,8 @@ import { Theme } from '@/constants/Theme';
 
 const TEXTS = {
   title: 'My Routines',
-  subtitle: (activeCount: number, totalDays: number) => 
-    `${activeCount} active routine${activeCount !== 1 ? 's' : ''} • ${totalDays} total streak days`,
+  subtitle: (activeCount: number, longestStreak: number) => 
+    `${activeCount} active routine${activeCount !== 1 ? 's' : ''} • ${longestStreak} longest streak`,
   noRoutines: 'No routines yet!',
   noRoutinesSubtext: 'Tap the + button to add your first routine and start tracking.',
   addFirstRoutine: 'Add Routine',
@@ -110,6 +112,7 @@ export default function MultiRoutineTrackerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const screenHeight = Dimensions.get('window').height;
+  const { theme } = useTheme();
   
   // Enhanced bottom padding calculation for Android
   const bottomPadding = useMemo(() => {
@@ -177,6 +180,10 @@ export default function MultiRoutineTrackerScreen() {
       if (!isRefresh) setIsLoading(true);
       setError(null);
 
+      // Force cache invalidation and clear old stored state to ensure new streak calculation logic is used
+      routineStorage.invalidateCache();
+      await routineStorage.clearStoredState();
+
       // Perform auto-migration from legacy data if needed
       await performAutoMigration();
 
@@ -211,27 +218,8 @@ export default function MultiRoutineTrackerScreen() {
   };
 
   const handleRoutineAction = (routine: Routine, completed: boolean) => {
-    console.log('Button pressed:', routine.name, completed ? 'completed' : 'skipped');
-    
-    // For debugging: directly call confirmRoutineAction without Alert
-    // TODO: Add back Alert or make it optional in settings
+    // Directly confirm routine action without popup
     confirmRoutineAction(routine, completed);
-    
-    // Original Alert code commented out for debugging:
-    /*
-    Alert.alert(
-      TEXTS.confirmationTitle,
-      TEXTS.confirmationMessage(routine.name),
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: completed ? 'Yes, Done!' : 'No, Skip',
-          style: completed ? 'default' : 'destructive',
-          onPress: () => confirmRoutineAction(routine, completed),
-        },
-      ]
-    );
-    */
   };
 
   const confirmRoutineAction = useCallback(async (routine: Routine, completed: boolean) => {
@@ -252,21 +240,8 @@ export default function MultiRoutineTrackerScreen() {
       }
       
       if (updatedRoutine) {
-        if (completed) {
-          Alert.alert(
-            TEXTS.routineCompleted,
-            TEXTS.routineCompletedMessage(routine.name, updatedRoutine.streak),
-            [{ text: 'Great!', style: 'default' }]
-          );
-        } else {
-          Alert.alert(
-            TEXTS.routineSkipped,
-            TEXTS.routineSkippedMessage(routine.name),
-            [{ text: 'OK', style: 'default' }]
-          );
-        }
-        
-        // Reload data to reflect changes
+        // Removed success and skip popups for immediate feedback
+        // Just reload data to show the updated state
         console.log('Reloading data...');
         await loadData();
         console.log('Data reloaded');
@@ -458,7 +433,12 @@ export default function MultiRoutineTrackerScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingLeft: insets.left, paddingRight: insets.right }]}>
+    <View style={[styles.container, { 
+      paddingTop: insets.top, 
+      paddingLeft: insets.left, 
+      paddingRight: insets.right,
+      backgroundColor: theme.Colors.surface.background 
+    }]}>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPadding }]}
@@ -476,11 +456,11 @@ export default function MultiRoutineTrackerScreen() {
           <Card style={styles.streakCard} shadow="sm" borderRadius="xl">
             <View style={styles.streakContent}>
               <View style={styles.streakInfo}>
-                <Text style={styles.streakTitle}>🔥 Current Streak</Text>
-                <Text style={styles.streakDays}>
+                <Text style={[styles.streakTitle, { color: theme.Colors.text.primary }]}>🔥 Current Streak</Text>
+                <Text style={[styles.streakDays, { color: theme.Colors.primary[500] }]}>
                   {routineState.totalStreakDays} {routineState.totalStreakDays === 1 ? 'day' : 'days'}
                 </Text>
-                <Text style={styles.streakSubtitle}>
+                <Text style={[styles.streakSubtitle, { color: theme.Colors.text.secondary }]}>
                   {routineState.activeRoutineCount} active routine{routineState.activeRoutineCount !== 1 ? 's' : ''}
                 </Text>
               </View>
@@ -489,7 +469,7 @@ export default function MultiRoutineTrackerScreen() {
               </View>
             </View>
             <ProgressBar 
-              progress={routineState.totalStreakDays / Math.max(routineState.totalStreakDays + 10, 30)} 
+              progress={routineState.totalStreakDays / Math.max(routineState.totalStreakDays + 5, 30)} 
               style={styles.progressBar}
               progressColor={Theme.Colors.primary[500]}
               animated={true}
@@ -528,11 +508,11 @@ export default function MultiRoutineTrackerScreen() {
                     <Text style={styles.routineIcon}>{routine.icon}</Text>
                   </View>
                   <View style={styles.routineInfo}>
-                    <Text style={styles.routineName}>{routine.name}</Text>
+                    <Text style={[styles.routineName, { color: theme.Colors.text.primary }]}>{routine.name}</Text>
                     {routine.description && (
-                      <Text style={styles.routineDescription}>{routine.description}</Text>
+                      <Text style={[styles.routineDescription, { color: theme.Colors.text.secondary }]}>{routine.description}</Text>
                     )}
-                    <Text style={styles.routineStreak}>
+                    <Text style={[styles.routineStreak, { color: theme.Colors.primary[500] }]}>
                       🔥 {TEXTS.streakDays(routine.streak)}
                     </Text>
                   </View>
@@ -710,6 +690,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 120, // Will be overridden by dynamic padding
     flexGrow: 1,
+    paddingTop: Theme.Spacing.sm,
   },
   header: {
     margin: Theme.Spacing.lg,
@@ -909,7 +890,8 @@ const styles = StyleSheet.create({
   },
   // New streak bar styles
   streakBar: {
-    marginHorizontal: Theme.Spacing.md,
+    marginHorizontal: Theme.Spacing.lg,
+    marginTop: Theme.Spacing.md,
     marginBottom: Theme.Spacing.lg,
   },
   streakCard: {

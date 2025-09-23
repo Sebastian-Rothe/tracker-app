@@ -45,6 +45,18 @@ export class RoutineStorageService {
   }
 
   /**
+   * Force clear stored routine state to regenerate with new calculation logic
+   */
+  public async clearStoredState(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(this.STORAGE_KEYS.ROUTINE_STATE);
+      this.invalidateCache();
+    } catch (error) {
+      console.error('Error clearing stored state:', error);
+    }
+  }
+
+  /**
    * Load routines with intelligent caching
    */
   public async getRoutines(): Promise<Routine[]> {
@@ -151,12 +163,15 @@ export class RoutineStorageService {
    */
   private generateRoutineState(routines: Routine[]): RoutineState {
     const activeRoutines = routines.filter(r => r.isActive);
-    const totalStreakDays = activeRoutines.reduce((sum, r) => sum + r.streak, 0);
+    // Find the longest streak instead of summing all streaks
+    const longestStreak = activeRoutines.length > 0 
+      ? Math.max(...activeRoutines.map(r => r.streak))
+      : 0;
 
     return {
       routines,
       activeRoutineCount: activeRoutines.length,
-      totalStreakDays,
+      totalStreakDays: longestStreak, // Now represents the longest streak, not total
     };
   }
 

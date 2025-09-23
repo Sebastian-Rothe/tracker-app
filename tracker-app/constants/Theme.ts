@@ -3,7 +3,13 @@
  * Enhanced UI/UX - Phase 5 Implementation
  */
 
-export const Colors = {
+/**
+ * Modern Design System for Tracker App with Dark Mode Support
+ * Enhanced UI/UX - Phase 5 Implementation
+ */
+
+// Light Mode Colors
+const LightColors = {
   // Primary Brand Colors
   primary: {
     50: '#f0f9ff',
@@ -106,6 +112,120 @@ export const Colors = {
     error: '#dc2626',
   },
 };
+
+// Dark Mode Colors
+const DarkColors = {
+  // Primary Brand Colors (slightly adjusted for dark mode)
+  primary: {
+    50: '#0c4a6e',
+    100: '#075985', 
+    200: '#0369a1',
+    300: '#0284c7',
+    400: '#0ea5e9',
+    500: '#38bdf8',  // Brighter in dark mode
+    600: '#7dd3fc',
+    700: '#bae6fd',
+    800: '#e0f2fe',
+    900: '#f0f9ff',
+  },
+  
+  // Success Colors
+  success: {
+    50: '#14532d',
+    100: '#166534',
+    200: '#15803d',
+    300: '#16a34a',
+    400: '#22c55e',
+    500: '#4ade80',  // Brighter in dark mode
+    600: '#86efac',
+    700: '#bbf7d0',
+    800: '#dcfce7',
+    900: '#f0fdf4',
+  },
+  
+  // Warning Colors
+  warning: {
+    50: '#78350f',
+    100: '#92400e',
+    200: '#b45309',
+    300: '#d97706',
+    400: '#f59e0b',
+    500: '#fbbf24',  // Brighter in dark mode
+    600: '#fcd34d',
+    700: '#fde68a',
+    800: '#fef3c7',
+    900: '#fffbeb',
+  },
+  
+  // Error Colors
+  error: {
+    50: '#7f1d1d',
+    100: '#991b1b',
+    200: '#b91c1c',
+    300: '#dc2626',
+    400: '#ef4444',
+    500: '#f87171',  // Brighter in dark mode
+    600: '#fca5a5',
+    700: '#fecaca',
+    800: '#fee2e2',
+    900: '#fef2f2',
+  },
+  info: {
+    50: '#1e3a8a',
+    100: '#1e40af',
+    200: '#1d4ed8',
+    300: '#2563eb',
+    400: '#3b82f6',
+    500: '#60a5fa',  // Brighter in dark mode
+    600: '#93c5fd',
+    700: '#bfdbfe',
+    800: '#dbeafe',
+    900: '#eff6ff',
+  },
+  
+  // Neutral Colors (inverted for dark mode)
+  gray: {
+    50: '#111827',
+    100: '#1f2937',
+    200: '#374151',
+    300: '#4b5563',
+    400: '#6b7280',
+    500: '#9ca3af',
+    600: '#d1d5db',
+    700: '#e5e7eb',
+    800: '#f3f4f6',
+    900: '#f9fafb',
+  },
+  
+  // Surface Colors (dark variants)
+  surface: {
+    background: '#111827',
+    card: '#1f2937',
+    overlay: 'rgba(0, 0, 0, 0.8)',
+    border: '#374151',
+    divider: '#4b5563',
+  },
+  
+  // Text Colors (inverted for dark mode)
+  text: {
+    primary: '#f9fafb',
+    secondary: '#d1d5db',
+    tertiary: '#9ca3af',
+    inverse: '#111827',
+    success: '#4ade80',
+    warning: '#fbbf24',
+    error: '#f87171',
+  },
+};
+
+export type ThemeMode = 'light' | 'dark';
+
+export const getColors = (mode: ThemeMode = 'light') => {
+  return mode === 'dark' ? DarkColors : LightColors;
+};
+
+// Default to light mode for backward compatibility
+export const Colors = LightColors;
 
 export const Typography = {
   // Font Families
@@ -248,50 +368,58 @@ export const Animation = {
 };
 
 // Component-specific styles
-export const Components = {
+export const getComponents = (colors: typeof LightColors) => ({
   // Button variants
   button: {
     primary: {
-      backgroundColor: Colors.primary[500],
-      color: Colors.text.inverse,
+      backgroundColor: colors.primary[500],
+      color: colors.text.inverse,
     },
     secondary: {
-      backgroundColor: Colors.gray[100],
-      color: Colors.text.primary,
+      backgroundColor: colors.gray[100],
+      color: colors.text.primary,
     },
     success: {
-      backgroundColor: Colors.success[500],
-      color: Colors.text.inverse,
+      backgroundColor: colors.success[500],
+      color: colors.text.inverse,
     },
     warning: {
-      backgroundColor: Colors.warning[500],
-      color: Colors.text.inverse,
+      backgroundColor: colors.warning[500],
+      color: colors.text.inverse,
     },
     error: {
-      backgroundColor: Colors.error[500],
-      color: Colors.text.inverse,
+      backgroundColor: colors.error[500],
+      color: colors.text.inverse,
     },
   },
   
   // Card styles
   card: {
-    backgroundColor: Colors.surface.card,
+    backgroundColor: colors.surface.card,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     ...Shadows.md,
   },
+});
+
+// Create theme function that supports both light and dark mode
+export const createTheme = (mode: ThemeMode = 'light') => {
+  const colors = getColors(mode);
+  
+  return {
+    Colors: colors,
+    Typography,
+    Spacing,
+    BorderRadius,
+    Shadows,
+    Layout,
+    Animation,
+    Components: getComponents(colors),
+    mode,
+  };
 };
 
-// Export complete theme object
-export const Theme = {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadows,
-  Layout,
-  Animation,
-  Components,
-};
+// Export complete theme object (default light mode for backward compatibility)
+export const Theme = createTheme('light');
 
 export default Theme;
