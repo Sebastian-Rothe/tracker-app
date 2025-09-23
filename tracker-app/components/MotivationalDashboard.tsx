@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Achievement, getRecentlyUnlocked, getAchievementStats } from '@/utils/achievementManager';
+import { Achievement, getAchievementStats } from '@/utils/achievementManager';
 import { getMonthlyStats } from '@/utils/historyManager';
 
 interface MotivationalDashboardProps {
@@ -21,7 +21,6 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
   style
 }) => {
   const { theme } = useTheme();
-  const [recentAchievements, setRecentAchievements] = useState<Achievement[]>([]);
   const [achievementStats, setAchievementStats] = useState({ total: 0, unlocked: 0, progress: 0 });
   const [monthlyStats, setMonthlyStats] = useState({ totalDays: 0, completedDays: 0, completionRate: 0 });
   const [motivationMessage, setMotivationMessage] = useState('');
@@ -33,10 +32,6 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
 
   const loadDashboardData = async () => {
     try {
-      // Load recent achievements
-      const recent = await getRecentlyUnlocked();
-      setRecentAchievements(recent.slice(0, 2)); // Show max 2 recent
-
       // Load achievement stats
       const stats = await getAchievementStats();
       setAchievementStats(stats);
@@ -144,16 +139,15 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
         }]}>{motivationMessage}</Text>
       </View>
 
-      {/* Stats Grid */}
+      {/* Stats Overview - Compact 2x2 Grid */}
       <View style={styles.statsGrid}>
-        {/* Streak Display */}
+        {/* Main Streak Display */}
         <View style={[styles.statCard, styles.streakCard, {
           backgroundColor: theme.Colors.warning[50]
         }]}>
           <Text style={styles.statIcon}>🔥</Text>
           <Text style={[styles.statValue, { color: theme.Colors.text.primary }]}>{totalStreakDays}</Text>
           <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>Day Streak</Text>
-          <Text style={styles.streakSubtext}>{formatStreak(totalStreakDays)}</Text>
         </View>
 
         {/* Today's Progress */}
@@ -180,16 +174,13 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
           </View>
         </View>
 
-        {/* Monthly Stats */}
+        {/* Monthly Progress */}
         <View style={[styles.statCard, styles.monthCard, {
           backgroundColor: theme.Colors.info[50]
         }]}>
           <Text style={styles.statIcon}>📅</Text>
           <Text style={[styles.statValue, { color: theme.Colors.text.primary }]}>{Math.round(monthlyStats.completionRate * 100)}%</Text>
-          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>This Month</Text>
-          <Text style={styles.monthSubtext}>
-            {monthlyStats.completedDays}/{monthlyStats.totalDays} days
-          </Text>
+          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>Month Avg</Text>
         </View>
 
         {/* Achievement Progress */}
@@ -197,33 +188,10 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
           backgroundColor: theme.Colors.success[50]
         }]}>
           <Text style={styles.statIcon}>🏆</Text>
-          <Text style={[styles.statValue, { color: theme.Colors.text.primary }]}>{achievementStats.unlocked}/{achievementStats.total}</Text>
-          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>Achievements</Text>
-          <Text style={styles.achievementSubtext}>
-            {Math.round(achievementStats.progress * 100)}% unlocked
-          </Text>
+          <Text style={[styles.statValue, { color: theme.Colors.text.primary }]}>{achievementStats.unlocked}</Text>
+          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>Unlocked</Text>
         </View>
       </View>
-
-      {/* Recent Achievements */}
-      {recentAchievements.length > 0 && (
-        <View style={styles.recentAchievements}>
-          <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>🎉 Recent Unlocks</Text>
-          {recentAchievements.map((achievement, index) => (
-            <View key={achievement.id} style={[styles.achievementItem, {
-              backgroundColor: theme.Colors.success[50]
-            }]}>
-              <Text style={styles.achievementIcon}>{achievement.icon}</Text>
-              <View style={styles.achievementInfo}>
-                <Text style={[styles.achievementTitle, { color: theme.Colors.text.primary }]}>{achievement.title}</Text>
-                <Text style={[styles.achievementDate, { color: theme.Colors.text.secondary }]}>
-                  {achievement.unlockedAt ? new Date(achievement.unlockedAt).toLocaleDateString() : 'Recently'}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
 
       {/* Next Milestone */}
       <View style={[styles.nextMilestone, {
@@ -313,22 +281,6 @@ const styles = StyleSheet.create({
     fontSize: Theme.Typography.fontSize.sm,
     fontWeight: Theme.Typography.fontWeight.medium,
   },
-  streakSubtext: {
-    fontSize: Theme.Typography.fontSize.xs,
-    color: Theme.Colors.warning[600],
-    marginTop: 2,
-    textAlign: 'center',
-  },
-  monthSubtext: {
-    fontSize: Theme.Typography.fontSize.xs,
-    color: Theme.Colors.info[600],
-    marginTop: 2,
-  },
-  achievementSubtext: {
-    fontSize: Theme.Typography.fontSize.xs,
-    color: Theme.Colors.success[600],
-    marginTop: 2,
-  },
   progressBarContainer: {
     width: '100%',
     marginTop: Theme.Spacing.xs,
@@ -341,37 +293,6 @@ const styles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: 2,
-  },
-  recentAchievements: {
-    marginBottom: Theme.Spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: Theme.Typography.fontSize.base,
-    fontWeight: Theme.Typography.fontWeight.bold,
-    marginBottom: Theme.Spacing.md,
-  },
-  achievementItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: Theme.BorderRadius.md,
-    padding: Theme.Spacing.md,
-    marginBottom: Theme.Spacing.sm,
-    borderLeftWidth: 3,
-    borderLeftColor: Theme.Colors.success[500],
-  },
-  achievementIcon: {
-    fontSize: 20,
-    marginRight: Theme.Spacing.md,
-  },
-  achievementInfo: {
-    flex: 1,
-  },
-  achievementTitle: {
-    fontSize: Theme.Typography.fontSize.sm,
-    fontWeight: Theme.Typography.fontWeight.medium,
-  },
-  achievementDate: {
-    fontSize: Theme.Typography.fontSize.xs,
   },
   nextMilestone: {
     borderRadius: Theme.BorderRadius.md,

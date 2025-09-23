@@ -14,8 +14,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CalendarGrid } from '@/components/CalendarGrid';
-import { HistoryStats } from '@/components/HistoryStats';
-import { StreakCounter, StatsGrid } from '@/components/ProgressIndicators';
 import { MotivationalDashboard } from '@/components/MotivationalDashboard';
 import { 
   getDailyData, 
@@ -220,60 +218,14 @@ export default function StatusScreen() {
           </View>
         </Card>
         
-        {/* Enhanced Progress Indicators */}
-        <View style={styles.progressIndicatorsContainer}>
-          {/* Streak Counter */}
-          <StreakCounter
-            count={routineState.totalStreakDays}
-            variant="fire"
-            animated={true}
-            style={styles.streakIndicator}
-          />
-
-          {/* Stats Grid */}
-          <StatsGrid
-            stats={[
-              {
-                label: 'Active Routines',
-                value: activeRoutines.length,
-                icon: '🎯',
-                color: Theme.Colors.primary[500],
-              },
-              {
-                label: 'Completed Today',
-                value: activeRoutines.filter(r => isRoutineCompletedToday(r)).length,
-                icon: '✅',
-                color: Theme.Colors.success[500],
-              },
-              {
-                label: 'This Month',
-                value: monthlyData.filter(d => d.completionRate > 0).length,
-                icon: '📅',
-                color: Theme.Colors.info[500],
-              },
-              {
-                label: 'Perfect Days',
-                value: monthlyData.filter(d => d.completionRate === 1).length,
-                icon: '💯',
-                color: Theme.Colors.warning[500],
-              },
-            ]}
-            animated={true}
-            style={styles.statsGrid}
-          />
-        </View>
-
-        {/* Motivational Dashboard */}
+        {/* Motivational Dashboard - Consolidated Stats */}
         <MotivationalDashboard
           totalStreakDays={routineState.totalStreakDays}
           completedToday={activeRoutines.filter(r => isRoutineCompletedToday(r)).length}
           totalRoutines={activeRoutines.length}
         />
 
-        {/* Monthly Statistics */}
-        <HistoryStats monthlyStats={monthlyStats} />
-        
-        {/* Calendar Navigation */}
+        {/* Calendar Navigation & Grid */}
         <Card style={styles.calendarHeader} shadow="sm">
           <View style={styles.monthNavigation}>
             <TouchableOpacity 
@@ -400,16 +352,5 @@ const styles = StyleSheet.create({
     fontSize: Theme.Typography.fontSize.base,
     color: Theme.Colors.text.secondary,
     lineHeight: 22,
-  },
-  // Progress indicators styles
-  progressIndicatorsContainer: {
-    paddingHorizontal: Theme.Spacing.lg,
-    paddingVertical: Theme.Spacing.md,
-  },
-  streakIndicator: {
-    marginBottom: Theme.Spacing.lg,
-  },
-  statsGrid: {
-    marginBottom: Theme.Spacing.lg,
   },
 });
