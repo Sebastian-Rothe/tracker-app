@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { Colors, Theme } from '@/constants/Theme';
+import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CalendarGrid } from '@/components/CalendarGrid';
 import { HistoryStats } from '@/components/HistoryStats';
@@ -236,7 +236,7 @@ export default function StatusScreen() {
             stats={[
               {
                 label: 'Active Routines',
-                value: routineState.activeRoutineCount,
+                value: activeRoutines.length,
                 icon: '🎯',
                 color: Theme.Colors.primary[500],
               },
@@ -247,47 +247,51 @@ export default function StatusScreen() {
                 color: Theme.Colors.success[500],
               },
               {
-                label: 'Current Streak',
-                value: routineState.totalStreakDays,
-                icon: '🔥',
-                color: Theme.Colors.warning[500],
+                label: 'This Month',
+                value: monthlyData.filter(d => d.completionRate > 0).length,
+                icon: '�',
+                color: Theme.Colors.info[500],
               },
               {
-                label: 'Total Routines',
-                value: activeRoutines.length,
-                icon: '📊',
-                color: Colors.primary[500],
+                label: 'Perfect Days',
+                value: monthlyData.filter(d => d.completionRate === 1).length,
+                icon: '�',
+                color: Theme.Colors.warning[500],
               },
             ]}
             animated={true}
             style={styles.statsGrid}
           />
 
-          {/* Achievement Badges */}
+          {/* Key Achievement Badge - only show most relevant */}
           <View style={styles.achievementsContainer}>
-            <AchievementBadge
-              title="First Steps"
-              description="Complete your first routine"
-              icon="🚀"
-              unlocked={routineState.totalStreakDays > 0}
-              animated={true}
-            />
-            <AchievementBadge
-              title="Week Warrior"
-              description="Maintain a 7-day streak"
-              icon="⚔️"
-              unlocked={routineState.totalStreakDays >= 7}
-              progress={Math.min(routineState.totalStreakDays / 7, 1)}
-              animated={true}
-            />
-            <AchievementBadge
-              title="Consistency Champion"
-              description="Maintain a 30-day streak"
-              icon="👑"
-              unlocked={routineState.totalStreakDays >= 30}
-              progress={Math.min(routineState.totalStreakDays / 30, 1)}
-              animated={true}
-            />
+            {routineState.totalStreakDays >= 30 ? (
+              <AchievementBadge
+                title="Consistency Champion"
+                description="30+ day streak achieved!"
+                icon="�"
+                unlocked={true}
+                animated={true}
+              />
+            ) : routineState.totalStreakDays >= 7 ? (
+              <AchievementBadge
+                title="Week Warrior"
+                description="Keep going for Champion status!"
+                icon="⚔️"
+                unlocked={true}
+                progress={Math.min(routineState.totalStreakDays / 30, 1)}
+                animated={true}
+              />
+            ) : (
+              <AchievementBadge
+                title={routineState.totalStreakDays > 0 ? "Building Momentum" : "Start Your Journey"}
+                description={routineState.totalStreakDays > 0 ? "On your way to a 7-day streak!" : "Complete your first routine"}
+                icon={routineState.totalStreakDays > 0 ? "🔥" : "�"}
+                unlocked={routineState.totalStreakDays > 0}
+                progress={routineState.totalStreakDays > 0 ? Math.min(routineState.totalStreakDays / 7, 1) : 0}
+                animated={true}
+              />
+            )}
           </View>
         </View>
 
@@ -333,31 +337,6 @@ export default function StatusScreen() {
           currentMonth={currentMonth}
           onDayPress={handleDayPress}
         />
-        
-        {/* Quick Stats Summary */}
-        <Card style={styles.summaryCard} shadow="sm">
-          <Text style={styles.summaryTitle}>Monthly Summary</Text>
-          <View style={styles.summaryGrid}>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>
-                {monthlyData.filter(d => d.completionRate > 0).length}
-              </Text>
-              <Text style={styles.summaryLabel}>Active Days</Text>
-            </View>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>
-                {monthlyData.reduce((sum, d) => sum + d.completedRoutines, 0)}
-              </Text>
-              <Text style={styles.summaryLabel}>Total Completions</Text>
-            </View>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>
-                {Math.round((monthlyData.filter(d => d.completionRate === 1).length / Math.max(monthlyData.length, 1)) * 100)}%
-              </Text>
-              <Text style={styles.summaryLabel}>Perfect Days</Text>
-            </View>
-          </View>
-        </Card>
         
       </ScrollView>
     </View>
@@ -432,35 +411,6 @@ const styles = StyleSheet.create({
     fontSize: Theme.Typography.fontSize.xl,
     fontWeight: Theme.Typography.fontWeight.bold,
     color: Theme.Colors.text.primary,
-  },
-  summaryCard: {
-    marginHorizontal: Theme.Spacing.lg,
-    marginBottom: Theme.Spacing.lg,
-    padding: Theme.Spacing.lg,
-  },
-  summaryTitle: {
-    fontSize: Theme.Typography.fontSize.lg,
-    fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.text.primary,
-    marginBottom: Theme.Spacing.md,
-  },
-  summaryGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  summaryItem: {
-    alignItems: 'center',
-  },
-  summaryValue: {
-    fontSize: Theme.Typography.fontSize['2xl'],
-    fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.primary[500],
-    marginBottom: Theme.Spacing.xs,
-  },
-  summaryLabel: {
-    fontSize: Theme.Typography.fontSize.sm,
-    color: Theme.Colors.text.secondary,
-    textAlign: 'center',
   },
   content: {
     margin: Theme.Spacing.lg,
