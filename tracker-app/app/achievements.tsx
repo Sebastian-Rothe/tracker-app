@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Animated, TouchableOpacity } from 'react-native';
 import { Theme } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { AchievementCard, AchievementGrid, AchievementProgress } from '@/components/AchievementComponents';
 import { Achievement, updateAchievements } from '@/utils/achievementManager';
 import { SocialShareManager } from '@/utils/socialShareManager';
 
 export default function AchievementsPage() {
+  const { theme } = useTheme();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [unlockedCount, setUnlockedCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -97,10 +99,12 @@ export default function AchievementsPage() {
 
     return (
       <View style={styles.categorySection}>
-        <View style={styles.categoryHeader}>
+        <View style={[styles.categoryHeader, { 
+          borderBottomColor: theme.Colors.surface.border 
+        }]}>
           <Text style={styles.categoryIcon}>{icon}</Text>
-          <Text style={styles.categoryTitle}>{title}</Text>
-          <Text style={styles.categoryCount}>
+          <Text style={[styles.categoryTitle, { color: theme.Colors.text.primary }]}>{title}</Text>
+          <Text style={[styles.categoryCount, { color: theme.Colors.text.secondary }]}>
             {unlockedInCategory}/{categoryAchievements.length}
           </Text>
         </View>
@@ -121,19 +125,19 @@ export default function AchievementsPage() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading achievements...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.Colors.surface.background }]}>
+        <Text style={[styles.loadingText, { color: theme.Colors.text.primary }]}>Loading achievements...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.Colors.surface.background }]} contentContainerStyle={styles.contentContainer}>
       <Animated.View style={[styles.content, { opacity: animatedValue }]}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>🏆 Achievements</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: theme.Colors.text.primary }]}>🏆 Achievements</Text>
+          <Text style={[styles.subtitle, { color: theme.Colors.text.secondary }]}>
             Track your progress and unlock rewards
           </Text>
         </View>
@@ -147,8 +151,8 @@ export default function AchievementsPage() {
           />
           
           {unlockedCount > 0 && (
-            <TouchableOpacity style={styles.shareButton} onPress={handleShareProgress}>
-              <Text style={styles.shareButtonText}>📤 Share Progress</Text>
+            <TouchableOpacity style={[styles.shareButton, { backgroundColor: theme.Colors.primary[500] }]} onPress={handleShareProgress}>
+              <Text style={[styles.shareButtonText, { color: theme.Colors.text.inverse }]}>📤 Share Progress</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -163,7 +167,7 @@ export default function AchievementsPage() {
           if (recentUnlocks.length > 0) {
             return (
               <View style={styles.recentSection}>
-                <Text style={styles.sectionTitle}>🎉 Recently Unlocked</Text>
+                <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>🎉 Recently Unlocked</Text>
                 {recentUnlocks.map(achievement => (
                   <AchievementCard
                     key={achievement.id}
@@ -187,8 +191,8 @@ export default function AchievementsPage() {
         {/* Motivation Message */}
         <View style={styles.motivationSection}>
           <Text style={styles.motivationIcon}>💪</Text>
-          <Text style={styles.motivationTitle}>Keep Going!</Text>
-          <Text style={styles.motivationText}>
+          <Text style={[styles.motivationTitle, { color: theme.Colors.text.primary }]}>Keep Going!</Text>
+          <Text style={[styles.motivationText, { color: theme.Colors.text.secondary }]}>
             {unlockedCount === 0 
               ? "Start your journey by completing your first routine!"
               : unlockedCount === achievements.length
@@ -199,7 +203,7 @@ export default function AchievementsPage() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
+          <Text style={[styles.footerText, { color: theme.Colors.text.tertiary }]}>
             New achievements are unlocked automatically as you use the app
           </Text>
         </View>
@@ -211,7 +215,6 @@ export default function AchievementsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.Colors.gray[50],
   },
   contentContainer: {
     paddingBottom: Theme.Spacing.xl,
@@ -223,28 +226,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Theme.Colors.gray[50],
   },
   loadingText: {
     fontSize: Theme.Typography.fontSize.base,
-    color: Theme.Colors.text.secondary,
   },
   header: {
     padding: Theme.Spacing.lg,
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: Theme.Colors.gray[200],
+    marginBottom: Theme.Spacing.md,
   },
   title: {
     fontSize: Theme.Typography.fontSize.xl,
     fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.text.primary,
     marginBottom: Theme.Spacing.xs,
   },
   subtitle: {
     fontSize: Theme.Typography.fontSize.base,
-    color: Theme.Colors.text.secondary,
     textAlign: 'center',
   },
   progressSection: {
@@ -254,7 +251,6 @@ const styles = StyleSheet.create({
     margin: Theme.Spacing.lg,
   },
   shareButton: {
-    backgroundColor: Theme.Colors.primary[500],
     paddingVertical: Theme.Spacing.md,
     paddingHorizontal: Theme.Spacing.lg,
     borderRadius: Theme.BorderRadius.lg,
@@ -262,7 +258,6 @@ const styles = StyleSheet.create({
     marginTop: Theme.Spacing.md,
   },
   shareButtonText: {
-    color: '#ffffff',
     fontSize: Theme.Typography.fontSize.base,
     fontWeight: Theme.Typography.fontWeight.medium,
   },
@@ -273,28 +268,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: Theme.Typography.fontSize.lg,
     fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.text.primary,
     marginBottom: Theme.Spacing.md,
   },
   categorySection: {
     marginHorizontal: Theme.Spacing.lg,
-    marginBottom: Theme.Spacing.lg,
-    backgroundColor: '#ffffff',
-    borderRadius: Theme.BorderRadius.lg,
-    overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    marginBottom: Theme.Spacing.xl,
   },
   categoryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Theme.Spacing.lg,
-    backgroundColor: Theme.Colors.gray[50],
+    paddingBottom: Theme.Spacing.md,
+    marginBottom: Theme.Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Theme.Colors.gray[200],
   },
   categoryIcon: {
     fontSize: 24,
@@ -304,28 +289,21 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: Theme.Typography.fontSize.lg,
     fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.text.primary,
   },
   categoryCount: {
     fontSize: Theme.Typography.fontSize.base,
     fontWeight: Theme.Typography.fontWeight.medium,
-    color: Theme.Colors.primary[500],
-    backgroundColor: Theme.Colors.primary[50],
     paddingHorizontal: Theme.Spacing.md,
     paddingVertical: Theme.Spacing.xs,
     borderRadius: Theme.BorderRadius.sm,
   },
   categoryContent: {
-    padding: Theme.Spacing.lg,
+    // Removed padding since it's now handled by parent
   },
   motivationSection: {
     margin: Theme.Spacing.lg,
     padding: Theme.Spacing.lg,
-    backgroundColor: Theme.Colors.primary[50],
-    borderRadius: Theme.BorderRadius.lg,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Theme.Colors.primary[200],
   },
   motivationIcon: {
     fontSize: 48,
@@ -334,25 +312,20 @@ const styles = StyleSheet.create({
   motivationTitle: {
     fontSize: Theme.Typography.fontSize.lg,
     fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.primary[700],
     marginBottom: Theme.Spacing.sm,
   },
   motivationText: {
     fontSize: Theme.Typography.fontSize.base,
-    color: Theme.Colors.primary[600],
     textAlign: 'center',
     lineHeight: 22,
   },
   footer: {
     margin: Theme.Spacing.lg,
     padding: Theme.Spacing.md,
-    backgroundColor: Theme.Colors.gray[50],
-    borderRadius: Theme.BorderRadius.lg,
     alignItems: 'center',
   },
   footerText: {
     fontSize: Theme.Typography.fontSize.sm,
-    color: Theme.Colors.text.tertiary,
     textAlign: 'center',
     fontStyle: 'italic',
   },
