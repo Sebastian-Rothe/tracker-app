@@ -267,26 +267,13 @@ export default function SettingsScreen() {
         )}
       </View>
 
-      {/* Achievements */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🏆 Achievements</Text>
-        <Text style={styles.description}>Track your progress and unlock rewards for your dedication.</Text>
-        
-        <TouchableOpacity 
-          style={styles.achievementButton} 
-          onPress={() => router.push('/achievements')}
-        >
-          <Text style={styles.achievementButtonText}>View Achievements</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Reset Data */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{TEXTS.resetDataTitle}</Text>
-        <Text style={styles.description}>{TEXTS.resetDataDescription}</Text>
+      <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{TEXTS.resetDataTitle}</Text>
+        <Text style={[styles.description, { color: theme.Colors.text.secondary }]}>{TEXTS.resetDataDescription}</Text>
         
-        <TouchableOpacity style={styles.resetButton} onPress={resetAllData}>
-          <Text style={styles.resetButtonText}>{TEXTS.resetButton}</Text>
+        <TouchableOpacity style={[styles.resetButton, { backgroundColor: theme.Colors.error[500] }]} onPress={resetAllData}>
+          <Text style={[styles.resetButtonText, { color: theme.Colors.text.inverse }]}>{TEXTS.resetButton}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -367,17 +354,17 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   resetButton: {
-    backgroundColor: '#f44336',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 10,
+    // backgroundColor now set dynamically via theme
   },
   resetButtonText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
+    // color now set dynamically via theme
   },
   timeInputContainer: {
     marginTop: 15,
@@ -404,19 +391,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-  achievementButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  achievementButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  // Achievement styles removed
   // Theme-related styles
   sectionDescription: {
     fontSize: 14,
