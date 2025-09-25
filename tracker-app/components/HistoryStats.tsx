@@ -186,17 +186,17 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
       <View style={[styles.motivationSection, { borderTopColor: theme.Colors.surface.border }]}>
         {monthlyStats.streakDays > 7 && (
           <Text style={styles.motivationText}>
-            🎉 Amazing! You're on a {monthlyStats.streakDays}-day streak!
+            🎉 Amazing! You&apos;re on a {monthlyStats.streakDays}-day streak!
           </Text>
         )}
         {completionRate > 0.8 && (
           <Text style={styles.motivationText}>
-            ⭐ Excellent consistency! You're completing over 80% of your routines!
+            ⭐ Excellent consistency! You&apos;re completing over 80% of your routines!
           </Text>
         )}
         {monthlyStats.bestStreak >= 30 && (
           <Text style={styles.motivationText}>
-            👑 Legendary! You've achieved a 30+ day streak!
+            👑 Legendary! You&apos;ve achieved a 30+ day streak!
           </Text>
         )}
       </View>

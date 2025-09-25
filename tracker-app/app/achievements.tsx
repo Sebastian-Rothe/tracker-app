@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Animated, TouchableOpacity } from 'react-native';
 import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
-import { AchievementCard, AchievementGrid, AchievementProgress } from '@/components/AchievementComponents';
+import { AchievementCard, AchievementProgress } from '@/components/AchievementComponents';
 import { Achievement, updateAchievements } from '@/utils/achievementManager';
 import { SocialShareManager } from '@/utils/socialShareManager';
 

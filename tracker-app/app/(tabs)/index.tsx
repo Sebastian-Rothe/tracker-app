@@ -34,15 +34,13 @@ import {
   undoRoutineToday
 } from '@/utils/settingsStorage';
 import { routineStorage } from '@/services/RoutineStorageService';
-import { StreakCounter, StatsGrid } from '../../components/ProgressIndicators';
-import { MotivationalDashboard } from '../../components/MotivationalDashboard';
 import { QuickAchievementBanner } from '../../components/QuickAchievementBanner';
 import { 
   scheduleRoutineNotifications,
   setupNotificationHandlers,
   requestNotificationPermissions 
 } from '@/utils/notificationManager';
-import { Routine, RoutineState, CreateRoutineRequest, ROUTINE_COLORS, ROUTINE_ICONS, RoutineColor, RoutineIcon } from '@/types/routine';
+import { Routine, RoutineState, ROUTINE_COLORS, ROUTINE_ICONS, RoutineColor, RoutineIcon } from '@/types/routine';
 import { Button, Card, Badge, ProgressBar } from '@/components/ui';
 import { Theme } from '@/constants/Theme';
 
@@ -113,7 +111,7 @@ const INITIAL_FORM_DATA: RoutineFormData = {
 export default function MultiRoutineTrackerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const screenHeight = Dimensions.get('window').height;
+  // Removed unused screenHeight variable
   const { theme } = useTheme();
   
   // Enhanced bottom padding calculation for Android
@@ -149,7 +147,7 @@ export default function MultiRoutineTrackerScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [completionTriggers, setCompletionTriggers] = useState<{ [key: string]: boolean }>({});
+  // Removed unused completionTriggers state
   
   // Form state for adding/editing routines
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -226,13 +224,7 @@ export default function MultiRoutineTrackerScreen() {
 
   const confirmRoutineAction = useCallback(async (routine: Routine, completed: boolean) => {
     try {
-      // Trigger bounce animation for completion
-      if (completed) {
-        setCompletionTriggers(prev => ({ ...prev, [routine.id]: true }));
-        setTimeout(() => {
-          setCompletionTriggers(prev => ({ ...prev, [routine.id]: false }));
-        }, 500);
-      }
+      // Bounce animation logic removed for cleaner code
       
       const updatedRoutine = await confirmRoutine(routine.id, completed);
       
@@ -402,7 +394,7 @@ export default function MultiRoutineTrackerScreen() {
       );
     } else {
       // Android: Show simple alert with options
-      const alertOptions: Array<{text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive'}> = [
+      const alertOptions: {text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive'}[] = [
         { text: TEXTS.cancel, style: 'cancel' },
         { text: TEXTS.editRoutine, onPress: () => {
           setEditingRoutine(routine);
@@ -769,7 +761,7 @@ export default function MultiRoutineTrackerScreen() {
                   maxLength={3}
                 />
                 <Text style={[styles.formHint, { color: theme.Colors.text.secondary }]}>
-                  Start with an existing streak (e.g. if you've been doing this routine manually)
+                  Start with an existing streak (e.g. if you&apos;ve been doing this routine manually)
                 </Text>
               </View>
             )}

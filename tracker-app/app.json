@@ -1,13 +1,13 @@
 {
   "expo": {
     "name": "Routine Tracker",
-    "slug": "routine-tracker",
+    "slug": "morgenroutine-tracker",
     "version": "1.0.0",
     "description": "Track your daily routines with simple streak counters and daily reminders",
     "sdkVersion": "54.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "routine-tracker",
+    "scheme": "morgenroutine-tracker",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
