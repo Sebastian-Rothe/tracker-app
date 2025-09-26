@@ -16,6 +16,7 @@ import { loadStreak, saveStreak, loadLastConfirmed, saveLastConfirmed, loadSetti
 import { routineStorage } from '@/services/RoutineStorageService';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+import { EnhancedNotificationSettings } from '@/components/EnhancedNotificationUI';
 
 const SETTINGS_KEY = 'settings';
 
@@ -59,11 +60,15 @@ const TEXTS = {
 interface SettingsData {
   notificationEnabled: boolean;
   notificationTime: string;
+  multipleReminders?: boolean;
+  onlyIfIncomplete?: boolean;
 }
 
 const defaultSettings: SettingsData = {
   notificationEnabled: true,
   notificationTime: '07:00',
+  multipleReminders: true,
+  onlyIfIncomplete: true,
 };
 
 export default function SettingsScreen() {
@@ -246,7 +251,7 @@ export default function SettingsScreen() {
           />
         </View>
 
-        {settings.notificationEnabled && (
+        {settings.notificationEnabled && !settings.multipleReminders && (
           <View style={styles.timeInputContainer}>
             <Text style={styles.inputLabel}>{TEXTS.notificationTimeLabel}</Text>
             <Text style={styles.description}>{TEXTS.notificationTimeDescription}</Text>
@@ -266,6 +271,14 @@ export default function SettingsScreen() {
           </View>
         )}
       </View>
+
+      {/* Enhanced Notification Settings */}
+      {settings.notificationEnabled && (
+        <EnhancedNotificationSettings 
+          settings={settings} 
+          setSettings={setSettings} 
+        />
+      )}
 
       {/* Reset Data */}
       <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>

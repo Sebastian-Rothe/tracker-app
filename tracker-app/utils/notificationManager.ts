@@ -18,12 +18,18 @@ export interface NotificationSettings {
   enabled: boolean;
   globalTime: string; // Format: "HH:MM"
   perRoutineEnabled: boolean;
+  multipleReminders: boolean; // Enable multiple daily reminders
+  reminderTimes: string[]; // Multiple reminder times ["07:00", "14:00", "18:00", "20:00"]
+  onlyIfIncomplete: boolean; // Only send if routines are incomplete
 }
 
 const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   enabled: true,
   globalTime: '07:00',
   perRoutineEnabled: false,
+  multipleReminders: true,
+  reminderTimes: ['07:00', '14:00', '18:00', '20:00'],
+  onlyIfIncomplete: true,
 };
 
 /**
@@ -90,6 +96,73 @@ const getSecondsUntilTime = (hours: number, minutes: number): number => {
 };
 
 /**
+ * Check if routine is completed today
+ */
+const isRoutineCompletedToday = (routine: any): boolean => {
+  const today = new Date().toISOString().slice(0, 10);
+  return routine.lastConfirmed === today;
+};
+
+/**
+ * Get completion status for active routines
+ */
+const getCompletionStatus = (routines: any[]) => {
+  const activeRoutines = routines.filter(r => r.isActive);
+  const completedToday = activeRoutines.filter(isRoutineCompletedToday);
+  
+  return {
+    total: activeRoutines.length,
+    completed: completedToday.length,
+    remaining: activeRoutines.length - completedToday.length,
+    isAllCompleted: activeRoutines.length > 0 && completedToday.length === activeRoutines.length,
+    hasActiveRoutines: activeRoutines.length > 0
+  };
+};
+
+/**
+ * Generate smart notification content based on completion status
+ */
+const generateNotificationContent = (status: any, timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night') => {
+  const { total, completed, remaining, isAllCompleted } = status;
+  
+  // Should never happen due to validation, but safety check
+  if (!status.hasActiveRoutines || isAllCompleted) {
+    return null;
+  }
+  
+  const progressText = `${completed}/${total}`;
+  
+  const messages = {
+    morning: {
+      title: remaining === total ? 'Time for your routines!' : `${remaining} routines left`,
+      body: remaining === total 
+        ? `Ready to start your day? You have ${total} routine${total === 1 ? '' : 's'} to complete.`
+        : `Good morning! You have ${remaining} routine${remaining === 1 ? '' : 's'} remaining.`
+    },
+    afternoon: {
+      title: `${progressText} completed - Keep going!`,
+      body: remaining === 1 
+        ? `Great progress! Just 1 routine left to complete today.`
+        : `You're doing well! ${remaining} routines remaining for today.`
+    },
+    evening: {
+      title: remaining === 1 ? 'Last routine of the day!' : `${remaining} routines left`,
+      body: remaining === 1
+        ? `Almost done! Complete your final routine to finish strong.`
+        : `Evening check-in: ${remaining} routines still need your attention.`
+    },
+    night: {
+      title: 'Final call for today!',
+      body: remaining === 1
+        ? `One last routine before bedtime - you've got this!`
+        : `Last chance to complete your ${remaining} remaining routines.`
+    }
+  };
+  
+  return messages[timeOfDay];
+};
+
+/**
  * Schedule daily notification at specific time
  */
 export const scheduleDailyNotification = async (
@@ -135,7 +208,7 @@ export const scheduleDailyNotification = async (
 };
 
 /**
- * Schedule notifications for all active routines
+ * Schedule enhanced notifications for active routines with strict validation
  */
 export const scheduleRoutineNotifications = async (): Promise<void> => {
   if (Platform.OS === 'web') {
@@ -143,45 +216,81 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
   }
 
   try {
-    // Cancel existing notifications
+    // Cancel existing notifications first
     await cancelAllNotifications();
 
     // Check permissions
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
+      console.log('No notification permissions - skipping scheduling');
       return;
     }
 
     // Load data from external source (breaks circular dependency)
     const dataLoader = (await import('./settingsStorage')).getNotificationData;
     const { routines, settings } = await dataLoader();
-    const activeRoutines = routines.filter((r: Routine) => r.isActive);
-
-    if (!settings.enabled || activeRoutines.length === 0) {
+    
+    // STRICT VALIDATION: No notifications if disabled
+    if (!settings.enabled) {
+      console.log('Notifications disabled - skipping scheduling');
       return;
     }
 
-    // Prepare notification content
-    const routineNames = activeRoutines.map((r: Routine) => r.name).join(', ');
-    const title = activeRoutines.length === 1 
-      ? `Time for your routine!`
-      : `Time for your routines!`;
+    // Get completion status
+    const status = getCompletionStatus(routines);
     
-    const body = activeRoutines.length === 1
-      ? `Don't forget: ${routineNames}`
-      : `Don't forget: ${routineNames}`;
+    // STRICT VALIDATION: No notifications if no active routines
+    if (!status.hasActiveRoutines) {
+      console.log('No active routines - skipping notification scheduling');
+      return;
+    }
+    
+    // STRICT VALIDATION: No notifications if all routines completed
+    if (status.isAllCompleted) {
+      console.log('All routines completed - skipping notification scheduling');
+      return;
+    }
 
-    // Schedule notification
-    const notificationTime = settings.time || '07:00';
-    await scheduleDailyNotification(
-      notificationTime,
-      title,
-      body,
-      { 
-        routines: activeRoutines.map((r: Routine) => ({ id: r.id, name: r.name })),
-        type: 'routine_reminder'
+    console.log(`Scheduling notifications for ${status.remaining}/${status.total} incomplete routines`);
+
+    // Determine notification times with proper undefined checks
+    const notificationTimes = settings.multipleReminders && settings.reminderTimes && settings.reminderTimes.length > 0
+      ? settings.reminderTimes
+      : [settings.time || settings.globalTime || '07:00'];
+
+    // Schedule notifications for each time
+    for (const time of notificationTimes) {
+      const { hours, minutes } = parseTime(time);
+      
+      // Determine time of day for smart content
+      let timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night';
+      if (hours < 12) timeOfDay = 'morning';
+      else if (hours < 17) timeOfDay = 'afternoon';
+      else if (hours < 21) timeOfDay = 'evening';
+      else timeOfDay = 'night';
+      
+      // Generate smart content
+      const content = generateNotificationContent(status, timeOfDay);
+      
+      if (content) {
+        await scheduleDailyNotification(
+          time,
+          content.title,
+          content.body,
+          { 
+            routines: routines.filter((r: any) => r.isActive && !isRoutineCompletedToday(r)).map((r: any) => ({ id: r.id, name: r.name })),
+            type: 'routine_reminder',
+            timeOfDay,
+            completionStatus: status
+          }
+        );
+        
+        console.log(`Scheduled ${timeOfDay} notification for ${time}: "${content.title}"`);
       }
-    );
+    }
+    
+    console.log(`Successfully scheduled ${notificationTimes?.length || 0} notification(s)`);
+    
   } catch (error) {
     console.error('Error scheduling routine notifications:', error);
   }

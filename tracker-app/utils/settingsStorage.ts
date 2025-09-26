@@ -16,12 +16,18 @@ export interface SettingsData {
   debugMode: boolean;
   notificationTime?: string; // Format: "HH:MM"
   notificationEnabled: boolean;
+  multipleReminders?: boolean; // Enable multiple daily reminders
+  reminderTimes?: string[]; // Multiple reminder times ["07:00", "14:00", "18:00", "20:00"]
+  onlyIfIncomplete?: boolean; // Only send if routines are incomplete
 }
 
 export const DEFAULT_SETTINGS: SettingsData = {
   debugMode: false,
   notificationTime: '07:00',
   notificationEnabled: true,
+  multipleReminders: true, // Enable enhanced notifications by default
+  reminderTimes: ['07:00', '14:00', '18:00', '20:00'], // Default reminder times
+  onlyIfIncomplete: true, // Smart notifications by default
 };
 
 // Storage keys
@@ -708,6 +714,10 @@ export const getNotificationData = async (): Promise<NotificationScheduleData> =
     settings: {
       enabled: settings.notificationEnabled,
       time: settings.notificationTime,
+      globalTime: settings.notificationTime, // Backward compatibility
+      multipleReminders: settings.multipleReminders ?? true, // Default to enhanced notifications
+      reminderTimes: settings.reminderTimes ?? ['07:00', '14:00', '18:00', '20:00'], // Default times
+      onlyIfIncomplete: settings.onlyIfIncomplete ?? true, // Default to smart notifications
     },
   };
 };
