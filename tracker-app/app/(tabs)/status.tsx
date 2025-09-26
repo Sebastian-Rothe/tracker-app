@@ -235,7 +235,7 @@ export default function StatusScreen() {
               <Text style={styles.navButtonText}>‹</Text>
             </TouchableOpacity>
             
-            <Text style={styles.monthTitle}>
+            <Text style={[styles.monthTitle, { color: theme.Colors.text.primary }]}>
               {formatMonthTitle(currentMonth)}
             </Text>
             
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   monthTitle: {
     fontSize: Theme.Typography.fontSize.xl,
     fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.text.primary,
+    // Color will be applied inline with theme.Colors.text.primary
   },
   content: {
     margin: Theme.Spacing.lg,

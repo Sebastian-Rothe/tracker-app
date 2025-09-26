@@ -29,10 +29,19 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
   const getBackgroundColor = () => {
     if (!isCurrentMonth) return theme.Colors.surface.overlay;
     if (isToday) return theme.Colors.primary[500];
-    if (dayData.completionRate === 1) return Theme.Colors.success[500];
-    if (dayData.completionRate > 0.5) return Theme.Colors.warning[400];
-    if (dayData.completionRate > 0) return Theme.Colors.warning[200];
-    return theme.Colors.surface.card;
+    
+    // Debug log to check completion rates
+    if (dayData.completionRate > 0) {
+      console.log(`Calendar Debug: Date ${dayData.date}, Rate: ${dayData.completionRate}, Completed: ${dayData.completedRoutines}/${dayData.totalRoutines}`);
+    }
+    
+    // Clear completion status differentiation - TEMPORARY DEBUG COLORS
+    if (dayData.completionRate === 1) return '#00FF00'; // 100% - Bright Green
+    if (dayData.completionRate >= 0.7) return '#FF8800'; // 70%+ - Orange  
+    if (dayData.completionRate >= 0.3) return '#FFDD00'; // 30%+ - Yellow
+    if (dayData.completionRate > 0) return '#FFB6C1'; // >0% - Light Pink
+    
+    return theme.Colors.surface.card; // None completed - Default
   };
   
   const getTextColor = () => {
@@ -162,21 +171,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         ))}
       </View>
       
-      {/* Legend */}
-      <View style={[styles.legend, { borderTopColor: theme.Colors.surface.border }]}>
-        <View style={styles.legendRow}>
-          <View style={[styles.legendDot, { backgroundColor: Theme.Colors.success[500] }]} />
-          <Text style={[styles.legendText, { color: theme.Colors.text.secondary }]}>All completed</Text>
-        </View>
-        <View style={styles.legendRow}>
-          <View style={[styles.legendDot, { backgroundColor: Theme.Colors.warning[400] }]} />
-          <Text style={[styles.legendText, { color: theme.Colors.text.secondary }]}>Partially completed</Text>
-        </View>
-        <View style={styles.legendRow}>
-          <View style={[styles.legendDot, { backgroundColor: theme.Colors.surface.card }]} />
-          <Text style={[styles.legendText, { color: theme.Colors.text.secondary }]}>Not completed</Text>
-        </View>
-      </View>
+
     </View>
   );
 };

@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Theme } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { CalendarGrid } from '@/components/CalendarGrid';
 import { HistoryStats } from '@/components/HistoryStats';
 import { 
@@ -28,6 +29,7 @@ import { Card } from '@/components/ui';
 
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
   
   // State
   const [currentMonth, setCurrentMonth] = useState(() => {
@@ -214,7 +216,7 @@ export default function HistoryScreen() {
               <Text style={styles.navButtonText}>‹</Text>
             </TouchableOpacity>
             
-            <Text style={styles.monthTitle}>
+            <Text style={[styles.monthTitle, { color: theme.Colors.text.primary }]}>
               {formatMonthTitle(currentMonth)}
             </Text>
             
@@ -331,7 +333,7 @@ const styles = StyleSheet.create({
   monthTitle: {
     fontSize: Theme.Typography.fontSize.xl,
     fontWeight: Theme.Typography.fontWeight.bold,
-    color: Theme.Colors.text.primary,
+    // Color will be applied inline with theme.Colors.text.primary
   },
   summaryCard: {
     marginHorizontal: Theme.Spacing.lg,
