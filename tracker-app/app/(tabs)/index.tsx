@@ -596,7 +596,10 @@ export default function MultiRoutineTrackerScreen() {
                       ...styles.routineCard,
                       borderLeftColor: routine.color, 
                       borderLeftWidth: 4,
-                      ...(isCompleted && styles.completedCard)
+                      ...(isCompleted && { 
+                        ...styles.completedCard, 
+                        backgroundColor: theme.Colors.success[50] 
+                      })
                     }}
                   >
                 <View style={styles.routineHeader}>
@@ -901,7 +904,7 @@ const styles = StyleSheet.create({
     padding: Theme.Spacing.sm, // Add padding so buttons don't stick to edges
   },
   completedCard: {
-    backgroundColor: Theme.Colors.success[50],
+    // backgroundColor will be applied inline with theme.Colors.success[50]
     opacity: 0.8,
   },
   routineHeader: {

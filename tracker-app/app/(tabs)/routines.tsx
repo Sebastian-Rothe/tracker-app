@@ -378,25 +378,30 @@ export default function RoutineManagementScreen() {
 
       {routines.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>{TEXTS.noRoutines}</Text>
-          <Text style={styles.emptySubtext}>{TEXTS.noRoutinesSubtext}</Text>
+          <Text style={[styles.emptyText, { color: theme.Colors.text.primary }]}>{TEXTS.noRoutines}</Text>
+          <Text style={[styles.emptySubtext, { color: theme.Colors.text.secondary }]}>{TEXTS.noRoutinesSubtext}</Text>
         </View>
       ) : (
         <ScrollView style={styles.routineList}>
           {routines.map((routine) => (
             <TouchableOpacity
               key={routine.id}
-              style={[styles.routineCard, { borderLeftColor: routine.color }]}
+              style={[styles.routineCard, { 
+                borderLeftColor: routine.color,
+                backgroundColor: theme.Colors.surface.card
+              }]}
               onPress={() => openEditForm(routine)}
             >
               <View style={styles.routineHeader}>
-                <View style={styles.routineIconContainer}>
+                <View style={[styles.routineIconContainer, { 
+                  backgroundColor: theme.Colors.surface.overlay 
+                }]}>
                   <Text style={styles.routineIcon}>{routine.icon}</Text>
                 </View>
                 <View style={styles.routineInfo}>
-                  <Text style={styles.routineName}>{routine.name}</Text>
+                  <Text style={[styles.routineName, { color: theme.Colors.text.primary }]}>{routine.name}</Text>
                   {routine.description && (
-                    <Text style={styles.routineDescription}>{routine.description}</Text>
+                    <Text style={[styles.routineDescription, { color: theme.Colors.text.secondary }]}>{routine.description}</Text>
                   )}
                 </View>
                 <TouchableOpacity
@@ -462,12 +467,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#666',
+    // color will be applied inline
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 16,
-    color: '#999',
+    // color will be applied inline
     textAlign: 'center',
   },
   routineList: {
@@ -475,7 +480,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   routineCard: {
-    backgroundColor: '#fff',
+    // backgroundColor will be applied inline with theme.Colors.surface.card
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -495,7 +500,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f0f0f0',
+    // backgroundColor will be applied inline
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -509,11 +514,11 @@ const styles = StyleSheet.create({
   routineName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    // color will be applied inline
   },
   routineDescription: {
     fontSize: 14,
-    color: '#666',
+    // color will be applied inline
     marginTop: 2,
   },
   deleteButton: {

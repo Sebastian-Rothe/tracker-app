@@ -213,7 +213,7 @@ export default function StatusScreen() {
           <View style={styles.headerContent}>
             <View>
               <Text style={[styles.title, { color: theme.Colors.text.primary }]}>Status & Analytics</Text>
-              <Text style={[styles.subtitle, { color: theme.Colors.text.secondary }]}>Deine Fortschritte und Statistiken</Text>
+              <Text style={[styles.subtitle, { color: theme.Colors.text.secondary }]}>Your progress and statistics</Text>
             </View>
           </View>
         </Card>

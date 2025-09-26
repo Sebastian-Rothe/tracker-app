@@ -30,16 +30,11 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
     if (!isCurrentMonth) return theme.Colors.surface.overlay;
     if (isToday) return theme.Colors.primary[500];
     
-    // Debug log to check completion rates
-    if (dayData.completionRate > 0) {
-      console.log(`Calendar Debug: Date ${dayData.date}, Rate: ${dayData.completionRate}, Completed: ${dayData.completedRoutines}/${dayData.totalRoutines}`);
-    }
-    
-    // Clear completion status differentiation - TEMPORARY DEBUG COLORS
-    if (dayData.completionRate === 1) return '#00FF00'; // 100% - Bright Green
-    if (dayData.completionRate >= 0.7) return '#FF8800'; // 70%+ - Orange  
-    if (dayData.completionRate >= 0.3) return '#FFDD00'; // 30%+ - Yellow
-    if (dayData.completionRate > 0) return '#FFB6C1'; // >0% - Light Pink
+    // Clear completion status differentiation
+    if (dayData.completionRate === 1) return theme.Colors.success[500]; // 100% - Green
+    if (dayData.completionRate >= 0.7) return theme.Colors.warning[500]; // 70%+ - Orange  
+    if (dayData.completionRate >= 0.3) return theme.Colors.warning[300]; // 30%+ - Light Orange
+    if (dayData.completionRate > 0) return theme.Colors.warning[200]; // >0% - Very Light Orange
     
     return theme.Colors.surface.card; // None completed - Default
   };
