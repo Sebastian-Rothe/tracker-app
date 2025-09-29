@@ -15,6 +15,7 @@ import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CalendarGrid } from '@/components/CalendarGrid';
 import { MotivationalDashboard } from '@/components/MotivationalDashboard';
+// Performance monitoring imports removed due to infinite render loop
 import { 
   getDailyData, 
   getMonthlyStats, 
@@ -29,6 +30,8 @@ import { Card } from '@/components/ui';
 export default function StatusScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  
+  // Performance monitoring removed due to infinite render loop
   
   // State
   const [currentMonth, setCurrentMonth] = useState(() => {

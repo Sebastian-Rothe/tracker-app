@@ -19,6 +19,7 @@ import {
   validateRoutineCreation,
   validateStreakInput 
 } from '@/utils/settingsStorage';
+// Performance monitoring imports removed due to infinite render loop
 import { 
   Routine, 
   CreateRoutineRequest, 
@@ -74,6 +75,9 @@ const INITIAL_FORM_DATA: RoutineFormData = {
 export default function RoutineManagementScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  
+  // Performance monitoring removed due to infinite render loop
+  
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);

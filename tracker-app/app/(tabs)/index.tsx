@@ -43,6 +43,7 @@ import {
 import { Routine, RoutineState, ROUTINE_COLORS, ROUTINE_ICONS, RoutineColor, RoutineIcon } from '@/types/routine';
 import { Button, Card, Badge, ProgressBar } from '@/components/ui';
 import { Theme } from '@/constants/Theme';
+// Performance monitoring and lazy loading removed due to issues
 
 const TEXTS = {
   title: 'My Routines',
@@ -114,6 +115,8 @@ export default function MultiRoutineTrackerScreen() {
   // Removed unused screenHeight variable
   const { theme } = useTheme();
   
+  // Performance monitoring hooks removed due to infinite render loop
+  
   // Enhanced bottom padding calculation for Android
   const bottomPadding = useMemo(() => {
     if (Platform.OS === 'ios') {
@@ -176,6 +179,8 @@ export default function MultiRoutineTrackerScreen() {
   }, []);
 
   const loadData = useCallback(async (isRefresh = false) => {
+    const startTime = performance.now();
+    
     try {
       if (!isRefresh) setIsLoading(true);
       setError(null);
@@ -209,6 +214,11 @@ export default function MultiRoutineTrackerScreen() {
     } finally {
       setIsLoading(false);
       if (isRefresh) setIsRefreshing(false);
+      
+      // Performance logging
+      const endTime = performance.now();
+      console.log(`loadData operation completed in ${endTime - startTime}ms`);
+      // Performance logging removed
     }
   }, [checkAndUpdateAchievements]);
 
@@ -491,7 +501,7 @@ export default function MultiRoutineTrackerScreen() {
     const today = new Date().toISOString().slice(0, 10);
     return routine.lastConfirmed === today;
   }, []);
-
+  
   if (isLoading && !isRefreshing) {
     return (
       <View style={[styles.container, { 

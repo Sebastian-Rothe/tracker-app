@@ -26,10 +26,13 @@ import {
 import { loadRoutines } from '@/utils/settingsStorage';
 import { Routine } from '@/types/routine';
 import { Card } from '@/components/ui';
+// Performance monitoring imports removed due to infinite render loop
 
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  
+  // Performance monitoring removed due to infinite render loop
   
   // State
   const [currentMonth, setCurrentMonth] = useState(() => {
