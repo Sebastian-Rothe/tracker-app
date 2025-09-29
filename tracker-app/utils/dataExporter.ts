@@ -260,8 +260,6 @@ export const saveAndShareExport = async (
   try {
     // For now, just use alert to show the export is ready
     // In a production app, this would save to device storage
-    console.log('Export content length:', content.length);
-    console.log('Export filename:', filename);
     
     Alert.alert(
       'Export Ready',

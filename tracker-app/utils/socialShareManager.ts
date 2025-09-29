@@ -36,9 +36,6 @@ export class SocialShareManager {
           mimeType: 'text/plain',
           dialogTitle: `Share ${achievement.title}`,
         });
-      } else {
-        // Fallback to copying to clipboard
-        console.log('Sharing not available, would copy to clipboard:', shareText);
       }
     } catch (error) {
       console.error('Error sharing achievement:', error);
@@ -58,8 +55,6 @@ export class SocialShareManager {
           mimeType: 'text/plain',
           dialogTitle: 'Share My Progress',
         });
-      } else {
-        console.log('Sharing not available, would copy to clipboard:', shareText);
       }
     } catch (error) {
       console.error('Error sharing progress:', error);

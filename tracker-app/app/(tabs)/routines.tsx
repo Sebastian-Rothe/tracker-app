@@ -208,7 +208,7 @@ export default function RoutineManagementScreen() {
         {
           text: TEXTS.cancel,
           style: 'cancel',
-          onPress: () => console.log('Delete cancelled by user')
+          onPress: () => {}
         },
         {
           text: TEXTS.delete,

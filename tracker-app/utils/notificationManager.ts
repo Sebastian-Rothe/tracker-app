@@ -222,7 +222,6 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
     // Check permissions
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
-      console.log('No notification permissions - skipping scheduling');
       return;
     }
 
@@ -232,7 +231,6 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
     
     // STRICT VALIDATION: No notifications if disabled
     if (!settings.enabled) {
-      console.log('Notifications disabled - skipping scheduling');
       return;
     }
 
@@ -241,17 +239,13 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
     
     // STRICT VALIDATION: No notifications if no active routines
     if (!status.hasActiveRoutines) {
-      console.log('No active routines - skipping notification scheduling');
       return;
     }
     
     // STRICT VALIDATION: No notifications if all routines completed
     if (status.isAllCompleted) {
-      console.log('All routines completed - skipping notification scheduling');
       return;
     }
-
-    console.log(`Scheduling notifications for ${status.remaining}/${status.total} incomplete routines`);
 
     // Determine notification times with proper undefined checks
     const notificationTimes = settings.multipleReminders && settings.reminderTimes && settings.reminderTimes.length > 0
@@ -284,12 +278,8 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
             completionStatus: status
           }
         );
-        
-        console.log(`Scheduled ${timeOfDay} notification for ${time}: "${content.title}"`);
       }
     }
-    
-    console.log(`Successfully scheduled ${notificationTimes?.length || 0} notification(s)`);
     
   } catch (error) {
     console.error('Error scheduling routine notifications:', error);

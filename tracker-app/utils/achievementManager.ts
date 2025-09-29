@@ -363,7 +363,6 @@ export const updateAchievements = async (): Promise<Achievement[]> => {
       if (!updated.isUnlocked && currentValue >= targetValue) {
         updated.isUnlocked = true;
         updated.unlockedAt = new Date().toISOString();
-        console.log(`🏆 Achievement unlocked: ${updated.title}`);
       }
       
       return updated;

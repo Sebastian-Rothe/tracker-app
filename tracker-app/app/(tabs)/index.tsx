@@ -214,11 +214,6 @@ export default function MultiRoutineTrackerScreen() {
     } finally {
       setIsLoading(false);
       if (isRefresh) setIsRefreshing(false);
-      
-      // Performance logging
-      const endTime = performance.now();
-      console.log(`loadData operation completed in ${endTime - startTime}ms`);
-      // Performance logging removed
     }
   }, [checkAndUpdateAchievements]);
 
