@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Switch, StyleSheet, ActivityIndicator } from 'react-native';
-import { scheduleRoutineNotifications, cancelAllNotifications } from '@/utils/notificationManager';
+import { scheduleRoutineNotifications, cancelAllNotifications, getScheduledNotifications } from '@/utils/notificationManager';
 import { loadSettings, saveSettings } from '@/utils/settingsStorage';
 
 export const EnhancedNotificationSettings: React.FC = () => {
@@ -19,7 +19,6 @@ export const EnhancedNotificationSettings: React.FC = () => {
 
   const updateScheduledCount = async () => {
     try {
-      const { getScheduledNotifications } = await import('@/utils/notificationManager');
       const notifications = await getScheduledNotifications();
       setScheduledCount(notifications.length);
     } catch {

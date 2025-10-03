@@ -3,6 +3,9 @@
  * Utility functions for the enhanced notification system
  */
 
+import { cancelAllNotifications } from './notificationManager';
+import { getNotificationData } from './settingsStorage';
+
 /**
  * Check if routine is completed today
  */
@@ -33,10 +36,6 @@ const getCompletionStatus = (routines: any[]) => {
  */
 export const checkAndCancelNotificationsIfNeeded = async (): Promise<void> => {
   try {
-    // Dynamically import to avoid circular dependency
-    const { cancelAllNotifications } = await import('./notificationManager');
-    const { getNotificationData } = await import('./settingsStorage');
-    
     // Load current data
     const { routines, settings } = await getNotificationData();
     

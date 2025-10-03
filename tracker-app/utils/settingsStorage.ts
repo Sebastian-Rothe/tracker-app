@@ -241,15 +241,8 @@ export const saveRoutines = async (routines: Routine[]): Promise<void> => {
   try {
     await routineStorage.saveRoutines(routines);
     
-    // Reschedule notifications when routines change (async to avoid circular dependency)
-    setTimeout(async () => {
-      try {
-        const { scheduleRoutineNotifications } = await import('./notificationManager');
-        await scheduleRoutineNotifications();
-      } catch (error) {
-        console.warn('Failed to reschedule notifications:', error);
-      }
-    }, 0);
+    // Note: Notifications should be rescheduled externally to avoid circular dependencies
+    // Call scheduleRoutineNotifications() from the component after saving routines
   } catch (error) {
     console.error('Error saving routines:', error);
     throw error;
@@ -279,15 +272,8 @@ export const createRoutine = async (request: CreateRoutineRequest): Promise<Rout
     const updatedRoutines = [...routines, newRoutine];
     await saveRoutines(updatedRoutines);
     
-    // Reschedule notifications after creating new routine (async to avoid circular dependency)
-    setTimeout(async () => {
-      try {
-        const { scheduleRoutineNotifications } = await import('./notificationManager');
-        await scheduleRoutineNotifications();
-      } catch (error) {
-        console.warn('Failed to reschedule notifications:', error);
-      }
-    }, 0);
+    // Note: Notifications should be rescheduled externally to avoid circular dependencies
+    // Call scheduleRoutineNotifications() from the component after creating routine
     
     return newRoutine;
   } catch (error) {
@@ -321,15 +307,8 @@ export const updateRoutine = async (request: UpdateRoutineRequest): Promise<Rout
     routines[routineIndex] = updatedRoutine;
     await saveRoutines(routines);
     
-    // Reschedule notifications after updating routine (async to avoid circular dependency)
-    setTimeout(async () => {
-      try {
-        const { scheduleRoutineNotifications } = await import('./notificationManager');
-        await scheduleRoutineNotifications();
-      } catch (error) {
-        console.warn('Failed to reschedule notifications:', error);
-      }
-    }, 0);
+    // Note: Notifications should be rescheduled externally to avoid circular dependencies
+    // Call scheduleRoutineNotifications() from the component after updating routine
     
     return updatedRoutine;
   } catch (error) {
@@ -358,16 +337,9 @@ export const deleteRoutine = async (routineId: string): Promise<boolean> => {
     await saveRoutines(filteredRoutines);
     console.log('Routine deleted successfully');
     
-    // Reschedule notifications after deleting routine (async to avoid circular dependency)
-    setTimeout(async () => {
-      try {
-        const { scheduleRoutineNotifications } = await import('./notificationManager');
-        await scheduleRoutineNotifications();
-        console.log('Notifications rescheduled after deleting routine:', routineId);
-      } catch (error) {
-        console.warn('Failed to reschedule notifications:', error);
-      }
-    }, 0);
+    // Note: Notifications should be rescheduled externally to avoid circular dependencies
+    // Call scheduleRoutineNotifications() from the component after deleting routine
+    console.log('Routine deleted successfully - notifications should be rescheduled externally');
     
     return true;
   } catch (error) {

@@ -16,6 +16,7 @@ import {
   createRoutine, 
   updateRoutine, 
   deleteRoutine,
+  saveRoutines,
   validateRoutineCreation,
   validateStreakInput 
 } from '@/utils/settingsStorage';
@@ -170,8 +171,7 @@ export default function RoutineManagementScreen() {
             if (initialStreakValue === 0) {
               routines[routineIndex].lastConfirmed = '';
             }
-            // Save updated routines - we need to import saveRoutines
-            const { saveRoutines } = await import('@/utils/settingsStorage');
+            // Save updated routines
             await saveRoutines(routines);
           }
         }
@@ -183,7 +183,6 @@ export default function RoutineManagementScreen() {
           const routineIndex = routines.findIndex(r => r.id === newRoutine.id);
           if (routineIndex !== -1) {
             routines[routineIndex].streak = initialStreakValue;
-            const { saveRoutines } = await import('@/utils/settingsStorage');
             await saveRoutines(routines);
           }
         }

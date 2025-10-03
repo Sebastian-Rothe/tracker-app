@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Routine Tracker",
-    "slug": "morgenroutine-tracker",
+    "slug": "tracker",
     "version": "1.0.0",
     "description": "Track your daily routines with simple streak counters and daily reminders",
     "sdkVersion": "54.0.0",
@@ -52,8 +52,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d0f268d8-e327-4def-90fc-ac35f67e19ae"
+        "projectId": "cdabbcb6-2d8c-4bd7-9a75-a995258d2fa6"
       }
-    }
+    },
+    "owner": "rsproduction"
   }
 }

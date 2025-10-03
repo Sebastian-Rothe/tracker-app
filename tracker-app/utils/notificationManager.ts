@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { Routine } from '@/types/routine';
 import { NotificationScheduleData } from '@/types/notifications';
+import { getNotificationData } from './settingsStorage';
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -225,9 +226,8 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
       return;
     }
 
-    // Load data from external source (breaks circular dependency)
-    const dataLoader = (await import('./settingsStorage')).getNotificationData;
-    const { routines, settings } = await dataLoader();
+    // Load notification data
+    const { routines, settings } = await getNotificationData();
     
     // STRICT VALIDATION: No notifications if disabled
     if (!settings.enabled) {
