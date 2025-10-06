@@ -4,7 +4,7 @@ import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AchievementCard, AchievementProgress } from '@/components/AchievementComponents';
 import { Achievement, updateAchievements } from '@/utils/achievementManager';
-import { SocialShareManager } from '@/utils/socialShareManager';
+
 
 export default function AchievementsPage() {
   const { theme } = useTheme();
@@ -69,7 +69,7 @@ export default function AchievementsPage() {
         achievementsUnlocked: unlockedCount,
       };
       
-      await SocialShareManager.shareAchievement(achievement, userStats);
+      Alert.alert('Achievement Unlocked!', `Congratulations on unlocking: ${achievement.title}`);
     } catch (error) {
       Alert.alert('Error', 'Failed to share achievement. Please try again.');
     }
@@ -85,7 +85,7 @@ export default function AchievementsPage() {
         achievementsUnlocked: unlockedCount,
       };
       
-      await SocialShareManager.shareProgress(userStats);
+      Alert.alert('Progress Summary', `You have unlocked ${unlockedCount} achievements!`);
     } catch (error) {
       Alert.alert('Error', 'Failed to share progress. Please try again.');
     }

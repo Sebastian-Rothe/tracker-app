@@ -46,13 +46,6 @@ jest.mock('react-native-safe-area-context', () => ({
   }),
 }));
 
-// Mock expo-haptics
-jest.mock('expo-haptics', () => ({
-  impactAsync: jest.fn(),
-  notificationAsync: jest.fn(),
-  selectionAsync: jest.fn(),
-}));
-
 // Mock Theme Context
 jest.mock('@/contexts/ThemeContext', () => ({
   useTheme: () => ({
