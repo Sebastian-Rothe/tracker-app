@@ -48,7 +48,7 @@ export default function CommunityPage() {
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Join', 
-          onPress: async (username) => {
+          onPress: async (username?: string) => {
             if (username && username.trim()) {
               try {
                 await CommunityManager.createUserProfile(username.trim(), true);
