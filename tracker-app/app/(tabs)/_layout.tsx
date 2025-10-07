@@ -6,17 +6,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { theme, isDarkMode } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: theme.Colors.primary[500],
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -31,9 +30,9 @@ export default function TabLayout() {
           },
           default: {
             // Enhanced styling for better visual appeal
-            backgroundColor: colorScheme === 'dark' ? '#1e1e1e' : '#ffffff',
+            backgroundColor: theme.Colors.surface.background,
             borderTopWidth: 1,
-            borderTopColor: colorScheme === 'dark' ? '#333333' : '#e5e5e5',
+            borderTopColor: theme.Colors.surface.border,
             paddingBottom: Math.max(insets.bottom, 8), // ✅ Android SafeArea mit Minimum
             paddingTop: 8,
             height: 70 + Math.max(insets.bottom, 0), // ✅ Dynamische Höhe basierend auf SafeArea

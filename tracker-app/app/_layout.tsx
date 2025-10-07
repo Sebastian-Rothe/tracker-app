@@ -2,16 +2,21 @@ import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } fro
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SystemUI from 'expo-system-ui';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useEffect } from 'react';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { AchievementProvider } from '@/contexts/AchievementContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { setupGlobalErrorHandling } from '@/services/ErrorHandling';
 
 function RootNavigator() {
-  const { isDarkMode } = useTheme();
+  const { isDarkMode, theme } = useTheme();
+  
+  useEffect(() => {
+    // Set system UI background color based on theme using proper theme colors
+    SystemUI.setBackgroundColorAsync(theme.Colors.surface.background);
+  }, [isDarkMode, theme]);
   
   return (
     <NavigationThemeProvider value={isDarkMode ? DarkTheme : DefaultTheme}>

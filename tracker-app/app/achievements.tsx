@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Animated, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AchievementCard, AchievementProgress } from '@/components/AchievementComponents';
@@ -75,21 +76,7 @@ export default function AchievementsPage() {
     }
   };
 
-  const handleShareProgress = async () => {
-    try {
-      const userStats = {
-        streakDays: 0, // This would come from actual user data
-        totalRoutines: achievements.length,
-        completedToday: 0,
-        monthlyRate: 75, // Example data
-        achievementsUnlocked: unlockedCount,
-      };
-      
-      Alert.alert('Progress Summary', `You have unlocked ${unlockedCount} achievements!`);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to share progress. Please try again.');
-    }
-  };
+
 
   const renderCategorySection = (category: Achievement['category'], title: string, icon: string) => {
     const categoryAchievements = achievements.filter(a => a.category === category);
@@ -132,8 +119,12 @@ export default function AchievementsPage() {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.Colors.surface.background }]} contentContainerStyle={styles.contentContainer}>
-      <Animated.View style={[styles.content, { opacity: animatedValue }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.Colors.surface.background }]} edges={['top', 'left', 'right']}>
+      <ScrollView 
+        style={[styles.container, { backgroundColor: theme.Colors.surface.background }]} 
+        contentContainerStyle={styles.contentContainer}
+      >
+        <Animated.View style={[styles.content, { opacity: animatedValue }]}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.Colors.text.primary }]}>🏆 Achievements</Text>
@@ -149,12 +140,7 @@ export default function AchievementsPage() {
             unlocked={unlockedCount}
             style={styles.progressSection}
           />
-          
-          {unlockedCount > 0 && (
-            <TouchableOpacity style={[styles.shareButton, { backgroundColor: theme.Colors.primary[500] }]} onPress={handleShareProgress}>
-              <Text style={[styles.shareButtonText, { color: theme.Colors.text.inverse }]}>📤 Share Progress</Text>
-            </TouchableOpacity>
-          )}
+
         </View>
 
         {/* Recent Unlocks */}
@@ -209,10 +195,14 @@ export default function AchievementsPage() {
         </View>
       </Animated.View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
@@ -249,17 +239,6 @@ const styles = StyleSheet.create({
   },
   progressSectionContainer: {
     margin: Theme.Spacing.lg,
-  },
-  shareButton: {
-    paddingVertical: Theme.Spacing.md,
-    paddingHorizontal: Theme.Spacing.lg,
-    borderRadius: Theme.BorderRadius.lg,
-    alignItems: 'center',
-    marginTop: Theme.Spacing.md,
-  },
-  shareButtonText: {
-    fontSize: Theme.Typography.fontSize.base,
-    fontWeight: Theme.Typography.fontWeight.medium,
   },
   recentSection: {
     marginHorizontal: Theme.Spacing.lg,
