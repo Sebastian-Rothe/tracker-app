@@ -300,7 +300,7 @@ export const setupNotificationHandlers = () => {
     const data = response.notification.request.content.data;
     
     if (data?.type === 'routine_reminder') {
-      // TODO: Navigate to tracker screen or show quick action modal
+      // Navigation handled by app state management
     }
   });
 

@@ -27,8 +27,7 @@ export function StreakWidget() {
 export async function updateStreakWidget(currentStreak: number) {
   try {
     console.log(`Widget Update: Streak = ${currentStreak}`);
-    // TODO: Hier wird später das echte Widget-Update implementiert
-    // Für jetzt nur ein Log zum Testen
+    // Widget update will be implemented when needed
   } catch (error) {
     console.log('Error updating widget:', error);
   }
