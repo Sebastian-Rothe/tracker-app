@@ -18,7 +18,7 @@ function RootNavigator() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="achievements" options={{ headerShown: true, title: "Achievements" }} />
-        <Stack.Screen name="community" options={{ headerShown: true, title: "Community" }} />
+        {/* <Stack.Screen name="community" options={{ headerShown: true, title: "Community" }} /> */}
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style={isDarkMode ? "light" : "dark"} backgroundColor="transparent" translucent={true} />
