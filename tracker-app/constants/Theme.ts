@@ -10,18 +10,18 @@
 
 // Light Mode Colors
 const LightColors = {
-  // Primary Brand Colors
+  // Primary Brand Colors - 🚀 MODERN INDIGO-BLUE PALETTE!
   primary: {
-    50: '#f0f9ff',
-    100: '#e0f2fe', 
-    200: '#bae6fd',
-    300: '#7dd3fc',
-    400: '#38bdf8',
-    500: '#0ea5e9',  // Main brand color
-    600: '#0284c7',
-    700: '#0369a1',
-    800: '#075985',
-    900: '#0c4a6e',
+    50: '#f0f4ff',   // Soft indigo tint
+    100: '#e0e7ff', 
+    200: '#c7d2fe',
+    300: '#a5b4fc',
+    400: '#818cf8',
+    500: '#6366f1',  // Modern indigo - warmer than cold blue
+    600: '#4f46e5',
+    700: '#4338ca',
+    800: '#3730a3',
+    900: '#312e81',
   },
   
   // Success Colors (for streaks and completions)
@@ -78,38 +78,46 @@ const LightColors = {
     900: '#1e3a8a',
   },
   
-  // Neutral Colors
+  // Neutral Colors - 🚀 MODERN SLATE PALETTE!
   gray: {
-    50: '#f9fafb',
-    100: '#f3f4f6',
-    200: '#e5e7eb',
-    300: '#d1d5db',
-    400: '#9ca3af',
-    500: '#6b7280',
-    600: '#4b5563',
-    700: '#374151',
-    800: '#1f2937',
-    900: '#111827',
+    50: '#f8fafc',  // Slate-based grays für moderne Optik
+    100: '#f1f5f9',
+    200: '#e2e8f0',
+    300: '#cbd5e1',
+    400: '#94a3b8',
+    500: '#64748b',
+    600: '#475569',
+    700: '#334155',
+    800: '#1e293b',
+    900: '#0f172a',
   },
   
-  // Surface Colors
+  // Surface Colors - 🚀 WARM & INVITING DESIGN!
   surface: {
-    background: '#ffffff',
+    background: '#fafafb', // Warm off-white mit subtilen Beige-Tönen
     card: '#ffffff',
     overlay: 'rgba(0, 0, 0, 0.5)',
-    border: '#e5e7eb',
-    divider: '#f3f4f6',
+    border: '#e4e7ec', // Wärmere Border mit Beige-Unterton
+    divider: '#f2f4f7', // Sanfte Divider mit warmem Undertone
   },
   
-  // Text Colors
+  // Accent Colors - 🚀 NEUE WARM ACCENTS!
+  accent: {
+    purple: '#8b5cf6',   // Für besondere Highlights
+    emerald: '#10b981',  // Für Success States
+    amber: '#f59e0b',    // Für Warnings
+    rose: '#f43f5e',     // Für Errors/Attention
+  },
+  
+  // Text Colors - 🚀 WARME, LESBARE KONTRASTE!
   text: {
-    primary: '#111827',
-    secondary: '#6b7280',
-    tertiary: '#9ca3af',
+    primary: '#1f2937', // Wärmeres Anthrazit statt kaltes Schwarz
+    secondary: '#6b7280', // Balanced warm gray
+    tertiary: '#9ca3af', // Soft tertiary mit warmem Unterton
     inverse: '#ffffff',
-    success: '#059669',
-    warning: '#d97706',
-    error: '#dc2626',
+    success: '#059669',  // Bleibt grün für Klarheit
+    warning: '#d97706',  // Warmes Orange
+    error: '#dc2626',    // Klares Rot
   },
 };
 
@@ -215,6 +223,14 @@ const DarkColors = {
     success: '#4ade80',
     warning: '#fbbf24',
     error: '#f87171',
+  },
+  
+  // Accent Colors - 🚀 DARK MODE ACCENTS!
+  accent: {
+    purple: '#a855f7',   // Heller für Dark Mode
+    emerald: '#34d399',  // Leuchtender für Dark Mode
+    amber: '#fbbf24',    // Heller für Dark Mode
+    rose: '#fb7185',     // Softer für Dark Mode
   },
 };
 
