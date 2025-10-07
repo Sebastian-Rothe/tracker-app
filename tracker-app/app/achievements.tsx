@@ -47,35 +47,14 @@ export default function AchievementsPage() {
       ? `Achievement unlocked on ${new Date(achievement.unlockedAt!).toLocaleDateString()}`
       : `Progress: ${Math.round(achievement.progress * 100)}%`;
     
-    const buttons = achievement.isUnlocked 
-      ? [
-          { text: 'Share', onPress: () => handleShareAchievement(achievement) },
-          { text: 'OK', style: 'cancel' as const }
-        ]
-      : [{ text: 'OK' }];
-    
     Alert.alert(
       achievement.title,
       `${achievement.description}\n\n${message}`,
-      buttons
+      [{ text: 'OK' }] // 🚀 NUR OK BUTTON - KEIN SHARE MEHR!
     );
   };
 
-  const handleShareAchievement = async (achievement: Achievement) => {
-    try {
-      const userStats = {
-        streakDays: 0, // This would come from actual user data
-        totalRoutines: 0,
-        completedToday: 0,
-        monthlyRate: 0,
-        achievementsUnlocked: unlockedCount,
-      };
-      
-      Alert.alert('Achievement Unlocked!', `Congratulations on unlocking: ${achievement.title}`);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to share achievement. Please try again.');
-    }
-  };
+  // 🚀 SHARE FUNKTIONALITÄT ENTFERNT!
 
 
 
@@ -261,6 +240,7 @@ const styles = StyleSheet.create({
     padding: Theme.Spacing.lg,
     alignItems: 'center',
     marginBottom: Theme.Spacing.md,
+    marginTop: Theme.Spacing.md,
   },
   title: {
     fontSize: Theme.Typography.fontSize.xl,
@@ -275,7 +255,8 @@ const styles = StyleSheet.create({
     margin: Theme.Spacing.lg,
   },
   progressSectionContainer: {
-    margin: Theme.Spacing.lg,
+    // marginHorizontal: Theme.Spacing.lg, // 🚀 GLEICHE BREITE WIE ANDERE BOXEN!
+    // marginBottom: Theme.Spacing.lg,
   },
   recentSection: {
     marginHorizontal: Theme.Spacing.lg,
