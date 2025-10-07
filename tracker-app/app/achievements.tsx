@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Animated, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AchievementCard, AchievementProgress } from '@/components/AchievementComponents';
@@ -120,6 +121,18 @@ export default function AchievementsPage() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.Colors.surface.background }]} edges={['top', 'left', 'right']}>
+      {/* 🚀 SCHWEBENDER BACK BUTTON - OBEN LINKS */}
+      <TouchableOpacity 
+        style={[styles.floatingBackButton, { 
+          backgroundColor: 'transparent', // 🚀 TRANSPARENTER HINTERGRUND!
+          shadowColor: theme.Colors.text.primary,
+        }]}
+        onPress={() => router.back()}
+        activeOpacity={0.8}
+      >
+        <Text style={[styles.backButtonText, { color: theme.Colors.primary[500] }]}>‹</Text>
+      </TouchableOpacity>
+
       <ScrollView 
         style={[styles.container, { backgroundColor: theme.Colors.surface.background }]} 
         contentContainerStyle={styles.contentContainer}
@@ -202,6 +215,30 @@ export default function AchievementsPage() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+  },
+  floatingBackButton: {
+    position: 'absolute',
+    top: 30, // 🚀🚀🚀 VIEL MEHR ABSTAND NACH OBEN!!!
+    left: Theme.Spacing.lg,
+    width: 44, // 🚀 ETWAS GRÖSSER FÜR BESSERE ZENTRIERUNG
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000, // Über allem anderen
+    // Shadow für iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    // Shadow für Android
+    elevation: 3,
+  
+  },
+  backButtonText: {
+    fontSize: 28, // 🚀 GRÖSSERER PFEIL!
+    fontWeight: '600',
+    textAlign: 'center', // 🚀 PERFEKTE ZENTRIERUNG!
+    lineHeight: 32, // 🚀 BESSERE VERTIKALE AUSRICHTUNG!
   },
   container: {
     flex: 1,

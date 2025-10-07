@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useEffect } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 
 import { AchievementProvider } from '@/contexts/AchievementContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
@@ -22,7 +23,7 @@ function RootNavigator() {
     <NavigationThemeProvider value={isDarkMode ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="achievements" options={{ headerShown: true, title: "Achievements" }} />
+        <Stack.Screen name="achievements" options={{ headerShown: false }} />
         {/* <Stack.Screen name="community" options={{ headerShown: true, title: "Community" }} /> */}
         <Stack.Screen name="+not-found" />
       </Stack>
