@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
   Switch,
+  Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -55,6 +56,15 @@ const TEXTS = {
   notificationTimeDescription: 'Time when you want to be reminded (24-hour format)',
   timeInvalid: 'Invalid time format. Please use HH:MM (e.g., 07:30)',
   notificationUpdated: 'Notification settings updated successfully!',
+  aboutTitle: 'About Routine Tracker',
+  aboutDescription: 'A free, privacy-focused habit tracker app. Your data stays on your device.',
+  version: 'Version 1.0.0',
+  developer: 'Developed by Sebastian Rothe',
+  privacyPolicy: 'Privacy Policy',
+  impressum: 'Legal Notice (Impressum)',
+  support: 'Support & Contact',
+  openSource: 'Open Source',
+  linkError: 'Could not open link',
 };
 
 interface SettingsData {
@@ -186,6 +196,20 @@ export default function SettingsScreen() {
     Alert.alert(TEXTS.success, TEXTS.notificationUpdated);
   };
 
+  const openLink = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert(TEXTS.linkError, `Cannot open URL: ${url}`);
+      }
+    } catch (error) {
+      Alert.alert(TEXTS.linkError, 'An error occurred while opening the link.');
+      console.error('Error opening link:', error);
+    }
+  };
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.Colors.surface.background }]} contentContainerStyle={styles.contentContainer}>
       <Text style={[styles.title, { color: theme.Colors.text.primary }]}>{TEXTS.title}</Text>
@@ -279,6 +303,51 @@ export default function SettingsScreen() {
           setSettings={setSettings} 
         />
       )}
+
+      {/* About Section */}
+      <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{TEXTS.aboutTitle}</Text>
+        <Text style={[styles.description, { color: theme.Colors.text.secondary }]}>{TEXTS.aboutDescription}</Text>
+        
+        <View style={styles.aboutInfo}>
+          <Text style={[styles.aboutText, { color: theme.Colors.text.secondary }]}>{TEXTS.version}</Text>
+          <Text style={[styles.aboutText, { color: theme.Colors.text.secondary }]}>{TEXTS.developer}</Text>
+        </View>
+
+        <View style={styles.linkButtons}>
+          <TouchableOpacity 
+            style={[styles.linkButton, { borderColor: theme.Colors.surface.border }]}
+            onPress={() => openLink('https://tracker-app-webpage.netlify.app/datenschutz.html')}
+          >
+            <Ionicons name="shield-checkmark" size={20} color={theme.Colors.primary[600]} />
+            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{TEXTS.privacyPolicy}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.linkButton, { borderColor: theme.Colors.surface.border }]}
+            onPress={() => openLink('https://tracker-app-webpage.netlify.app/impressum.html')}
+          >
+            <Ionicons name="document-text" size={20} color={theme.Colors.primary[600]} />
+            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{TEXTS.impressum}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.linkButton, { borderColor: theme.Colors.surface.border }]}
+            onPress={() => openLink('mailto:mail@sebastian-rothe.com?subject=Routine%20Tracker%20Support')}
+          >
+            <Ionicons name="mail" size={20} color={theme.Colors.primary[600]} />
+            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{TEXTS.support}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.linkButton, { borderColor: theme.Colors.surface.border }]}
+            onPress={() => openLink('https://github.com/Sebastian-Rothe/tracker-app')}
+          >
+            <Ionicons name="logo-github" size={20} color={theme.Colors.primary[600]} />
+            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{TEXTS.openSource}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Reset Data */}
       <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
@@ -427,6 +496,31 @@ const styles = StyleSheet.create({
   },
   themeOptionText: {
     fontSize: 14,
+    fontWeight: '500',
+  },
+  // About section styles
+  aboutInfo: {
+    marginBottom: 20,
+    gap: 4,
+  },
+  aboutText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  linkButtons: {
+    gap: 12,
+  },
+  linkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderWidth: 1,
+    borderRadius: 10,
+    gap: 12,
+    backgroundColor: 'transparent',
+  },
+  linkButtonText: {
+    fontSize: 16,
     fontWeight: '500',
   },
 });
