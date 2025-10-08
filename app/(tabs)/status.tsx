@@ -326,6 +326,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 24,
     fontWeight: 'bold',
+    lineHeight: 24,
+    textAlign: 'center',
+    marginTop: -3, // Slight adjustment to center the arrows better
   },
   monthTitle: {
     fontSize: Theme.Typography.fontSize.xl,
