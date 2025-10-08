@@ -39,6 +39,7 @@ import {
   setupNotificationHandlers,
   requestNotificationPermissions 
 } from '@/utils/notificationManager';
+import { checkAndCancelNotificationsIfNeeded } from '@/utils/notificationHelper';
 import { Routine, RoutineState, ROUTINE_COLORS, ROUTINE_ICONS, RoutineColor, RoutineIcon } from '@/types/routine';
 import { Button, Card, Badge, ProgressBar } from '@/components/ui';
 import { Theme } from '@/constants/Theme';
@@ -259,6 +260,9 @@ export default function MultiRoutineTrackerScreen() {
           routines: updatedRoutines,
           totalStreakDays: longestStreak
         }));
+
+        // CRITICAL FIX: Cancel notifications if all routines are completed
+        await checkAndCancelNotificationsIfNeeded();
       }
     } catch (error) {
       console.error('Error in confirmRoutineAction:', error);
@@ -310,6 +314,12 @@ export default function MultiRoutineTrackerScreen() {
         activeRoutineCount: activeRoutines.length,
         totalStreakDays: longestStreak
       }));
+
+      // Cancel notifications if no more active routines, otherwise reschedule
+      await checkAndCancelNotificationsIfNeeded();
+      if (activeRoutines.length > 0) {
+        await scheduleRoutineNotifications();
+      }
     } catch (error) {
       console.error('Error deleting routine:', error);
       Alert.alert('Error', 'Failed to delete routine. Please try again.');
@@ -341,6 +351,9 @@ export default function MultiRoutineTrackerScreen() {
           routines: updatedRoutines,
           totalStreakDays: longestStreak
         }));
+        
+        // Re-schedule notifications since we undid a completion
+        await scheduleRoutineNotifications();
         // No popup - just silent undo for better UX
       } else {
         Alert.alert(
