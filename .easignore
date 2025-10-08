@@ -1,0 +1,8 @@
+# Ignore local package-lock.json - let EAS Build generate its own
+package-lock.json
+node_modules/
+
+# Ignore local development files
+.env.local
+.DS_Store
+*.log
