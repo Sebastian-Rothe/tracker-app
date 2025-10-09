@@ -360,8 +360,8 @@ export default function SettingsScreen() {
         
         <View style={styles.switchRow}>
           <View style={styles.switchTextContainer}>
-            <Text style={styles.switchLabel}>{TEXTS.notificationEnabled}</Text>
-            <Text style={styles.switchDescription}>{TEXTS.notificationDescription}</Text>
+            <Text style={[styles.switchLabel, { color: theme.Colors.text.primary }]}>{TEXTS.notificationEnabled}</Text>
+            <Text style={[styles.switchDescription, { color: theme.Colors.text.secondary }]}>{TEXTS.notificationDescription}</Text>
           </View>
           <Switch
             value={settings.notificationEnabled}
@@ -523,13 +523,13 @@ const styles = StyleSheet.create({
   switchLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
     marginBottom: 4,
+    // color now set dynamically via theme
   },
   switchDescription: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 18,
+    // color now set dynamically via theme
   },
   resetButton: {
     paddingVertical: 12,
