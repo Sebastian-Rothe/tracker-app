@@ -15,6 +15,7 @@ import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CalendarGrid } from '@/components/CalendarGrid';
 import { MotivationalDashboard } from '@/components/MotivationalDashboard';
+import { WallpaperBackground } from '@/components/WallpaperBackground';
 // Performance monitoring imports removed due to infinite render loop
 import { 
   getDailyData, 
@@ -183,26 +184,26 @@ export default function StatusScreen() {
 
   if (isLoading && !isRefreshing) {
     return (
-      <View style={[styles.container, { 
+      <WallpaperBackground style={{ 
+        flex: 1,
         paddingTop: insets.top, 
         paddingLeft: insets.left, 
         paddingRight: insets.right,
-        backgroundColor: theme.Colors.surface.background 
-      }]}>
+      }}>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: theme.Colors.text.primary }]}>Loading history...</Text>
         </View>
-      </View>
+      </WallpaperBackground>
     );
   }
   
   return (
-    <View style={[styles.container, { 
+    <WallpaperBackground style={{ 
+      flex: 1,
       paddingTop: insets.top, 
       paddingLeft: insets.left, 
       paddingRight: insets.right,
-      backgroundColor: theme.Colors.surface.background 
-    }]}>
+    }}>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: getBottomPadding() }]}
@@ -259,14 +260,13 @@ export default function StatusScreen() {
         />
         
       </ScrollView>
-    </View>
+    </WallpaperBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.Colors.gray[50],
   },
   scrollView: {
     flex: 1,

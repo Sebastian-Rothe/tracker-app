@@ -6,7 +6,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance, ColorSchemeName } from 'react-native';
-import { createTheme, ThemeMode } from '@/constants/Theme';
+import { createTheme, ThemeMode, WallpaperType, getWallpaper } from '@/constants/Theme';
 
 type Theme = ReturnType<typeof createTheme>;
 
@@ -16,11 +16,14 @@ interface ThemeContextType {
   setThemeMode: (mode: ThemeMode | 'auto') => void;
   isDarkMode: boolean;
   isAutoMode: boolean;
+  wallpaper: WallpaperType;
+  setWallpaper: (wallpaper: WallpaperType) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = 'theme_preference';
+const WALLPAPER_STORAGE_KEY = 'wallpaper_preference';
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -29,6 +32,7 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [themeMode, setInternalThemeMode] = useState<ThemeMode>('light');
   const [isAutoMode, setIsAutoMode] = useState(false);
+  const [wallpaper, setWallpaper] = useState<WallpaperType>('none');
   const [systemColorScheme, setSystemColorScheme] = useState<ColorSchemeName>(
     Appearance.getColorScheme()
   );
@@ -41,11 +45,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const theme = createTheme(effectiveThemeMode);
   const isDarkMode = effectiveThemeMode === 'dark';
 
-  // Load saved theme preference on app start
+  // Load saved theme and wallpaper preferences on app start
   useEffect(() => {
-    const loadThemePreference = async () => {
+    const loadPreferences = async () => {
       try {
-        const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        const [savedTheme, savedWallpaper] = await Promise.all([
+          AsyncStorage.getItem(THEME_STORAGE_KEY),
+          AsyncStorage.getItem(WALLPAPER_STORAGE_KEY)
+        ]);
+        
         if (savedTheme) {
           if (savedTheme === 'auto') {
             setIsAutoMode(true);
@@ -55,12 +63,19 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             setInternalThemeMode(savedTheme as ThemeMode);
           }
         }
+        
+        if (savedWallpaper) {
+          if (__DEV__) console.log('📱 Loading saved wallpaper:', savedWallpaper);
+          setWallpaper(savedWallpaper as WallpaperType);
+        } else {
+          if (__DEV__) console.log('📱 No saved wallpaper, using default:', 'subtle-gradient');
+        }
       } catch (error) {
-        console.error('Error loading theme preference:', error);
+        console.error('Error loading preferences:', error);
       }
     };
 
-    loadThemePreference();
+    loadPreferences();
   }, []);
 
   // Listen to system color scheme changes when in auto mode
@@ -92,12 +107,25 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   };
 
+  // Save wallpaper preference when it changes
+  const setWallpaperPreference = async (newWallpaper: WallpaperType) => {
+    try {
+      if (__DEV__) console.log('🎨 Setting wallpaper to:', newWallpaper);
+      await AsyncStorage.setItem(WALLPAPER_STORAGE_KEY, newWallpaper);
+      setWallpaper(newWallpaper);
+    } catch (error) {
+      console.error('Error saving wallpaper preference:', error);
+    }
+  };
+
   const value: ThemeContextType = {
     theme,
     themeMode: effectiveThemeMode,
     setThemeMode,
     isDarkMode,
     isAutoMode,
+    wallpaper,
+    setWallpaper: setWallpaperPreference,
   };
 
   return (

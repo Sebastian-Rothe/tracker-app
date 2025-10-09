@@ -15,6 +15,7 @@ import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CalendarGrid } from '@/components/CalendarGrid';
 import { HistoryStats } from '@/components/HistoryStats';
+import { WallpaperBackground } from '@/components/WallpaperBackground';
 import { 
   getDailyData, 
   getMonthlyStats, 
@@ -183,11 +184,12 @@ export default function HistoryScreen() {
   }
   
   return (
-    <View style={[styles.container, { 
+    <WallpaperBackground style={{ 
+      flex: 1,
       paddingTop: insets.top, 
       paddingLeft: insets.left, 
       paddingRight: insets.right 
-    }]}>
+    }}>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: getBottomPadding() }]}
@@ -265,7 +267,7 @@ export default function HistoryScreen() {
         </Card>
         
       </ScrollView>
-    </View>
+    </WallpaperBackground>
   );
 }
 

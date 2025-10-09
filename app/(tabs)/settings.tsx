@@ -18,6 +18,8 @@ import { routineStorage } from '@/services/RoutineStorageService';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { EnhancedNotificationSettings } from '@/components/EnhancedNotificationUI';
+import { WallpaperType } from '@/constants/Theme';
+import { WallpaperBackground } from '@/components/WallpaperBackground';
 
 const SETTINGS_KEY = 'settings';
 
@@ -29,6 +31,14 @@ const TEXTS = {
   lightMode: 'Light Mode',
   darkMode: 'Dark Mode',
   autoMode: 'System Default',
+  wallpaperTitle: 'Hintergrund Design',
+  wallpaperDescription: 'Wähle dein Hintergrund-Design',
+  wallpaperNone: 'Keine',
+  wallpaperDeepBlue: 'Tiefblau',
+  wallpaperSunset: 'Sonnenuntergang', 
+  wallpaperForest: 'Waldgrün',
+  wallpaperPurple: 'Königsviolett',
+  wallpaperNavy: 'Mitternacht',
   manualStreakTitle: 'Manual Streak Input',
   manualStreakDescription: 'If you\'ve been following your routine before using this app, you can set your current streak here.',
   currentStreak: 'Current Streak:',
@@ -84,7 +94,12 @@ const defaultSettings: SettingsData = {
 export default function SettingsScreen() {
   const [settings, setSettings] = useState<SettingsData>(defaultSettings);
   const [notificationTimeInput, setNotificationTimeInput] = useState<string>('07:00');
-  const { theme, themeMode, setThemeMode, isDarkMode, isAutoMode } = useTheme();
+  const { theme, themeMode, setThemeMode, isDarkMode, isAutoMode, wallpaper, setWallpaper } = useTheme();
+  
+  // Debug: Show current wallpaper
+  if (__DEV__) {
+    console.log('⚙️ Settings Screen - Current wallpaper:', wallpaper);
+  }
 
   useEffect(() => {
     loadData();
@@ -211,7 +226,8 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.Colors.surface.background }]} contentContainerStyle={styles.contentContainer}>
+    <WallpaperBackground style={{ flex: 1 }}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Text style={[styles.title, { color: theme.Colors.text.primary }]}>{TEXTS.title}</Text>
 
       {/* Theme Settings */}
@@ -254,6 +270,86 @@ export default function SettingsScreen() {
           >
             <Ionicons name="phone-portrait" size={24} color={theme.Colors.text.primary} />
             <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.autoMode}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Wallpaper Settings */}
+      <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperTitle}</Text>
+        <Text style={[styles.sectionDescription, { color: theme.Colors.text.secondary }]}>{TEXTS.wallpaperDescription}</Text>
+        
+        <View style={styles.wallpaperGrid}>
+          <TouchableOpacity
+            style={[
+              styles.wallpaperOption,
+              { borderColor: theme.Colors.surface.border },
+              wallpaper === 'none' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setWallpaper('none')}
+          >
+            <View style={[styles.wallpaperPreview, styles.nonePreview]} />
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperNone}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.wallpaperOption,
+              { borderColor: theme.Colors.surface.border },
+              wallpaper === 'deep-blue' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setWallpaper('deep-blue')}
+          >
+            <View style={[styles.wallpaperPreview, styles.deepBluePreview]} />
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperDeepBlue}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.wallpaperOption,
+              { borderColor: theme.Colors.surface.border },
+              wallpaper === 'sunset-orange' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setWallpaper('sunset-orange')}
+          >
+            <View style={[styles.wallpaperPreview, styles.sunsetPreview]} />
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperSunset}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.wallpaperOption,
+              { borderColor: theme.Colors.surface.border },
+              wallpaper === 'forest-teal' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setWallpaper('forest-teal')}
+          >
+            <View style={[styles.wallpaperPreview, styles.forestPreview]} />
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperForest}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.wallpaperOption,
+              { borderColor: theme.Colors.surface.border },
+              wallpaper === 'royal-purple' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setWallpaper('royal-purple')}
+          >
+            <View style={[styles.wallpaperPreview, styles.purplePreview]} />
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperPurple}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.wallpaperOption,
+              { borderColor: theme.Colors.surface.border },
+              wallpaper === 'midnight-navy' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setWallpaper('midnight-navy')}
+          >
+            <View style={[styles.wallpaperPreview, styles.navyPreview]} />
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperNavy}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -359,13 +455,13 @@ export default function SettingsScreen() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </WallpaperBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   contentContainer: {
     padding: 20,
@@ -522,5 +618,63 @@ const styles = StyleSheet.create({
   linkButtonText: {
     fontSize: 16,
     fontWeight: '500',
+  },
+  // Wallpaper styles
+  wallpaperGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  wallpaperOption: {
+    width: '48%',
+    padding: 12,
+    borderWidth: 2,
+    borderRadius: 12,
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'transparent',
+  },
+  wallpaperPreview: {
+    width: 60,
+    height: 40,
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  wallpaperOptionText: {
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  // Preview styles for distinct colorful wallpapers
+  nonePreview: {
+    backgroundColor: '#f1f5f9', // Light gray for "no wallpaper"
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+  },
+  deepBluePreview: {
+    backgroundColor: '#1e3a8a', // Deep blue gradient preview
+    borderWidth: 1,
+    borderColor: '#1d4ed8',
+  },
+  sunsetPreview: {
+    backgroundColor: '#c2410c', // Burnt orange sunset preview
+    borderWidth: 1,
+    borderColor: '#ea580c',
+  },
+  forestPreview: {
+    backgroundColor: '#0f766e', // Deep teal forest preview
+    borderWidth: 1,
+    borderColor: '#14b8a6',
+  },
+  purplePreview: {
+    backgroundColor: '#7c3aed', // Rich purple preview
+    borderWidth: 1,
+    borderColor: '#8b5cf6',
+  },
+  navyPreview: {
+    backgroundColor: '#1e40af', // Navy midnight preview
+    borderWidth: 1,
+    borderColor: '#2563eb',
   },
 });

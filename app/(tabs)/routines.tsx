@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
+import { WallpaperBackground } from '@/components/WallpaperBackground';
 import { 
   loadRoutines, 
   createRoutine, 
@@ -368,8 +369,9 @@ export default function RoutineManagementScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <WallpaperBackground style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
         <Text style={styles.title}>{TEXTS.title}</Text>
         <Text style={styles.subtitle}>{TEXTS.activeRoutines(routines.filter(r => r.isActive).length)}</Text>
       </View>
@@ -423,7 +425,8 @@ export default function RoutineManagementScreen() {
           ))}
         </ScrollView>
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </WallpaperBackground>
   );
 }
 

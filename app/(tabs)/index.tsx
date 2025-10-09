@@ -34,6 +34,7 @@ import {
 } from '@/utils/settingsStorage';
 import { routineStorage } from '@/services/RoutineStorageService';
 import { QuickAchievementBanner } from '../../components/QuickAchievementBanner';
+import { WallpaperBackground } from '../../components/WallpaperBackground';
 import { 
   scheduleRoutineNotifications,
   setupNotificationHandlers,
@@ -543,12 +544,12 @@ export default function MultiRoutineTrackerScreen() {
   }
 
   return (
-    <View style={[styles.container, { 
+    <WallpaperBackground style={{ 
+      flex: 1,
       paddingTop: insets.top, 
       paddingLeft: insets.left, 
       paddingRight: insets.right,
-      backgroundColor: theme.Colors.surface.background 
-    }]}>
+    }}>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPadding }]}
@@ -806,14 +807,13 @@ export default function MultiRoutineTrackerScreen() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
-    </View>
+    </WallpaperBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.Colors.gray[50],
   },
   scrollView: {
     flex: 1,

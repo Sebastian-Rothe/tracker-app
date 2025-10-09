@@ -10,18 +10,18 @@
 
 // Light Mode Colors
 const LightColors = {
-  // Primary Brand Colors - 🚀 MODERN INDIGO-BLUE PALETTE!
+  // Primary Brand Colors - 🚀 MODERN OCEAN-TEAL PALETTE!
   primary: {
-    50: '#f0f4ff',   // Soft indigo tint
-    100: '#e0e7ff', 
-    200: '#c7d2fe',
-    300: '#a5b4fc',
-    400: '#818cf8',
-    500: '#6366f1',  // Modern indigo - warmer than cold blue
-    600: '#4f46e5',
-    700: '#4338ca',
-    800: '#3730a3',
-    900: '#312e81',
+    50: '#f0fdfa',   // Soft teal tint
+    100: '#ccfbf1', 
+    200: '#99f6e4',
+    300: '#5eead4',
+    400: '#2dd4bf',
+    500: '#14b8a6',  // Modern teal - calming and professional
+    600: '#0d9488',
+    700: '#0f766e',
+    800: '#115e59',
+    900: '#134e4a',
   },
   
   // Success Colors (for streaks and completions)
@@ -123,18 +123,18 @@ const LightColors = {
 
 // Dark Mode Colors
 const DarkColors = {
-  // Primary Brand Colors (slightly adjusted for dark mode)
+  // Primary Brand Colors (teal for dark mode)
   primary: {
-    50: '#0c4a6e',
-    100: '#075985', 
-    200: '#0369a1',
-    300: '#0284c7',
-    400: '#0ea5e9',
-    500: '#38bdf8',  // Brighter in dark mode
-    600: '#7dd3fc',
-    700: '#bae6fd',
-    800: '#e0f2fe',
-    900: '#f0f9ff',
+    50: '#134e4a',
+    100: '#115e59', 
+    200: '#0f766e',
+    300: '#0d9488',
+    400: '#14b8a6',
+    500: '#2dd4bf',  // Brighter teal in dark mode
+    600: '#5eead4',
+    700: '#99f6e4',
+    800: '#ccfbf1',
+    900: '#f0fdfa',
   },
   
   // Success Colors
@@ -235,9 +235,47 @@ const DarkColors = {
 };
 
 export type ThemeMode = 'light' | 'dark';
+export type WallpaperType = 'none' | 'deep-blue' | 'sunset-orange' | 'forest-teal' | 'royal-purple' | 'midnight-navy';
+
+// Wallpaper configurations - Distinct dark designs with unique colors and patterns
+export const Wallpapers = {
+  none: {
+    type: 'none' as const,
+    name: 'Keine',
+  },
+  'deep-blue': {
+    type: 'gradient' as const,
+    name: 'Tiefblau',
+    colors: ['#1e3a8a', '#0f172a'], // Deep blue to navy black
+  },
+  'sunset-orange': {
+    type: 'geometric' as const,
+    name: 'Sonnenuntergang',
+    colors: ['#c2410c', '#7c2d12'], // Burnt orange to dark brown
+  },
+  'forest-teal': {
+    type: 'organic' as const,
+    name: 'Waldgrün',
+    colors: ['#0f766e', '#134e4a'], // Deep teal forest colors
+  },
+  'royal-purple': {
+    type: 'dots' as const,
+    name: 'Königsviolett',
+    colors: ['#7c3aed', '#3730a3'], // Rich purple variations
+  },
+  'midnight-navy': {
+    type: 'waves' as const,
+    name: 'Mitternacht',
+    colors: ['#1e40af', '#1e293b'], // Navy to slate dark
+  },
+};
 
 export const getColors = (mode: ThemeMode = 'light') => {
   return mode === 'dark' ? DarkColors : LightColors;
+};
+
+export const getWallpaper = (wallpaper: WallpaperType) => {
+  return Wallpapers[wallpaper];
 };
 
 // Default to light mode for backward compatibility
