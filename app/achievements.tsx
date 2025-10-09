@@ -217,10 +217,12 @@ const styles = StyleSheet.create({
   
   },
   backButtonText: {
-    fontSize: 28, // 🚀 GRÖSSERER PFEIL!
-    fontWeight: '600',
-    textAlign: 'center', // 🚀 PERFEKTE ZENTRIERUNG!
-    lineHeight: 32, // 🚀 BESSERE VERTIKALE AUSRICHTUNG!
+    fontSize: 32, // 🚀 GRÖSSERER PFEIL für bessere Sichtbarkeit!
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 36, // 🚀 BESSERE VERTIKALE AUSRICHTUNG!
+    marginLeft: -4, // 🚀 ETWAS WEITER LINKS für perfekte optische Zentrierung
+    marginTop: -3, // 🚀 ETWAS HÖHER für perfekte vertikale Zentrierung
   },
   container: {
     flex: 1,
