@@ -6,6 +6,7 @@ import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AchievementCard, AchievementProgress } from '@/components/AchievementComponents';
 import { Achievement, updateAchievements } from '@/utils/achievementManager';
+import { WallpaperBackground } from '@/components/WallpaperBackground';
 
 
 export default function AchievementsPage() {
@@ -99,8 +100,9 @@ export default function AchievementsPage() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.Colors.surface.background }]} edges={['top', 'left', 'right']}>
-      {/* 🚀 SCHWEBENDER BACK BUTTON - OBEN LINKS */}
+    <WallpaperBackground style={{ flex: 1 }}>
+      <SafeAreaView style={[styles.safeArea]} edges={['top', 'left', 'right']}>
+        {/* 🚀 SCHWEBENDER BACK BUTTON - OBEN LINKS */}
       <TouchableOpacity 
         style={[styles.floatingBackButton, { 
           backgroundColor: 'transparent', // 🚀 TRANSPARENTER HINTERGRUND!
@@ -113,7 +115,7 @@ export default function AchievementsPage() {
       </TouchableOpacity>
 
       <ScrollView 
-        style={[styles.container, { backgroundColor: theme.Colors.surface.background }]} 
+        style={[styles.container]} 
         contentContainerStyle={styles.contentContainer}
       >
         <Animated.View style={[styles.content, { opacity: animatedValue }]}>
@@ -187,7 +189,8 @@ export default function AchievementsPage() {
         </View>
       </Animated.View>
     </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </WallpaperBackground>
   );
 }
 
