@@ -15,8 +15,12 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 );
 
 describe('settingsStorage', () => {
-  beforeEach(() => {
-    AsyncStorage.clear();
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  afterEach(async () => {
+    await AsyncStorage.clear();
   });
 
   describe('validateRoutineCreation', () => {
@@ -45,7 +49,7 @@ describe('settingsStorage', () => {
 
       const result = validateRoutineCreation(invalidRoutine);
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Name is required');
+      expect(result.error).toContain('Routine name is required');
     });
 
     test('should return invalid for name too long', () => {
@@ -59,7 +63,7 @@ describe('settingsStorage', () => {
 
       const result = validateRoutineCreation(invalidRoutine);
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Name must be 50 characters or less');
+      expect(result.error).toContain('Routine name must be 50 characters or less');
     });
 
     test('should return invalid for description too long', () => {
@@ -79,34 +83,34 @@ describe('settingsStorage', () => {
 
   describe('validateStreakInput', () => {
     test('should return valid for valid streak numbers', () => {
-      expect(validateStreakInput('0')).toBe(true);
-      expect(validateStreakInput('1')).toBe(true);
-      expect(validateStreakInput('99')).toBe(true);
-      expect(validateStreakInput('999')).toBe(true);
-      expect(validateStreakInput('9999')).toBe(true);
-      expect(validateStreakInput('10000')).toBe(true); // Max allowed value
+      expect(validateStreakInput('0').isValid).toBe(true);
+      expect(validateStreakInput('1').isValid).toBe(true);
+      expect(validateStreakInput('99').isValid).toBe(true);
+      expect(validateStreakInput('999').isValid).toBe(true);
+      expect(validateStreakInput('9999').isValid).toBe(true);
+      expect(validateStreakInput('10000').isValid).toBe(true); // Max allowed value
     });
 
     test('should return invalid for non-numeric input', () => {
-      expect(validateStreakInput('abc')).toBe(false);
-      expect(validateStreakInput('12.5')).toBe(false);
-      expect(validateStreakInput('-5')).toBe(false);
-      expect(validateStreakInput('')).toBe(false);
-      expect(validateStreakInput(' ')).toBe(false);
-      expect(validateStreakInput('1a')).toBe(false);
+      expect(validateStreakInput('abc').isValid).toBe(false);
+      expect(validateStreakInput('12.5').isValid).toBe(false);
+      expect(validateStreakInput('-5').isValid).toBe(false);
+      expect(validateStreakInput('').isValid).toBe(false);
+      expect(validateStreakInput(' ').isValid).toBe(false);
+      expect(validateStreakInput('1a').isValid).toBe(false);
     });
 
     test('should return invalid for numbers too large', () => {
-      expect(validateStreakInput('10001')).toBe(false);
-      expect(validateStreakInput('99999')).toBe(false);
-      expect(validateStreakInput('999999')).toBe(false);
+      expect(validateStreakInput('10001').isValid).toBe(false);
+      expect(validateStreakInput('99999').isValid).toBe(false);
+      expect(validateStreakInput('999999').isValid).toBe(false);
     });
 
     test('should handle edge cases', () => {
-      expect(validateStreakInput('00')).toBe(true); // Leading zeros
-      expect(validateStreakInput('000')).toBe(true);
-      expect(validateStreakInput(' 5 ')).toBe(false); // Whitespace
-      expect(validateStreakInput('\t10\n')).toBe(false); // Tabs/newlines
+      expect(validateStreakInput('00').isValid).toBe(true); // Leading zeros
+      expect(validateStreakInput('000').isValid).toBe(true);
+      expect(validateStreakInput(' 5 ').isValid).toBe(false); // Whitespace
+      expect(validateStreakInput('\t10\n').isValid).toBe(false); // Tabs/newlines
     });
   });
 
@@ -284,12 +288,12 @@ describe('settingsStorage', () => {
 
       const result = validateRoutineCreation(invalidRoutine);
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Name is required');
+      expect(result.error).toContain('Routine name is required');
     });
 
     test('should validate color formats', () => {
-      const validColors = ['#FF6B6B', '#000000', '#FFF', '#123abc'];
-      const invalidColors = ['FF6B6B', '#GG6B6B', '#FF6B6BZ', 'red', ''];
+      const validColors = ['#FF6B6B', '#4ECDC4', '#45B7D1']; // Valid routine colors
+      const invalidColors = ['#000000', '#FFF', '#123abc', 'FF6B6B', '#GG6B6B', '#FF6B6BZ', 'red', ''];
 
       validColors.forEach(color => {
         const result = validateRoutineCreation({
@@ -307,7 +311,7 @@ describe('settingsStorage', () => {
           icon: '💪'
         });
         expect(result.isValid).toBe(false);
-        expect(result.error).toContain('Invalid color format');
+        expect(result.error).toContain('Invalid color selection');
       });
     });
   });

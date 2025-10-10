@@ -1,7 +1,55 @@
+// Mock global components before any imports
+global.__reanimatedWorkletInit = jest.fn();
+
+// Mock DevMenu directly
+jest.mock('react-native/src/private/devsupport/devmenu/DevMenu', () => ({
+  show: jest.fn(),
+  hide: jest.fn(),
+  reload: jest.fn(),
+  debugRemoteJS: jest.fn(),
+  setProfilingEnabled: jest.fn(),
+  setHotLoadingEnabled: jest.fn(),
+  setLiveReloadEnabled: jest.fn(),
+}));
+
+// Mock the DevMenu spec
+jest.mock('react-native/src/private/devsupport/devmenu/specs/NativeDevMenu', () => ({
+  show: jest.fn(),
+  hide: jest.fn(),
+  reload: jest.fn(),
+  debugRemoteJS: jest.fn(),
+  setProfilingEnabled: jest.fn(),
+  setHotLoadingEnabled: jest.fn(),
+  setLiveReloadEnabled: jest.fn(),
+}));
+
 import 'react-native-gesture-handler/jestSetup';
 
 // Prevent window redefinition errors
 jest.mock('react-native/jest/setup', () => {});
+
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  
+  return {
+    ...RN,
+    Platform: {
+      OS: 'ios',
+      Version: '14.0',
+      select: jest.fn((options) => options.ios || options.default),
+    },
+    Appearance: {
+      getColorScheme: jest.fn(() => 'light'),
+      addChangeListener: jest.fn(),
+      removeChangeListener: jest.fn(),
+    },
+    Dimensions: {
+      get: jest.fn(() => ({ width: 375, height: 812 })),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    },
+  };
+});
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')

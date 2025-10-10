@@ -12,6 +12,13 @@ import * as Notifications from 'expo-notifications';
 // Mock expo-notifications
 jest.mock('expo-notifications');
 
+// Mock Platform
+jest.mock('react-native', () => ({
+  Platform: {
+    OS: 'ios'
+  }
+}));
+
 const mockNotifications = Notifications as jest.Mocked<typeof Notifications>;
 
 describe('notificationManager', () => {
@@ -59,6 +66,7 @@ describe('notificationManager', () => {
     
     mockNotifications.scheduleNotificationAsync.mockResolvedValue('test-notification-id');
     mockNotifications.cancelAllScheduledNotificationsAsync.mockResolvedValue();
+    mockNotifications.getAllScheduledNotificationsAsync.mockResolvedValue([]);
   });
 
   describe('requestNotificationPermissions', () => {
@@ -83,13 +91,15 @@ describe('notificationManager', () => {
     });
 
     test('should return false on web platform', async () => {
-      const originalPlatform = jest.requireActual('react-native').Platform.OS;
-      jest.doMock('react-native', () => ({
-        Platform: { OS: 'web' }
-      }));
+      // Mock Platform.OS to be 'web'
+      const { Platform } = require('react-native');
+      Platform.OS = 'web';
       
       const result = await requestNotificationPermissions();
       expect(result).toBe(false);
+      
+      // Reset to original
+      Platform.OS = 'ios';
     });
   });
 
@@ -118,13 +128,15 @@ describe('notificationManager', () => {
     });
 
     test('should return null on web platform', async () => {
-      const originalPlatform = jest.requireActual('react-native').Platform.OS;
-      jest.doMock('react-native', () => ({
-        Platform: { OS: 'web' }
-      }));
+      // Mock Platform.OS to be 'web'
+      const { Platform } = require('react-native');
+      Platform.OS = 'web';
       
       const result = await scheduleDailyNotification('09:00', 'Title', 'Body');
       expect(result).toBeNull();
+      
+      // Reset to original
+      Platform.OS = 'ios';
     });
 
     test('should handle scheduling errors gracefully', async () => {
@@ -206,13 +218,15 @@ describe('notificationManager', () => {
     });
 
     test('should return empty array on web platform', async () => {
-      const originalPlatform = jest.requireActual('react-native').Platform.OS;
-      jest.doMock('react-native', () => ({
-        Platform: { OS: 'web' }
-      }));
+      // Mock Platform.OS to be 'web'
+      const { Platform } = require('react-native');
+      Platform.OS = 'web';
       
       const notifications = await getScheduledNotifications();
       expect(notifications).toEqual([]);
+      
+      // Reset to original
+      Platform.OS = 'ios';
     });
 
     test('should handle errors gracefully', async () => {
@@ -269,6 +283,7 @@ describe('notificationManager', () => {
     });
 
     test('should handle permission request errors gracefully', async () => {
+      mockNotifications.getPermissionsAsync.mockRejectedValue(new Error('Permission request failed'));
       mockNotifications.requestPermissionsAsync.mockRejectedValue(new Error('Permission request failed'));
       
       // Should not throw and should return false

@@ -28,7 +28,7 @@ describe('settingsStorage - Core Functions', () => {
       };
       const result = validateRoutineCreation(request);
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Name is required');
+      expect(result.error).toContain('Routine name is required');
     });
 
     test('should reject name that is too long', () => {
@@ -40,7 +40,7 @@ describe('settingsStorage - Core Functions', () => {
       };
       const result = validateRoutineCreation(request);
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Name must be 50 characters or less');
+      expect(result.error).toContain('Routine name must be 50 characters or less');
     });
 
     test('should reject description that is too long', () => {
@@ -64,7 +64,7 @@ describe('settingsStorage - Core Functions', () => {
       };
       const result = validateRoutineCreation(request);
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Invalid color format');
+      expect(result.error).toContain('Invalid color selection');
     });
 
     test('should handle whitespace in name', () => {
@@ -76,31 +76,31 @@ describe('settingsStorage - Core Functions', () => {
       };
       const result = validateRoutineCreation(request);
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Name is required');
+      expect(result.error).toContain('Routine name is required');
     });
   });
 
   describe('validateStreakInput', () => {
     test('should validate positive numbers', () => {
-      expect(validateStreakInput('5')).toBe(true);
-      expect(validateStreakInput('0')).toBe(true);
-      expect(validateStreakInput('100')).toBe(true);
+      expect(validateStreakInput('5').isValid).toBe(true);
+      expect(validateStreakInput('0').isValid).toBe(true);
+      expect(validateStreakInput('100').isValid).toBe(true);
     });
 
     test('should reject negative numbers', () => {
-      expect(validateStreakInput('-1')).toBe(false);
-      expect(validateStreakInput('-5')).toBe(false);
+      expect(validateStreakInput('-1').isValid).toBe(false);
+      expect(validateStreakInput('-5').isValid).toBe(false);
     });
 
     test('should reject non-numeric strings', () => {
-      expect(validateStreakInput('abc')).toBe(false);
-      expect(validateStreakInput('5.5')).toBe(false);
-      expect(validateStreakInput('')).toBe(false);
+      expect(validateStreakInput('abc').isValid).toBe(false);
+      expect(validateStreakInput('5.5').isValid).toBe(false);
+      expect(validateStreakInput('').isValid).toBe(false);
     });
 
     test('should reject numbers that are too large', () => {
-      expect(validateStreakInput('10001')).toBe(false);
-      expect(validateStreakInput('999999')).toBe(false);
+      expect(validateStreakInput('10001').isValid).toBe(false);
+      expect(validateStreakInput('999999').isValid).toBe(false);
     });
   });
 
@@ -147,28 +147,28 @@ describe('settingsStorage - Core Functions', () => {
       expect(result201Chars.isValid).toBe(false);
     });
 
-    test('should validate hex colors correctly', () => {
-      // Valid hex colors
+    test('should validate colors correctly', () => {
+      // Valid colors from predefined list
       expect(validateRoutineCreation({ name: 'Name', description: 'Desc', icon: '💪', color: '#FF6B6B' }).isValid).toBe(true);
-      expect(validateRoutineCreation({ name: 'Name', description: 'Desc', icon: '💪', color: '#000000' }).isValid).toBe(true);
-      expect(validateRoutineCreation({ name: 'Name', description: 'Desc', icon: '💪', color: '#FFF' }).isValid).toBe(true);
+      expect(validateRoutineCreation({ name: 'Name', description: 'Desc', icon: '💪', color: '#4ECDC4' }).isValid).toBe(true);
+      expect(validateRoutineCreation({ name: 'Name', description: 'Desc', icon: '💪', color: '#45B7D1' }).isValid).toBe(true);
 
-      // Invalid hex colors
-      expect(validateRoutineCreation({ name: 'Name', description: 'Desc', icon: '💪', color: 'FF6B6B' }).isValid).toBe(false);
-      expect(validateRoutineCreation({ name: 'Name', description: 'Desc', icon: '💪', color: '#GG6B6B' }).isValid).toBe(false);
-      expect(validateRoutineCreation({ name: 'Name', description: 'Desc', icon: '💪', color: '#FF6B6BZ' }).isValid).toBe(false);
+      // Invalid colors not in predefined list
+      expect(validateRoutineCreation({ name: 'Name', description: 'Desc', icon: '💪', color: '#000000' }).isValid).toBe(false);
+      expect(validateRoutineCreation({ name: 'Name', description: 'Desc', icon: '💪', color: '#FFF' }).isValid).toBe(false);
+      expect(validateRoutineCreation({ name: 'Name', description: 'Desc', icon: '💪', color: 'invalid-color' }).isValid).toBe(false);
     });
 
     test('should handle streak validation edge cases', () => {
       // Boundary values
-      expect(validateStreakInput('0')).toBe(true);
-      expect(validateStreakInput('10000')).toBe(true);
-      expect(validateStreakInput('10001')).toBe(false);
+      expect(validateStreakInput('0').isValid).toBe(true);
+      expect(validateStreakInput('10000').isValid).toBe(true);
+      expect(validateStreakInput('10001').isValid).toBe(false);
 
       // String edge cases
-      expect(validateStreakInput(' 5 ')).toBe(false); // spaces
-      expect(validateStreakInput('5a')).toBe(false); // mixed
-      expect(validateStreakInput('05')).toBe(true); // leading zero
+      expect(validateStreakInput(' 5 ').isValid).toBe(false); // spaces
+      expect(validateStreakInput('5a').isValid).toBe(false); // mixed
+      expect(validateStreakInput('05').isValid).toBe(true); // leading zero
     });
   });
 });

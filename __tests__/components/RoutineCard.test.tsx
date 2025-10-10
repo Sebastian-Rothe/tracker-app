@@ -9,15 +9,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
-// Mock Appearance API
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  Appearance: {
-    getColorScheme: jest.fn(() => 'light'),
-    addChangeListener: jest.fn(),
-    removeChangeListener: jest.fn(),
-  },
-}));
+// Mock setup is handled in jest-setup.js
 
 const ThemeWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <ThemeProvider>

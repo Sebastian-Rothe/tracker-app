@@ -13,8 +13,12 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 );
 
 describe('historyManager', () => {
-  beforeEach(() => {
-    AsyncStorage.clear();
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  afterEach(async () => {
+    await AsyncStorage.clear();
   });
 
   const mockRoutines: Routine[] = [
