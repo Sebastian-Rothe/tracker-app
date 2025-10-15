@@ -1,87 +1,152 @@
-# 🔥 Morgenroutine Tracker
+# 🔥 Routine Tracker
 
-Eine minimalistische React Native App, um deine Morgenroutine zu tracken und eine Streak aufzubauen.
+A modern Android habit tracking app built with Expo, React Native & TypeScript. Privacy-first design with local storage, streak tracking, and smart notifications.
 
 ## ✨ Features
 
-- **Streak-Zähler**: Zeigt an, wie viele Tage in Folge du deine Routine gemacht hast
-- **Tägliche Erinnerungen**: Push-Notifications jeden Tag
-- **Einfache Bedienung**: Nur ein Klick pro Tag - "Ja" oder "Nein"
-- **Lokale Speicherung**: Deine Daten bleiben auf deinem Gerät
-- **Motivierendes Design**: Mit Feuer-Emoji und gamifizierten Elementen
+- **Multiple Routines**: Create and manage unlimited daily habits
+- **Streak Tracking**: Build impressive chains and visualize your progress
+- **Smart Notifications**: Personalized reminders at the perfect time
+- **Analytics Dashboard**: Detailed statistics, trends, and progress insights
+- **Achievement System**: Unlock achievements and celebrate milestones
+- **Privacy-First**: 100% local data storage, no cloud sync required
+- **Dark/Light Theme**: Automatic theme switching support
+- **Offline-First**: Works completely without internet connection
 
 ## 🚀 Installation
 
-### Voraussetzungen
+### Prerequisites
 - Node.js (18+)
 - Expo CLI (`npm install -g @expo/cli`)
-- Expo Go App auf deinem Smartphone
+- Android device or emulator
 
-### Setup
+### Development Setup
 ```bash
-# Repository klonen
-git clone <repository-url>
-cd tracker-app/tracker-app
+# Clone repository
+git clone https://github.com/Sebastian-Rothe/tracker-app.git
+cd tracker-app
 
-# Dependencies installieren
+# Install dependencies
 npm install
 
-# Entwicklungsserver starten
+# Start development server
 npm start
 
-# App auf dem Handy öffnen
-# Scanne den QR Code mit der Expo Go App
+# Run on Android
+npm run android
+
+# Run tests
+npm test
 ```
 
-## 📱 Verwendung
+## 📱 Usage
 
-1. **Erste Einrichtung**: Die App fragt nach Notification-Berechtigungen
-2. **Tägliche Routine**: Jeden Tag bekommst du eine Erinnerung
-3. **Bestätigung**: Klicke "Ja" wenn du deine Routine gemacht hast
-4. **Streak aufbauen**: Dein Zähler steigt mit jedem erfolgreichen Tag
-5. **Reset**: Bei verpassten Tagen wird der Streak automatisch zurückgesetzt
+1. **Setup**: Grant notification permissions on first launch
+2. **Create Routines**: Add your daily habits with custom names and categories
+3. **Track Progress**: Mark routines as complete with simple tap interactions
+4. **Build Streaks**: Watch your consistency grow day by day
+5. **Analyze Data**: Review detailed statistics and progress trends
+6. **Earn Achievements**: Unlock rewards for reaching milestones
 
 ## 🛠️ Tech Stack
 
-- **React Native** mit Expo
-- **TypeScript** für Type Safety
-- **AsyncStorage** für lokale Datenspeicherung
-- **Expo Notifications** für Push-Benachrichtigungen
+- **Expo SDK 54** for cross-platform development
+- **React Native 0.81.4** with **React 19.1.0**
+- **TypeScript 5.9.2** for type safety
+- **Expo Router 6** for file-based navigation
+- **AsyncStorage** for local data persistence
+- **Jest & React Native Testing Library** for testing
+- **EAS Build** for cloud building and distribution
 
-## 📦 Deployment
+## 📁 Project Structure
 
-### Android (Play Store)
-```bash
-expo build:android
+```
+tracker-app/
+├── app/                    # Expo Router pages
+│   ├── (tabs)/            # Tab-based navigation
+│   └── _layout.tsx        # Root layout
+├── components/            # Reusable UI components
+├── contexts/              # React contexts (Theme, Achievement)
+├── hooks/                 # Custom React hooks
+├── services/              # Business logic and storage
+├── utils/                 # Helper functions and managers
+├── types/                 # TypeScript definitions
+├── __tests__/             # Test files
+└── assets/                # Images, fonts, and static assets
 ```
 
-### iOS (App Store)
+## 📦 Build & Distribution
+
+### Android Production Build
 ```bash
-expo build:ios
+# Build APK for testing
+eas build -p android --profile preview
+
+# Build App Bundle for Play Store
+eas build -p android --profile production
 ```
 
-## 🔧 Konfiguration
+### iOS (Planned)
+```bash
+# Coming soon
+eas build -p ios --profile production
+```
 
-- **Notification-Zeit**: Standardmäßig alle 24 Stunden
-- **Bundle ID**: `com.trackerapp.morgenroutine`
-- **Icons**: Anpassbar in `assets/images/`
+## 🔧 Configuration
 
-## 📝 Geplante Features
+- **Bundle ID**: `com.routinetracker.app`
+- **Minimum Android**: API Level 26 (Android 8.0+)
+- **Notification Scheduling**: Configurable reminder times
+- **Data Export**: JSON format for personal backups
+- **Theme**: System-based automatic switching
 
-- [ ] Widget für Homescreen (iOS/Android)
-- [ ] Backup/Sync mit Cloud
-- [ ] Kalender-Ansicht
-- [ ] Motivationszitate
-- [ ] Custom Notification-Zeiten
+## 🎯 Key Highlights
 
-## 👨‍💻 Entwicklung
+- **No Ads**: Completely ad-free experience
+- **No In-App Purchases**: All features included
+- **No Data Collection**: Privacy-respecting design
+- **Offline Capable**: Works without internet
+- **Lightweight**: Minimal storage footprint
+- **Fast Performance**: Optimized for smooth user experience
 
-Für lokale Entwicklung mit Test-Modus (Notifications alle 10 Sekunden):
+## 👨‍� Development
+
+### Testing
+```bash
+# Run unit tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+```
+
+### Environment Configuration
+For development with faster notifications:
 ```typescript
-// In app/(tabs)/index.tsx
-seconds: 10, // Statt 86400
+// In utils/notificationManager.ts
+// Change notification interval for testing
 ```
 
-## 📄 Lizenz
+## 🤝 Contributing
 
-MIT License
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🔗 Related
+
+- [Landing Page](../tracker-app-webpage/) - Responsive website showcasing the app
+- [Privacy Policy](../tracker-app-webpage/datenschutz.html) - Data protection information
+
+---
+
+**Made with ❤️ for building better habits**
