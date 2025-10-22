@@ -159,6 +159,56 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({
             ]} />
           </>
         );
+        
+      case 'light-sky':
+        // Light sky blue gradient - soft and bright
+        return (
+          <>
+            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: config.colors[1] }]} />
+            <View style={[
+              StyleSheet.absoluteFillObject,
+              {
+                backgroundColor: config.colors[0],
+                opacity: 0.8,
+              }
+            ]} />
+          </>
+        );
+        
+      case 'soft-mint':
+        // Soft mint green - gentle organic pattern
+        return (
+          <>
+            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: config.colors[1] }]} />
+            <View style={[
+              StyleSheet.absoluteFillObject,
+              {
+                backgroundColor: config.colors[0],
+                borderRadius: 200,
+                width: '110%',
+                height: '60%',
+                position: 'absolute',
+                top: '20%',
+                left: '-5%',
+                opacity: 0.7,
+                transform: [{ scaleY: 1.5 }]
+              }
+            ]} />
+            <View style={[
+              StyleSheet.absoluteFillObject,
+              {
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                borderRadius: 150,
+                width: '120%',
+                height: '40%',
+                position: 'absolute',
+                bottom: '25%',
+                right: '-10%',
+                transform: [{ scaleY: 1.3 }]
+              }
+            ]} />
+          </>
+        );
       
       case 'none':
       default:

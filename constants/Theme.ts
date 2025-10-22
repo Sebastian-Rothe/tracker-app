@@ -235,9 +235,9 @@ const DarkColors = {
 };
 
 export type ThemeMode = 'light' | 'dark';
-export type WallpaperType = 'none' | 'deep-blue' | 'sunset-orange' | 'forest-teal' | 'royal-purple' | 'midnight-navy';
+export type WallpaperType = 'none' | 'deep-blue' | 'sunset-orange' | 'forest-teal' | 'royal-purple' | 'midnight-navy' | 'light-sky' | 'soft-mint';
 
-// Wallpaper configurations - Distinct dark designs with unique colors and patterns
+// Wallpaper configurations - Mix of dark and light designs with unique colors and patterns
 export const Wallpapers = {
   none: {
     type: 'none' as const,
@@ -267,6 +267,16 @@ export const Wallpapers = {
     type: 'waves' as const,
     name: 'Mitternacht',
     colors: ['#1e40af', '#1e293b'], // Navy to slate dark
+  },
+  'light-sky': {
+    type: 'gradient' as const,
+    name: 'Himmelblau',
+    colors: ['#e0f2fe', '#bae6fd'], // Very light sky blue gradient
+  },
+  'soft-mint': {
+    type: 'organic' as const,
+    name: 'Sanfte Minze',
+    colors: ['#f0fdf4', '#dcfce7'], // Very light mint green
   },
 };
 

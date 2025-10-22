@@ -39,6 +39,8 @@ const TEXTS = {
   wallpaperForest: 'Forest Teal',
   wallpaperPurple: 'Royal Purple',
   wallpaperNavy: 'Midnight Navy',
+  wallpaperLightSky: 'Light Sky',
+  wallpaperSoftMint: 'Soft Mint',
   manualStreakTitle: 'Manual Streak Input',
   manualStreakDescription: 'If you\'ve been following your routine before using this app, you can set your current streak here.',
   currentStreak: 'Current Streak:',
@@ -351,6 +353,30 @@ export default function SettingsScreen() {
             <View style={[styles.wallpaperPreview, styles.navyPreview]} />
             <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperNavy}</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.wallpaperOption,
+              { borderColor: theme.Colors.surface.border },
+              wallpaper === 'light-sky' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setWallpaper('light-sky')}
+          >
+            <View style={[styles.wallpaperPreview, styles.lightSkyPreview]} />
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperLightSky}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.wallpaperOption,
+              { borderColor: theme.Colors.surface.border },
+              wallpaper === 'soft-mint' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setWallpaper('soft-mint')}
+          >
+            <View style={[styles.wallpaperPreview, styles.softMintPreview]} />
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperSoftMint}</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -633,5 +659,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#1e40af', // Navy midnight preview
     borderWidth: 1,
     borderColor: '#2563eb',
+  },
+  lightSkyPreview: {
+    backgroundColor: '#e0f2fe', // Very light sky blue
+    borderWidth: 1,
+    borderColor: '#0ea5e9',
+    borderRadius: 8,
+  },
+  softMintPreview: {
+    backgroundColor: '#f0fdf4', // Very light mint green
+    borderWidth: 1,
+    borderColor: '#22c55e',
+    borderRadius: 8,
   },
 });
