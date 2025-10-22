@@ -32,7 +32,8 @@ describe('notificationManager', () => {
       createdAt: '2025-09-20',
       color: '#FF6B6B',
       icon: '💪',
-      isActive: true
+      isActive: true,
+      lastSkipped: null
     },
     {
       id: 'routine-2',
@@ -43,7 +44,8 @@ describe('notificationManager', () => {
       createdAt: '2025-09-22',
       color: '#4ECDC4',
       icon: '📚',
-      isActive: true
+      isActive: true,
+      lastSkipped: null
     }
   ];
 

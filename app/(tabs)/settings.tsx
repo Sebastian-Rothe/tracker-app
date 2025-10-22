@@ -13,7 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { scheduleRoutineNotifications, cancelAllNotifications } from '@/utils/notificationManager';
-import { loadStreak, saveStreak, loadLastConfirmed, saveLastConfirmed, loadSettings, saveSettings } from '@/utils/settingsStorage';
+import {  } from '@/utils/settingsStorage';
 import { routineStorage } from '@/services/RoutineStorageService';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';

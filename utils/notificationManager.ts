@@ -453,7 +453,6 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
       }
     }
     
-    console.log(`🔔 Scheduled ${scheduledCount} notifications for ${status.remaining} incomplete routines (${status.completed} completed, ${status.skipped} skipped)`);
     
   } catch (error) {
     console.error('❌ Error scheduling routine notifications:', error);

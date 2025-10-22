@@ -39,14 +39,6 @@ export const AdvancedNotificationSettings: React.FC = () => {
         await saveSettings(loaded); // Save the corrected settings
       }
       
-      console.log('🔧 [NotificationSettings] Loaded settings:', {
-        enabled: loaded.notificationEnabled,
-        reminderTimes: loaded.reminderTimes,
-        customTimes: loaded.customTimes,
-        multipleReminders: loaded.multipleReminders,
-        escalatingReminders: loaded.escalatingReminders,
-        onlyIfIncomplete: loaded.onlyIfIncomplete
-      });
       setSettings(loaded);
     } catch (error) {
       console.error('Error loading settings:', error);

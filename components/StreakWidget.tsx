@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STREAK_KEY = 'streak';
@@ -16,7 +16,7 @@ export function StreakWidget() {
       const currentStreak = streakValue ? parseInt(streakValue) : 0;
       setStreak(currentStreak);
     } catch (error) {
-      console.log('Error loading streak:', error);
+      // Error loading streak - using default value
     }
   }
 

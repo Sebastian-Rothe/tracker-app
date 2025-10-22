@@ -10,9 +10,13 @@
     "scheme": "morgenroutine-tracker",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "privacy": "public",
+    "githubUrl": "https://github.com/Sebastian-Rothe/tracker-app",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.routinetracker.app"
+      "bundleIdentifier": "com.routinetracker.app",
+      "buildNumber": "1",
+      "minimumOsVersion": "13.0"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +24,9 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.routinetracker.app"
+      "package": "com.routinetracker.app",
+      "versionCode": 1,
+      "permissions": ["SCHEDULE_EXACT_ALARM", "RECEIVE_BOOT_COMPLETED"]
     },
 
     "plugins": [

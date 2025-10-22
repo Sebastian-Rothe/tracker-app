@@ -11,7 +11,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   ViewStyle,
-  TextStyle,
   TouchableOpacityProps,
 } from 'react-native';
 import { Theme } from '../../constants/Theme';

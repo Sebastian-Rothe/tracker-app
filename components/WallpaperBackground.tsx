@@ -16,9 +16,6 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({
   const wallpaperConfig = getWallpaper(wallpaper);
   
   // Force re-render when wallpaper changes
-  if (__DEV__) {
-    console.log('🎨 WallpaperBackground rendering with wallpaper:', wallpaper);
-  }
 
   const renderWallpaper = () => {
     const config = wallpaperConfig as any;

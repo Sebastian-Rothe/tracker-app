@@ -65,10 +65,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         }
         
         if (savedWallpaper) {
-          if (__DEV__) console.log('📱 Loading saved wallpaper:', savedWallpaper);
           setWallpaper(savedWallpaper as WallpaperType);
-        } else {
-          if (__DEV__) console.log('📱 No saved wallpaper, using default:', 'subtle-gradient');
         }
       } catch (error) {
         console.error('Error loading preferences:', error);
@@ -110,7 +107,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // Save wallpaper preference when it changes
   const setWallpaperPreference = async (newWallpaper: WallpaperType) => {
     try {
-      if (__DEV__) console.log('🎨 Setting wallpaper to:', newWallpaper);
       await AsyncStorage.setItem(WALLPAPER_STORAGE_KEY, newWallpaper);
       setWallpaper(newWallpaper);
     } catch (error) {
