@@ -118,11 +118,8 @@ const isRoutineCompletedToday = (routine: any): boolean => {
  * Check if routine was skipped today (user deliberately chose to skip it)
  */
 const isRoutineSkippedToday = (routine: any): boolean => {
-  // A routine is considered "skipped" when:
-  // 1. lastConfirmed is empty (no completion date)
-  // 2. streak is 0 (reset by skipping)
-  // This indicates the user deliberately chose to skip it today
-  return routine.lastConfirmed === '' && routine.streak === 0;
+  const today = new Date().toISOString().slice(0, 10);
+  return routine.lastSkipped === today;
 };
 
 /**
@@ -140,6 +137,7 @@ const getCompletionStatus = (routines: any[]) => {
   const activeRoutines = routines.filter(r => r.isActive);
   const completedToday = activeRoutines.filter(isRoutineCompletedToday);
   const skippedToday = activeRoutines.filter(isRoutineSkippedToday);
+  
   const handledToday = activeRoutines.filter(isRoutineHandledToday);
   const incompleteRoutines = activeRoutines.filter(r => !isRoutineHandledToday(r));
   
@@ -151,8 +149,8 @@ const getCompletionStatus = (routines: any[]) => {
     total: activeRoutines.length,
     completed: completedToday.length,
     skipped: skippedToday.length,
-    handled: handledToday.length, // completed + skipped
-    remaining: incompleteRoutines.length, // truly incomplete (not completed, not skipped)
+    handled: handledToday.length, // only completed for now
+    remaining: incompleteRoutines.length, // truly incomplete (not completed)
     isAllHandled: activeRoutines.length > 0 && handledToday.length === activeRoutines.length,
     isAllCompleted: activeRoutines.length > 0 && completedToday.length === activeRoutines.length,
     hasActiveRoutines: activeRoutines.length > 0,

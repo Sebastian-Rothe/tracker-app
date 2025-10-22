@@ -241,7 +241,28 @@ const getTodayString = (): string => {
  * Load all routines from AsyncStorage
  */
 export const loadRoutines = async (): Promise<Routine[]> => {
-  return await routineStorage.getRoutines();
+  const routines = await routineStorage.getRoutines();
+  
+  // Migration: Add lastSkipped field to existing routines that don't have it
+  let needsMigration = false;
+  const migratedRoutines = routines.map((routine: any) => {
+    if (!('lastSkipped' in routine)) {
+      needsMigration = true;
+      return {
+        ...routine,
+        lastSkipped: '', // Initialize skip tracking for existing routines
+      } as Routine;
+    }
+    return routine as Routine;
+  });
+  
+  // Save migrated data if needed
+  if (needsMigration) {
+    await routineStorage.saveRoutines(migratedRoutines);
+    console.log('🔄 Migrated routines to include lastSkipped field');
+  }
+  
+  return migratedRoutines;
 };
 
 /**
@@ -272,6 +293,7 @@ export const createRoutine = async (request: CreateRoutineRequest): Promise<Rout
       description: request.description?.trim(),
       streak: request.initialStreak || 0,
       lastConfirmed: '',
+      lastSkipped: '', // Initialize skip tracking
       createdAt: new Date().toISOString(),
       color: request.color,
       icon: request.icon,
@@ -384,16 +406,32 @@ export const confirmRoutine = async (routineId: string, confirmed: boolean): Pro
       return routine;
     }
     
+    // Check if already skipped today
+    if (!confirmed && routine.lastSkipped === today) {
+      // Already skipped today, just return current routine
+      return routine;
+    }
+    
     if (confirmed) {
       // Increase streak if confirmed (only increase if not already confirmed today)
       if (routine.lastConfirmed !== today) {
         routine.streak += 1;
       }
       routine.lastConfirmed = today;
+      // Clear skip status when confirmed
+      routine.lastSkipped = '';
     } else {
-      // Reset streak if not confirmed
-      routine.streak = 0;
+      // Mark as skipped today (don't reset streak to 0, just mark skip)
+      routine.lastSkipped = today;
+      // Clear confirmation status when skipped
       routine.lastConfirmed = '';
+      // Only reset streak if it was a streak day (yesterday was confirmed)
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayString = yesterday.toISOString().slice(0, 10);
+      if (routine.lastConfirmed === yesterdayString) {
+        routine.streak = 0; // Break the streak
+      }
     }
     
     routines[routineIndex] = routine;
@@ -628,6 +666,7 @@ export const migrateFromLegacyData = async (): Promise<boolean> => {
         description: 'Migrated from your previous routine tracker',
         streak: legacyStreak,
         lastConfirmed: legacyLastConfirmed || '',
+        lastSkipped: '', // Initialize skip tracking
         createdAt: new Date().toISOString(),
         color: ROUTINE_COLORS[0], // Default color
         icon: ROUTINE_ICONS[0], // Default icon (💪)

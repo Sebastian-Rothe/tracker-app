@@ -22,7 +22,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAchievements } from '@/contexts/AchievementContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { 
-  loadRoutines, 
+  loadRoutines,
+  saveRoutines,
   confirmRoutine, 
   loadRoutineState,
   checkAndUpdateStreaks,
@@ -369,18 +370,61 @@ export default function MultiRoutineTrackerScreen() {
     }
   }, [routines]);
 
+  const handleUndoSkipRoutine = useCallback(async (routine: Routine) => {
+    try {
+      // Load current routines to get updated routine with lastSkipped field
+      const currentRoutines = await loadRoutines();
+      const currentRoutine = currentRoutines.find(r => r.id === routine.id);
+      
+      if (currentRoutine && currentRoutine.lastSkipped) {
+        // Clear skip status by setting lastSkipped to empty
+        const updatedRoutines = currentRoutines.map(r => 
+          r.id === routine.id ? { ...r, lastSkipped: '' } : r
+        );
+        
+        await saveRoutines(updatedRoutines);
+        setRoutines(updatedRoutines);
+        
+        // Update routine state
+        const activeRoutines = updatedRoutines.filter(r => r.isActive);
+        const longestStreak = activeRoutines.length > 0 
+          ? Math.max(...activeRoutines.map(r => r.streak))
+          : 0;
+        
+        setRoutineState(prev => ({
+          ...prev,
+          routines: updatedRoutines,
+          totalStreakDays: longestStreak
+        }));
+        
+        // Re-schedule notifications
+        await scheduleRoutineNotifications();
+      }
+    } catch (error) {
+      console.error('Error undoing skip:', error);
+      Alert.alert('Error', 'Failed to undo skip. Please try again.');
+    }
+  }, [routines]);
+
   const handleRoutineCardPress = useCallback((routine: Routine) => {
     const isCompletedToday = isRoutineCompletedToday(routine);
+    const isSkippedToday = isRoutineSkippedToday(routine);
     
     if (Platform.OS === 'ios') {
-      // Build options dynamically based on completion status
-      const options = [TEXTS.cancel, TEXTS.editRoutine];
-      if (isCompletedToday) {
-        options.push(TEXTS.undoToday);
-      }
-      options.push(TEXTS.deleteRoutine);
+      // Build consistent options for all states (same number of options)
+      const options = [
+        TEXTS.cancel, 
+        TEXTS.editRoutine,
+        // Third option varies by state
+        isCompletedToday ? TEXTS.undoToday : 
+        isSkippedToday ? 'Undo Skip' : 
+        'Not Available',
+        // Fourth option (only for skipped or placeholder)
+        isSkippedToday ? 'Mark as Done' : 'Not Available',
+        TEXTS.deleteRoutine
+      ];
       
-      const destructiveButtonIndex = options.length - 1; // Delete is always last
+      const destructiveButtonIndex = 4; // Delete is always at position 4
       const cancelButtonIndex = 0;
       
       ActionSheetIOS.showActionSheetWithOptions(
@@ -401,11 +445,22 @@ export default function MultiRoutineTrackerScreen() {
               initialStreak: 0, // Not used for editing
             });
             setIsFormVisible(true);
-          } else if (isCompletedToday && buttonIndex === 2) {
-            // Undo today (only available if completed today)
-            handleUndoRoutineToday(routine);
-          } else if (buttonIndex === options.length - 1) {
-            // Delete routine (always last option)
+          } else if (buttonIndex === 2) {
+            // Third option: Undo Today / Undo Skip / Not Available
+            if (isCompletedToday) {
+              handleUndoRoutineToday(routine);
+            } else if (isSkippedToday) {
+              handleUndoSkipRoutine(routine);
+            }
+            // Do nothing for pending routines ("Not Available")
+          } else if (buttonIndex === 3) {
+            // Fourth option: Mark as Done (only for skipped) / Not Available
+            if (isSkippedToday) {
+              handleRoutineAction(routine, true);
+            }
+            // Do nothing for other states ("Not Available")
+          } else if (buttonIndex === 4) {
+            // Delete routine (always at position 4 now)
             handleDeleteRoutine(routine);
           }
         }
@@ -433,6 +488,16 @@ export default function MultiRoutineTrackerScreen() {
           text: TEXTS.undoToday, 
           onPress: () => handleUndoRoutineToday(routine) 
         });
+      } else if (isSkippedToday) {
+        // Add undo skip and mark as done options for skipped routines
+        alertOptions.push({ 
+          text: 'Undo Skip', 
+          onPress: () => handleUndoSkipRoutine(routine) 
+        });
+        alertOptions.push({ 
+          text: 'Mark as Done', 
+          onPress: () => handleRoutineAction(routine, true) 
+        });
       }
       
       // Add delete option
@@ -445,7 +510,8 @@ export default function MultiRoutineTrackerScreen() {
       Alert.alert(
         routine.name,
         'What would you like to do?',
-        alertOptions
+        alertOptions,
+        { cancelable: true } // Allow clicking outside to cancel
       );
     }
   }, [handleDeleteRoutine, handleUndoRoutineToday]);
@@ -508,6 +574,11 @@ export default function MultiRoutineTrackerScreen() {
   const isRoutineCompletedToday = useCallback((routine: Routine): boolean => {
     const today = new Date().toISOString().slice(0, 10);
     return routine.lastConfirmed === today;
+  }, []);
+
+  const isRoutineSkippedToday = useCallback((routine: Routine): boolean => {
+    const today = new Date().toISOString().slice(0, 10);
+    return routine.lastSkipped === today;
   }, []);
   
   if (isLoading && !isRefreshing) {
@@ -602,6 +673,7 @@ export default function MultiRoutineTrackerScreen() {
           <View style={styles.routineListContainer}>
             {routines.map((routine, index) => {
               const isCompleted = isRoutineCompletedToday(routine);
+              const isSkipped = isRoutineSkippedToday(routine);
               
               return (
                 <TouchableOpacity 
@@ -617,6 +689,10 @@ export default function MultiRoutineTrackerScreen() {
                       ...(isCompleted && { 
                         ...styles.completedCard, 
                         backgroundColor: theme.Colors.success[50] 
+                      }),
+                      ...(isSkipped && { 
+                        backgroundColor: theme.Colors.warning[50],
+                        opacity: 0.8
                       })
                     }}
                   >
@@ -647,6 +723,18 @@ export default function MultiRoutineTrackerScreen() {
                       variant="success"
                       style={styles.completedBadge}
                     />
+                  ) : isSkipped ? (
+                    <View style={styles.actionButtons}>
+                      {/* Empty spacer on the left */}
+                      <View style={styles.actionButton} />
+                      <Button
+                        title={TEXTS.confirmNo}
+                        variant="warning"
+                        size="sm"
+                        onPress={() => handleRoutineAction(routine, false)}
+                        style={styles.actionButton}
+                      />
+                    </View>
                   ) : (
                     <View style={styles.actionButtons}>
                       <Button
