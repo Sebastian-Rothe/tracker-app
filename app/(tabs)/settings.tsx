@@ -17,7 +17,7 @@ import { loadStreak, saveStreak, loadLastConfirmed, saveLastConfirmed, loadSetti
 import { routineStorage } from '@/services/RoutineStorageService';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import { EnhancedNotificationSettings } from '@/components/EnhancedNotificationUI';
+import AdvancedNotificationSettings from '../../components/AdvancedNotificationSettings';
 import { WallpaperType } from '@/constants/Theme';
 import { WallpaperBackground } from '@/components/WallpaperBackground';
 
@@ -354,51 +354,8 @@ export default function SettingsScreen() {
         </View>
       </View>
 
-      {/* Notification Settings */}
-      <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
-        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{TEXTS.notificationTitle}</Text>
-        
-        <View style={styles.switchRow}>
-          <View style={styles.switchTextContainer}>
-            <Text style={[styles.switchLabel, { color: theme.Colors.text.primary }]}>{TEXTS.notificationEnabled}</Text>
-            <Text style={[styles.switchDescription, { color: theme.Colors.text.secondary }]}>{TEXTS.notificationDescription}</Text>
-          </View>
-          <Switch
-            value={settings.notificationEnabled}
-            onValueChange={toggleNotifications}
-            trackColor={{ false: '#767577', true: '#81b0ff' }}
-            thumbColor={settings.notificationEnabled ? '#f5dd4b' : '#f4f3f4'}
-          />
-        </View>
-
-        {settings.notificationEnabled && !settings.multipleReminders && (
-          <View style={styles.timeInputContainer}>
-            <Text style={styles.inputLabel}>{TEXTS.notificationTimeLabel}</Text>
-            <Text style={styles.description}>{TEXTS.notificationTimeDescription}</Text>
-            <View style={styles.timeRow}>
-              <TextInput
-                style={styles.timeInput}
-                value={notificationTimeInput}
-                onChangeText={setNotificationTimeInput}
-                placeholder="07:00"
-                keyboardType="default"
-                maxLength={5}
-              />
-              <TouchableOpacity style={styles.updateTimeButton} onPress={updateNotificationTime}>
-                <Text style={styles.updateButtonText}>Update</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-      </View>
-
-      {/* Enhanced Notification Settings */}
-      {settings.notificationEnabled && (
-        <EnhancedNotificationSettings 
-          settings={settings} 
-          setSettings={setSettings} 
-        />
-      )}
+      {/* Advanced Notification Settings */}
+      <AdvancedNotificationSettings />
 
       {/* About Section */}
       <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>

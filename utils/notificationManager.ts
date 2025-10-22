@@ -20,8 +20,13 @@ export interface NotificationSettings {
   globalTime: string; // Format: "HH:MM"
   perRoutineEnabled: boolean;
   multipleReminders: boolean; // Enable multiple daily reminders
-  reminderTimes: string[]; // Multiple reminder times ["07:00", "14:00", "18:00", "20:00"]
+  reminderTimes: string[]; // Custom reminder times set by user
   onlyIfIncomplete: boolean; // Only send if routines are incomplete
+  escalatingReminders: boolean; // Enable escalating reminder frequency
+  maxEscalationLevel: number; // Max reminders per day (1-24)
+  customTimes: boolean; // User has set custom times
+  streakProtection: boolean; // Extra warnings for streak protection
+  smartTiming: boolean; // Context-aware timing optimization
 }
 
 const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
@@ -31,6 +36,11 @@ const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   multipleReminders: true,
   reminderTimes: ['07:00', '14:00', '18:00', '20:00'],
   onlyIfIncomplete: true,
+  escalatingReminders: true,
+  maxEscalationLevel: 8, // Max 8 reminders per day (every 2-3 hours)
+  customTimes: false,
+  streakProtection: true,
+  smartTiming: true,
 };
 
 /**
@@ -105,62 +115,188 @@ const isRoutineCompletedToday = (routine: any): boolean => {
 };
 
 /**
- * Get completion status for active routines
+ * Check if routine was skipped today (user deliberately chose to skip it)
+ */
+const isRoutineSkippedToday = (routine: any): boolean => {
+  // A routine is considered "skipped" when:
+  // 1. lastConfirmed is empty (no completion date)
+  // 2. streak is 0 (reset by skipping)
+  // This indicates the user deliberately chose to skip it today
+  return routine.lastConfirmed === '' && routine.streak === 0;
+};
+
+/**
+ * Check if routine should be excluded from notifications
+ * (either completed or deliberately skipped)
+ */
+const isRoutineHandledToday = (routine: any): boolean => {
+  return isRoutineCompletedToday(routine) || isRoutineSkippedToday(routine);
+};
+
+/**
+ * Get completion status for active routines with streak information
  */
 const getCompletionStatus = (routines: any[]) => {
   const activeRoutines = routines.filter(r => r.isActive);
   const completedToday = activeRoutines.filter(isRoutineCompletedToday);
+  const skippedToday = activeRoutines.filter(isRoutineSkippedToday);
+  const handledToday = activeRoutines.filter(isRoutineHandledToday);
+  const incompleteRoutines = activeRoutines.filter(r => !isRoutineHandledToday(r));
+  
+  // Calculate streak risks (only for truly incomplete routines, not skipped ones)
+  const routinesAtRisk = incompleteRoutines.filter(r => (r.streak || 0) >= 3);
+  const maxStreakAtRisk = Math.max(...routinesAtRisk.map(r => r.streak || 0), 0);
   
   return {
     total: activeRoutines.length,
     completed: completedToday.length,
-    remaining: activeRoutines.length - completedToday.length,
+    skipped: skippedToday.length,
+    handled: handledToday.length, // completed + skipped
+    remaining: incompleteRoutines.length, // truly incomplete (not completed, not skipped)
+    isAllHandled: activeRoutines.length > 0 && handledToday.length === activeRoutines.length,
     isAllCompleted: activeRoutines.length > 0 && completedToday.length === activeRoutines.length,
-    hasActiveRoutines: activeRoutines.length > 0
+    hasActiveRoutines: activeRoutines.length > 0,
+    incompleteRoutines,
+    routinesAtRisk: routinesAtRisk.length,
+    maxStreakAtRisk,
+    hasStreakRisk: routinesAtRisk.length > 0
   };
 };
 
 /**
- * Generate smart notification content based on completion status
+ * Calculate escalating reminder times based on how long routines have been pending
  */
-const generateNotificationContent = (status: any, timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night') => {
-  const { total, completed, remaining, isAllCompleted } = status;
+const calculateEscalatingTimes = (baseReminders: string[], maxLevel: number): string[] => {
+  const now = new Date();
+  const currentHour = now.getHours();
   
-  // Should never happen due to validation, but safety check
-  if (!status.hasActiveRoutines || isAllCompleted) {
+  // Start with base reminders
+  const allTimes = [...baseReminders];
+  
+  // Add escalating reminders only if it's past the first reminder time
+  const firstReminderHour = parseInt(baseReminders[0].split(':')[0]);
+  
+  if (currentHour >= firstReminderHour) {
+    // Add hourly reminders up to maxLevel, but not more than once per hour
+    const escalatingHours = Math.min(maxLevel - baseReminders.length, 12); // Max 12 additional
+    
+    for (let i = 1; i <= escalatingHours; i++) {
+      const nextHour = (currentHour + i) % 24;
+      const timeStr = `${nextHour.toString().padStart(2, '0')}:00`;
+      
+      // Only add if not too close to existing reminders and within reasonable hours
+      if (!allTimes.some(t => Math.abs(parseInt(t.split(':')[0]) - nextHour) < 2) && 
+          nextHour >= 7 && nextHour <= 22) {
+        allTimes.push(timeStr);
+      }
+    }
+  }
+  
+  return allTimes.sort();
+};
+
+/**
+ * Generate smart notification content based on completion status and context
+ */
+const generateNotificationContent = (
+  status: any, 
+  timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night',
+  isEscalated: boolean = false,
+  escalationLevel: number = 0
+) => {
+  const { total, completed, skipped, handled, remaining, isAllHandled, hasStreakRisk, maxStreakAtRisk, routinesAtRisk } = status;
+  
+  // CRITICAL: No notifications if all routines are handled (completed OR skipped) or no active routines
+  if (!status.hasActiveRoutines || isAllHandled) {
     return null;
   }
   
-  const progressText = `${completed}/${total}`;
+  const progressText = `${handled}/${total}`;
+  const isUrgent = hasStreakRisk || escalationLevel > 2;
   
-  const messages = {
+  // Streak protection messages (high priority)
+  if (hasStreakRisk && Math.random() > 0.3) { // 70% chance for streak messages
+    const streakMessages = {
+      morning: {
+        title: `🔥 ${maxStreakAtRisk}-day streak at risk!`,
+        body: `Don't break your amazing ${maxStreakAtRisk}-day streak! ${routinesAtRisk} routine${routinesAtRisk === 1 ? '' : 's'} need${routinesAtRisk === 1 ? 's' : ''} your attention.`
+      },
+      afternoon: {
+        title: `⚠️ Protect your ${maxStreakAtRisk}-day streak!`,
+        body: `You've worked hard for ${maxStreakAtRisk} days straight. Complete ${routinesAtRisk} routine${routinesAtRisk === 1 ? '' : 's'} to keep it going!`
+      },
+      evening: {
+        title: `🚨 Streak rescue time!`,
+        body: `Your ${maxStreakAtRisk}-day streak is in danger! Just ${routinesAtRisk} routine${routinesAtRisk === 1 ? '' : 's'} left to save it.`
+      },
+      night: {
+        title: `🔥 Last chance for your streak!`,
+        body: `Don't let ${maxStreakAtRisk} days of progress slip away! Quick completion needed.`
+      }
+    };
+    return streakMessages[timeOfDay];
+  }
+  
+  // Escalated messages (more urgent)
+  if (isEscalated && escalationLevel > 1) {
+    const escalatedMessages = {
+      morning: {
+        title: remaining === 1 ? 'Still 1 routine waiting' : `${remaining} routines still pending`,
+        body: escalationLevel > 3 
+          ? `Time is ticking! ${remaining} routine${remaining === 1 ? '' : 's'} won't complete themselves.`
+          : `Gentle reminder: ${remaining} routine${remaining === 1 ? '' : 's'} waiting for you.`
+      },
+      afternoon: {
+        title: escalationLevel > 3 ? `Don't forget! ${remaining} left` : `Progress check: ${remaining} remaining`,
+        body: escalationLevel > 3
+          ? `Half the day is gone - time to tackle those ${remaining} routine${remaining === 1 ? '' : 's'}!`
+          : `Making progress! ${completed} done, ${remaining} to go.`
+      },  
+      evening: {
+        title: escalationLevel > 4 ? `Urgent: ${remaining} routines!` : `Evening reminder: ${remaining} left`,
+        body: escalationLevel > 4
+          ? `Day's almost over! These ${remaining} routine${remaining === 1 ? '' : 's'} need immediate attention.`
+          : `Winding down? Don't forget ${remaining} routine${remaining === 1 ? '' : 's'} before bed.`
+      },
+      night: {
+        title: 'Final opportunity!',
+        body: escalationLevel > 5
+          ? `Last call! Complete ${remaining} routine${remaining === 1 ? '' : 's'} before tomorrow.`
+          : `Bedtime approaching - ${remaining} routine${remaining === 1 ? '' : 's'} left.`
+      }
+    };
+    return escalatedMessages[timeOfDay];
+  }
+  
+  // Standard messages (polite and encouraging)
+  const standardMessages = {
     morning: {
-      title: remaining === total ? 'Time for your routines!' : `${remaining} routines left`,
+      title: remaining === total ? '🌅 Start your day right!' : `${progressText} handled - Great start!`,
       body: remaining === total 
-        ? `Ready to start your day? You have ${total} routine${total === 1 ? '' : 's'} to complete.`
-        : `Good morning! You have ${remaining} routine${remaining === 1 ? '' : 's'} remaining.`
+        ? `Ready to conquer the day? ${total} routine${total === 1 ? '' : 's'} awaiting you!`
+        : `Good morning! You've got ${remaining} routine${remaining === 1 ? '' : 's'} remaining.`
     },
     afternoon: {
-      title: `${progressText} completed - Keep going!`,
+      title: `${progressText} handled - Keep going! 💪`,
       body: remaining === 1 
-        ? `Great progress! Just 1 routine left to complete today.`
-        : `You're doing well! ${remaining} routines remaining for today.`
+        ? `Excellent progress! Just 1 routine left to complete today.`
+        : `You're doing great! ${remaining} routine${remaining === 1 ? '' : 's'} remaining.`
     },
     evening: {
-      title: remaining === 1 ? 'Last routine of the day!' : `${remaining} routines left`,
+      title: remaining === 1 ? '🌆 Last routine of the day!' : `${remaining} routines left`,
       body: remaining === 1
-        ? `Almost done! Complete your final routine to finish strong.`
-        : `Evening check-in: ${remaining} routines still need your attention.`
+        ? `Almost perfect! Complete your final routine to finish strong.`
+        : `Evening check-in: ${remaining} routine${remaining === 1 ? '' : 's'} still awaiting completion.`
     },
     night: {
-      title: 'Final call for today!',
+      title: '🌙 Final call for today!',
       body: remaining === 1
-        ? `One last routine before bedtime - you've got this!`
-        : `Last chance to complete your ${remaining} remaining routines.`
+        ? `One last routine before rest - you've got this!`
+        : `Last chance to complete ${remaining} routine${remaining === 1 ? '' : 's'} today.`
     }
   };
   
-  return messages[timeOfDay];
+  return standardMessages[timeOfDay];
 };
 
 /**
@@ -209,7 +345,7 @@ export const scheduleDailyNotification = async (
 };
 
 /**
- * Schedule enhanced notifications for active routines with strict validation
+ * Schedule enhanced notifications with smart escalation and validation
  */
 export const scheduleRoutineNotifications = async (): Promise<void> => {
   if (Platform.OS === 'web') {
@@ -223,6 +359,7 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
     // Check permissions
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
+      console.log('📵 Notification permissions not granted');
       return;
     }
 
@@ -231,29 +368,51 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
     
     // STRICT VALIDATION: No notifications if disabled
     if (!settings.enabled) {
+      console.log('🔕 Notifications disabled by user');
       return;
     }
 
     // Get completion status
     const status = getCompletionStatus(routines);
+    console.log(`📊 Routine status: ${status.total} total, ${status.completed} completed, ${status.skipped} skipped, ${status.remaining} remaining`);
     
     // STRICT VALIDATION: No notifications if no active routines
     if (!status.hasActiveRoutines) {
+      console.log('📝 No active routines - skipping notifications');
       return;
     }
     
-    // STRICT VALIDATION: No notifications if all routines completed
-    if (status.isAllCompleted) {
+    // CRITICAL VALIDATION: No notifications if all routines are handled (completed OR skipped)
+    if (settings.onlyIfIncomplete && status.isAllHandled) {
+      console.log(`✅ All routines handled (${status.completed} completed, ${status.skipped} skipped) - skipping notifications (onlyIfIncomplete=true)`);
       return;
     }
 
-    // Determine notification times with proper undefined checks
-    const notificationTimes = settings.multipleReminders && settings.reminderTimes && settings.reminderTimes.length > 0
-      ? settings.reminderTimes
-      : [settings.time || settings.globalTime || '07:00'];
+    // Determine base notification times
+    let baseNotificationTimes: string[];
+    
+    if (settings.customTimes && settings.reminderTimes && settings.reminderTimes.length > 0) {
+      baseNotificationTimes = settings.reminderTimes;
+    } else if (settings.multipleReminders) {
+      baseNotificationTimes = ['07:00', '14:00', '18:00', '20:00'];
+    } else {
+      baseNotificationTimes = [settings.globalTime || '07:00'];
+    }
+
+    // Apply escalating reminders if enabled
+    let finalNotificationTimes = baseNotificationTimes;
+    if (settings.escalatingReminders && status.remaining > 0) {
+      finalNotificationTimes = calculateEscalatingTimes(
+        baseNotificationTimes, 
+        settings.maxEscalationLevel || 8
+      );
+      console.log(`📈 Escalating enabled: ${baseNotificationTimes.length} base → ${finalNotificationTimes.length} total`);
+    }
 
     // Schedule notifications for each time
-    for (const time of notificationTimes) {
+    let scheduledCount = 0;
+    for (let i = 0; i < finalNotificationTimes.length; i++) {
+      const time = finalNotificationTimes[i];
       const { hours, minutes } = parseTime(time);
       
       // Determine time of day for smart content
@@ -263,26 +422,43 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
       else if (hours < 21) timeOfDay = 'evening';
       else timeOfDay = 'night';
       
+      // Determine if this is an escalated reminder
+      const isEscalated = i >= baseNotificationTimes.length;
+      const escalationLevel = isEscalated ? i - baseNotificationTimes.length + 1 : 0;
+      
       // Generate smart content
-      const content = generateNotificationContent(status, timeOfDay);
+      const content = generateNotificationContent(status, timeOfDay, isEscalated, escalationLevel);
       
       if (content) {
-        await scheduleDailyNotification(
+        const notificationId = await scheduleDailyNotification(
           time,
           content.title,
           content.body,
           { 
-            routines: routines.filter((r: any) => r.isActive && !isRoutineCompletedToday(r)).map((r: any) => ({ id: r.id, name: r.name })),
+            routines: status.incompleteRoutines.map((r: any) => ({ 
+              id: r.id, 
+              name: r.name, 
+              streak: r.streak || 0 
+            })),
             type: 'routine_reminder',
             timeOfDay,
-            completionStatus: status
+            isEscalated,
+            escalationLevel,
+            completionStatus: status,
+            scheduledAt: new Date().toISOString()
           }
         );
+        
+        if (notificationId) {
+          scheduledCount++;
+        }
       }
     }
     
+    console.log(`🔔 Scheduled ${scheduledCount} notifications for ${status.remaining} incomplete routines (${status.completed} completed, ${status.skipped} skipped)`);
+    
   } catch (error) {
-    console.error('Error scheduling routine notifications:', error);
+    console.error('❌ Error scheduling routine notifications:', error);
   }
 };
 

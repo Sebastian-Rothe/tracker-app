@@ -19,6 +19,11 @@ export interface SettingsData {
   multipleReminders?: boolean; // Enable multiple daily reminders
   reminderTimes?: string[]; // Multiple reminder times ["07:00", "14:00", "18:00", "20:00"]
   onlyIfIncomplete?: boolean; // Only send if routines are incomplete
+  escalatingReminders?: boolean; // Enable escalating reminder frequency
+  maxEscalationLevel?: number; // Max reminders per day (1-24)
+  customTimes?: boolean; // User has set custom times
+  streakProtection?: boolean; // Extra warnings for streak protection
+  smartTiming?: boolean; // Context-aware timing optimization
 }
 
 export const DEFAULT_SETTINGS: SettingsData = {
@@ -28,6 +33,11 @@ export const DEFAULT_SETTINGS: SettingsData = {
   multipleReminders: true, // Enable enhanced notifications by default
   reminderTimes: ['07:00', '14:00', '18:00', '20:00'], // Default reminder times
   onlyIfIncomplete: true, // Smart notifications by default
+  escalatingReminders: true,
+  maxEscalationLevel: 8, // Max 8 reminders per day (every 2-3 hours)
+  customTimes: false,
+  streakProtection: true,
+  smartTiming: true,
 };
 
 // Storage keys
