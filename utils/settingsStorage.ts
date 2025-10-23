@@ -733,6 +733,9 @@ export const getNotificationData = async (): Promise<NotificationScheduleData> =
       multipleReminders: settings.multipleReminders ?? true, // Default to enhanced notifications
       reminderTimes: settings.reminderTimes ?? ['07:00', '14:00', '18:00', '20:00'], // Default times
       onlyIfIncomplete: settings.onlyIfIncomplete ?? true, // Default to smart notifications
+      customTimes: settings.customTimes ?? false, // ✅ Custom times flag
+      escalatingReminders: settings.escalatingReminders ?? true, // ✅ Escalating reminders
+      maxEscalationLevel: settings.maxEscalationLevel ?? 8, // ✅ Max escalation level
     },
   };
 };
