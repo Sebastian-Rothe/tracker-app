@@ -11,6 +11,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { AchievementProvider } from '@/contexts/AchievementContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { setupGlobalErrorHandling } from '@/services/ErrorHandling';
+import { requestNotificationPermissions } from '@/utils/notificationManager';
 
 function RootNavigator() {
   const { isDarkMode, theme } = useTheme();

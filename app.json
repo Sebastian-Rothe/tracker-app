@@ -26,7 +26,14 @@
       "edgeToEdgeEnabled": true,
       "package": "com.routinetracker.app",
       "versionCode": 1,
-      "permissions": ["SCHEDULE_EXACT_ALARM", "RECEIVE_BOOT_COMPLETED"]
+      "permissions": [
+        "SCHEDULE_EXACT_ALARM",
+        "USE_EXACT_ALARM",
+        "RECEIVE_BOOT_COMPLETED",
+        "WAKE_LOCK",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM"
+      ]
     },
 
     "plugins": [
@@ -44,7 +51,9 @@
         "expo-notifications",
         {
           "icon": "./assets/images/ic_launcher/android/mipmap-xxxhdpi/ic_launcher.png",
-          "color": "#ffffff"
+          "color": "#ffffff",
+          "sounds": [],
+          "mode": "production"
         }
       ],
       "expo-font",
