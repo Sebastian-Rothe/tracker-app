@@ -278,6 +278,16 @@ export const AdvancedNotificationSettings: React.FC = () => {
           <View style={styles.timingContainer}>
             <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>⏰ Reminder Times</Text>
             
+            {/* Timing Info Box */}
+            <View style={[styles.infoBox, { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[200] }]}>
+              <View style={styles.infoContent}>
+                <Ionicons name="information-circle" size={16} color={theme.Colors.primary[600]} style={styles.infoIcon} />
+                <Text style={[styles.infoText, { color: theme.Colors.primary[700] }]}>
+                  Notifications may arrive ±15 minutes from set time for better battery optimization
+                </Text>
+              </View>
+            </View>
+            
             {settings.reminderTimes?.map((time, index) => (
               <View key={index} style={styles.timeRow}>
                 <TouchableOpacity 
@@ -511,6 +521,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  // Info Box Styles
+  infoBox: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  infoContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  infoIcon: {
+    marginRight: 8,
+    marginTop: 1,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
   },
 });
 
