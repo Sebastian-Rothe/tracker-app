@@ -2,7 +2,7 @@
   "expo": {
     "name": "Routine Tracker",
     "slug": "tracker",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Track your daily routines with simple streak counters and daily reminders",
     "sdkVersion": "54.0.0",
     "orientation": "portrait",
