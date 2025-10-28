@@ -133,7 +133,7 @@ const isRoutineHandledToday = (routine: any): boolean => {
 /**
  * Get completion status for active routines with streak information
  */
-const getCompletionStatus = (routines: any[]) => {
+export const getCompletionStatus = (routines: any[]) => {
   const activeRoutines = routines.filter(r => r.isActive);
   const completedToday = activeRoutines.filter(isRoutineCompletedToday);
   const skippedToday = activeRoutines.filter(isRoutineSkippedToday);
@@ -163,6 +163,8 @@ const getCompletionStatus = (routines: any[]) => {
 
 /**
  * Calculate escalating reminder times based on how long routines have been pending
+ * 
+ * OPTIMIZED: Much less aggressive, better spacing, respects business hours
  */
 const calculateEscalatingTimes = (baseReminders: string[], maxLevel: number): string[] => {
   const now = new Date();
@@ -174,27 +176,43 @@ const calculateEscalatingTimes = (baseReminders: string[], maxLevel: number): st
   // Add escalating reminders only if it's past the first reminder time
   const firstReminderHour = parseInt(baseReminders[0].split(':')[0]);
   
-  if (currentHour >= firstReminderHour) {
-    // Add hourly reminders up to maxLevel, but not more than once per hour
-    const escalatingHours = Math.min(maxLevel - baseReminders.length, 12); // Max 12 additional
+  // Only escalate if current time is past first reminder and we have time left in the day
+  if (currentHour >= firstReminderHour && currentHour < 22) {
+    // Much more conservative escalation:
+    // Instead of hourly reminders, add reminders every 2-3 hours
+    // Maximum 2-3 additional escalations per day (not 8!)
     
-    for (let i = 1; i <= escalatingHours; i++) {
-      const nextHour = (currentHour + i) % 24;
-      const timeStr = `${nextHour.toString().padStart(2, '0')}:00`;
-      
-      // Only add if not too close to existing reminders and within reasonable hours
-      if (!allTimes.some(t => Math.abs(parseInt(t.split(':')[0]) - nextHour) < 2) && 
-          nextHour >= 7 && nextHour <= 22) {
+    const escalatingHours: number[] = [];
+    
+    // Add escalating reminders at strategic times (not more than 2-3)
+    if (currentHour < 12 && !baseReminders.some(t => parseInt(t.split(':')[0]) === 11)) {
+      escalatingHours.push(11); // Mid-morning escalation
+    }
+    
+    if (currentHour < 15 && !baseReminders.some(t => parseInt(t.split(':')[0]) === 15)) {
+      escalatingHours.push(15); // Afternoon escalation
+    }
+    
+    if (currentHour < 19 && !baseReminders.some(t => parseInt(t.split(':')[0]) === 19)) {
+      escalatingHours.push(19); // Evening escalation
+    }
+    
+    // Add these strategic escalations
+    escalatingHours.forEach(hour => {
+      const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+      if (!allTimes.includes(timeStr)) {
         allTimes.push(timeStr);
       }
-    }
+    });
   }
   
   return allTimes.sort();
 };
 
 /**
- * Generate smart notification content based on completion status and context
+ * Generate smart notification content based on REAL-TIME completion status
+ * 
+ * CRITICAL FIX: Directly uses current status passed in, no caching from yesterday
  */
 const generateNotificationContent = (
   status: any, 
@@ -204,15 +222,20 @@ const generateNotificationContent = (
 ) => {
   const { total, completed, skipped, handled, remaining, isAllHandled, hasStreakRisk, maxStreakAtRisk, routinesAtRisk } = status;
   
-  // CRITICAL: No notifications if all routines are handled (completed OR skipped) or no active routines
+  // CRITICAL: No notifications if all routines are handled (completed OR skipped)
   if (!status.hasActiveRoutines || isAllHandled) {
     return null;
   }
   
-  const progressText = `${handled}/${total}`;
+  // Safety check: Never show "completed" count that's higher than remaining
+  const actualCompleted = Math.min(completed, total - remaining);
+  const progressText = remaining === 0 ? `${total}/${total}` : `${actualCompleted}/${total}`;
   const isUrgent = hasStreakRisk || escalationLevel > 2;
   
-  // Streak protection messages (high priority)
+  // =========================================================================
+  // PRIORITY 1: STREAK PROTECTION (highest priority)
+  // =========================================================================
+  
   if (hasStreakRisk && Math.random() > 0.3) { // 70% chance for streak messages
     const streakMessages = {
       morning: {
@@ -235,7 +258,10 @@ const generateNotificationContent = (
     return streakMessages[timeOfDay];
   }
   
-  // Escalated messages (more urgent)
+  // =========================================================================
+  // PRIORITY 2: ESCALATED REMINDERS (medium-high priority)
+  // =========================================================================
+  
   if (isEscalated && escalationLevel > 1) {
     const escalatedMessages = {
       morning: {
@@ -248,7 +274,7 @@ const generateNotificationContent = (
         title: escalationLevel > 3 ? `Don't forget! ${remaining} left` : `Progress check: ${remaining} remaining`,
         body: escalationLevel > 3
           ? `Half the day is gone - time to tackle those ${remaining} routine${remaining === 1 ? '' : 's'}!`
-          : `Making progress! ${completed} done, ${remaining} to go.`
+          : `Making progress! ${actualCompleted} done, ${remaining} to go.`
       },  
       evening: {
         title: escalationLevel > 4 ? `Urgent: ${remaining} routines!` : `Evening reminder: ${remaining} left`,
@@ -266,7 +292,10 @@ const generateNotificationContent = (
     return escalatedMessages[timeOfDay];
   }
   
-  // Standard messages (polite and encouraging)
+  // =========================================================================
+  // PRIORITY 3: STANDARD MESSAGES (polite and encouraging)
+  // =========================================================================
+  
   const standardMessages = {
     morning: {
       title: remaining === total ? '🌅 Start your day right!' : `${progressText} handled - Great start!`,
@@ -344,6 +373,13 @@ export const scheduleDailyNotification = async (
 
 /**
  * Schedule enhanced notifications with smart escalation and validation
+ * 
+ * REWRITTEN with critical fixes:
+ * 1. Respects user settings strictly
+ * 2. No escalation when user sets custom single time
+ * 3. Real-time status calculation at scheduling time
+ * 4. Prevents too many notifications
+ * 5. Smart time spacing
  */
 export const scheduleRoutineNotifications = async (): Promise<void> => {
   if (Platform.OS === 'web') {
@@ -361,8 +397,12 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
       return;
     }
 
-    // Load notification data
+    // Load notification data - FRESH LOAD
     const { routines, settings } = await getNotificationData();
+    
+    // ========================================================================
+    // STEP 1: VALIDATION LAYER
+    // ========================================================================
     
     // STRICT VALIDATION: No notifications if disabled
     if (!settings.enabled) {
@@ -370,7 +410,7 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
       return;
     }
 
-    // Get completion status
+    // Get completion status - REAL-TIME calculation
     const status = getCompletionStatus(routines);
     console.log(`📊 Routine status: ${status.total} total, ${status.completed} completed, ${status.skipped} skipped, ${status.remaining} remaining`);
     
@@ -380,37 +420,90 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
       return;
     }
     
-    // CRITICAL VALIDATION: No notifications if all routines are handled (completed OR skipped)
+    // CRITICAL VALIDATION: No notifications if all routines are handled
     if (settings.onlyIfIncomplete && status.isAllHandled) {
-      console.log(`✅ All routines handled (${status.completed} completed, ${status.skipped} skipped) - skipping notifications (onlyIfIncomplete=true)`);
+      console.log(`✅ All routines handled - skipping notifications`);
       return;
     }
 
-    // Determine base notification times
+    // ========================================================================
+    // STEP 2: DETERMINE NOTIFICATION TIMES (RESPECT USER SETTINGS)
+    // ========================================================================
+    
     let baseNotificationTimes: string[];
     
+    // Priority 1: Use custom times if set
     if (settings.customTimes && settings.reminderTimes && settings.reminderTimes.length > 0) {
-      baseNotificationTimes = settings.reminderTimes;
-    } else if (settings.multipleReminders) {
-      baseNotificationTimes = ['07:00', '14:00', '18:00', '20:00'];
-    } else {
+      baseNotificationTimes = [...settings.reminderTimes].sort();
+      console.log(`📅 Using custom times (${baseNotificationTimes.length}): ${baseNotificationTimes.join(', ')}`);
+    } 
+    // Priority 2: Use multiple reminders if enabled
+    else if (settings.multipleReminders && settings.reminderTimes && settings.reminderTimes.length > 1) {
+      baseNotificationTimes = [...settings.reminderTimes].sort();
+      console.log(`📅 Using multiple reminders (${baseNotificationTimes.length}): ${baseNotificationTimes.join(', ')}`);
+    }
+    // Priority 3: Fall back to global time
+    else {
       baseNotificationTimes = [settings.globalTime || '07:00'];
+      console.log(`📅 Using single global time: ${baseNotificationTimes[0]}`);
     }
 
-    // Apply escalating reminders if enabled
+    // ========================================================================
+    // STEP 3: HANDLE ESCALATION (WITH STRICT RULES)
+    // ========================================================================
+    
     let finalNotificationTimes = baseNotificationTimes;
-    if (settings.escalatingReminders && status.remaining > 0) {
+    let escalationApplied = false;
+    
+    // Only apply escalation if ALL these conditions are true:
+    // 1. Escalation is enabled
+    // 2. There are incomplete routines
+    // 3. User did NOT set custom times (only apply to defaults)
+    // 4. Multiple reminders mode is active
+    if (
+      settings.escalatingReminders &&
+      settings.multipleReminders &&
+      !settings.customTimes &&
+      status.remaining > 0 &&
+      baseNotificationTimes.length < (settings.maxEscalationLevel || 8)
+    ) {
       finalNotificationTimes = calculateEscalatingTimes(
         baseNotificationTimes, 
-        settings.maxEscalationLevel || 8
+        settings.maxEscalationLevel || 6 // Reduced from 8 to 6
       );
-      console.log(`📈 Escalating enabled: ${baseNotificationTimes.length} base → ${finalNotificationTimes.length} total`);
+      escalationApplied = true;
+      console.log(`📈 Escalation applied: ${baseNotificationTimes.length} base → ${finalNotificationTimes.length} total`);
+    } else {
+      const reasons: string[] = [];
+      if (!settings.escalatingReminders) reasons.push('escalation disabled');
+      if (!settings.multipleReminders) reasons.push('multiple reminders disabled');
+      if (settings.customTimes) reasons.push('custom times set');
+      if (status.remaining === 0) reasons.push('all complete');
+      console.log(`📈 Escalation NOT applied (${reasons.join(', ')})`);
     }
 
-    // Schedule notifications for each time
+    // ========================================================================
+    // STEP 4: DEDUPLICATION & VALIDATION
+    // ========================================================================
+    
+    // Remove duplicates and sort
+    const uniqueTimes = Array.from(new Set(finalNotificationTimes)).sort();
+    
+    // Cap maximum notifications to 6 per day (even with escalation)
+    const maxNotificationsPerDay = 6;
+    const cappedTimes = uniqueTimes.slice(0, maxNotificationsPerDay);
+    
+    if (cappedTimes.length < uniqueTimes.length) {
+      console.log(`⚠️  Capped notifications: ${uniqueTimes.length} → ${cappedTimes.length} (max ${maxNotificationsPerDay}/day)`);
+    }
+
+    // ========================================================================
+    // STEP 5: SCHEDULE NOTIFICATIONS
+    // ========================================================================
+    
     let scheduledCount = 0;
-    for (let i = 0; i < finalNotificationTimes.length; i++) {
-      const time = finalNotificationTimes[i];
+    for (let i = 0; i < cappedTimes.length; i++) {
+      const time = cappedTimes[i];
       const { hours, minutes } = parseTime(time);
       
       // Determine time of day for smart content
@@ -453,6 +546,7 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
       }
     }
     
+    console.log(`✅ Scheduled ${scheduledCount} notifications`);
     
   } catch (error) {
     console.error('❌ Error scheduling routine notifications:', error);
