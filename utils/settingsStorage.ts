@@ -51,13 +51,15 @@ export const STORAGE_KEYS = {
 
 /**
  * Load settings from AsyncStorage
+ * CRITICAL: onlyIfIncomplete is ALWAYS true (no user toggle)
  */
 export const loadSettings = async (): Promise<SettingsData> => {
   try {
     const settingsJson = await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS);
     if (settingsJson) {
       const savedSettings = JSON.parse(settingsJson);
-      return { ...DEFAULT_SETTINGS, ...savedSettings };
+      // ENFORCE: onlyIfIncomplete must ALWAYS be true
+      return { ...DEFAULT_SETTINGS, ...savedSettings, onlyIfIncomplete: true };
     }
     return DEFAULT_SETTINGS;
   } catch (error) {
@@ -68,10 +70,13 @@ export const loadSettings = async (): Promise<SettingsData> => {
 
 /**
  * Save settings to AsyncStorage
+ * CRITICAL: onlyIfIncomplete is ALWAYS forced to true
  */
 export const saveSettings = async (settings: SettingsData): Promise<void> => {
   try {
-    await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    // ENFORCE: onlyIfIncomplete must ALWAYS be true
+    const enforcedSettings = { ...settings, onlyIfIncomplete: true };
+    await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(enforcedSettings));
   } catch (error) {
     console.error('Error saving settings:', error);
     throw error;

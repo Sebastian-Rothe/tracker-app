@@ -234,19 +234,8 @@ export const AdvancedNotificationSettings: React.FC = () => {
           <View style={styles.smartFeaturesContainer}>
             <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>🧠 Smart Features</Text>
             
-            <View style={styles.switchRow}>
-              <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchLabel, { color: theme.Colors.text.primary }]}>✅ Skip When Complete</Text>
-                <Text style={[styles.switchDescription, { color: theme.Colors.text.secondary }]}>No notifications when all routines are done</Text>
-              </View>
-              <Switch
-                value={settings.onlyIfIncomplete ?? true}
-                onValueChange={value => handleToggle('onlyIfIncomplete', value)}
-                trackColor={{ false: theme.Colors.gray[400], true: '#4ade80' }}
-                thumbColor={settings.onlyIfIncomplete ? '#22c55e' : theme.Colors.gray[300]}
-              />
-            </View>
-
+            {/* NOTE: "Skip When Complete" option removed - always enabled by design */}
+            
             <View style={styles.switchRow}>
               <View style={styles.switchTextContainer}>
                 <Text style={[styles.switchLabel, { color: theme.Colors.text.primary }]}>🔥 Streak Protection</Text>
