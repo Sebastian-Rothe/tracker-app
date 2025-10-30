@@ -225,7 +225,7 @@ export default function MultiRoutineTrackerScreen() {
   };
 
   const handleRoutineAction = (routine: Routine, completed: boolean) => {
-    // Directly confirm routine action without popup
+    // Directly confirm routine action - streak can be recovered via "Undo Skip" if needed
     confirmRoutineAction(routine, completed);
   };
 
@@ -377,9 +377,14 @@ export default function MultiRoutineTrackerScreen() {
       const currentRoutine = currentRoutines.find(r => r.id === routine.id);
       
       if (currentRoutine && currentRoutine.lastSkipped) {
-        // Clear skip status by setting lastSkipped to empty
+        // Restore streak from before skip (if available)
+        const restoredStreak = currentRoutine.streakBeforeSkip ?? 0;
+        
+        // Clear skip status and restore streak
         const updatedRoutines = currentRoutines.map(r => 
-          r.id === routine.id ? { ...r, lastSkipped: '' } : r
+          r.id === routine.id 
+            ? { ...r, lastSkipped: '', streak: restoredStreak, streakBeforeSkip: undefined }
+            : r
         );
         
         await saveRoutines(updatedRoutines);

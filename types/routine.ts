@@ -10,6 +10,7 @@ export interface Routine {
   streak: number;
   lastConfirmed: string; // ISO date string (YYYY-MM-DD)
   lastSkipped?: string | null; // ISO date string for skip tracking
+  streakBeforeSkip?: number; // Store streak before skip for undo functionality
   createdAt: string; // ISO date string
   color: string; // Hex color code for visual identification
   icon: string; // Emoji or icon identifier

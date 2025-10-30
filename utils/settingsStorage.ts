@@ -419,18 +419,14 @@ export const confirmRoutine = async (routineId: string, confirmed: boolean): Pro
       routine.lastConfirmed = today;
       // Clear skip status when confirmed
       routine.lastSkipped = '';
+      routine.streakBeforeSkip = undefined; // Clear streak backup
     } else {
-      // Mark as skipped today (don't reset streak to 0, just mark skip)
+      // SKIP: Save current streak for undo, then reset to 0
+      routine.streakBeforeSkip = routine.streak; // Save for undo!
+      routine.streak = 0;
       routine.lastSkipped = today;
       // Clear confirmation status when skipped
       routine.lastConfirmed = '';
-      // Only reset streak if it was a streak day (yesterday was confirmed)
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayString = yesterday.toISOString().slice(0, 10);
-      if (routine.lastConfirmed === yesterdayString) {
-        routine.streak = 0; // Break the streak
-      }
     }
     
     routines[routineIndex] = routine;
