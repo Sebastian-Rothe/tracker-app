@@ -11,6 +11,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
 import { WallpaperBackground } from '@/components/WallpaperBackground';
+import FrequencySelector from '@/components/FrequencySelector';
 import { 
   loadRoutines, 
   createRoutine, 
@@ -27,7 +28,8 @@ import {
   ROUTINE_COLORS, 
   ROUTINE_ICONS,
   RoutineColor,
-  RoutineIcon 
+  RoutineIcon,
+  FrequencyConfig 
 } from '@/types/routine';
 
 const TEXTS = {
@@ -63,6 +65,7 @@ interface RoutineFormData {
   color: RoutineColor;
   icon: RoutineIcon;
   initialStreak: string; // As string for input validation
+  frequency: FrequencyConfig;
 }
 
 const INITIAL_FORM_DATA: RoutineFormData = {
@@ -71,6 +74,7 @@ const INITIAL_FORM_DATA: RoutineFormData = {
   color: ROUTINE_COLORS[0],
   icon: ROUTINE_ICONS[0],
   initialStreak: '',
+  frequency: { type: 'daily' },
 };
 
 export default function RoutineManagementScreen() {
@@ -115,6 +119,7 @@ export default function RoutineManagementScreen() {
       color: routine.color as RoutineColor,
       icon: routine.icon as RoutineIcon,
       initialStreak: routine.streak.toString(),
+      frequency: routine.frequency || { type: 'daily' },
     });
     setIsFormVisible(true);
   };
@@ -161,28 +166,47 @@ export default function RoutineManagementScreen() {
           icon: formData.icon,
         });
         
-        // Update streak if changed (only when editing)
-        if (initialStreakValue !== editingRoutine.streak) {
-          const routines = await loadRoutines();
-          const routineIndex = routines.findIndex(r => r.id === editingRoutine.id);
-          if (routineIndex !== -1) {
+        // Update streak and frequency if changed
+        const routines = await loadRoutines();
+        const routineIndex = routines.findIndex(r => r.id === editingRoutine.id);
+        if (routineIndex !== -1) {
+          let hasChanges = false;
+          
+          if (initialStreakValue !== editingRoutine.streak) {
             routines[routineIndex].streak = initialStreakValue;
             // Reset lastConfirmed if streak is manually changed
             if (initialStreakValue === 0) {
               routines[routineIndex].lastConfirmed = '';
             }
-            // Save updated routines
+            hasChanges = true;
+          }
+          
+          // Update frequency
+          routines[routineIndex].frequency = formData.frequency;
+          hasChanges = true;
+          
+          if (hasChanges) {
             await saveRoutines(routines);
           }
         }
       } else {
-        // Create new routine with initial streak
+        // Create new routine with initial streak and frequency
         const newRoutine = await createRoutine(request);
-        if (initialStreakValue > 0) {
-          const routines = await loadRoutines();
-          const routineIndex = routines.findIndex(r => r.id === newRoutine.id);
-          if (routineIndex !== -1) {
+        const routines = await loadRoutines();
+        const routineIndex = routines.findIndex(r => r.id === newRoutine.id);
+        if (routineIndex !== -1) {
+          let hasChanges = false;
+          
+          if (initialStreakValue > 0) {
             routines[routineIndex].streak = initialStreakValue;
+            hasChanges = true;
+          }
+          
+          // Set frequency (always set for new routines)
+          routines[routineIndex].frequency = formData.frequency;
+          hasChanges = true;
+          
+          if (hasChanges) {
             await saveRoutines(routines);
           }
         }
@@ -262,12 +286,26 @@ export default function RoutineManagementScreen() {
         <ScrollView 
           style={[styles.formContainer, { backgroundColor: theme.Colors.surface.background }]}
           contentContainerStyle={{
-            paddingBottom: Math.max(insets.bottom) // Minimal padding to prevent button overlap
+            paddingBottom: Math.max(insets.bottom, 40), // Extra padding to see all content
+            paddingHorizontal: 20,
+            paddingTop: 20,
           }}
+          showsVerticalScrollIndicator={true}
         >
           <Text style={[styles.formTitle, { color: theme.Colors.text.primary }]}>
             {editingRoutine ? TEXTS.editRoutine : TEXTS.addRoutine}
           </Text>
+
+          {/* ============= TEST MARKER - VERSION CHECK ============= */}
+          <View style={{ backgroundColor: 'red', padding: 20, marginVertical: 20 }}>
+            <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold', textAlign: 'center' }}>
+              ⚠️ NEUE VERSION GELADEN! ⚠️
+            </Text>
+            <Text style={{ color: 'white', fontSize: 16, textAlign: 'center', marginTop: 10 }}>
+              Wenn du das siehst, hat die App die neuen Änderungen geladen!
+            </Text>
+          </View>
+          {/* ======================================================= */}
 
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: theme.Colors.text.primary }]}>{TEXTS.routineName}</Text>
@@ -353,6 +391,17 @@ export default function RoutineManagementScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+
+          {/* DEBUG: Frequency Selector Section */}
+          <View style={[styles.inputGroup, { backgroundColor: '#f0f9ff', borderWidth: 2, borderColor: '#0ea5e9', borderRadius: 8 }]}>
+            <Text style={[styles.label, { color: '#0ea5e9', fontSize: 18, fontWeight: 'bold' }]}>
+              🆕 Häufigkeit der Routine
+            </Text>
+            <FrequencySelector
+              frequency={formData.frequency}
+              onChange={(frequency) => setFormData(prev => ({ ...prev, frequency }))}
+            />
           </View>
 
           <View style={styles.formButtons}>

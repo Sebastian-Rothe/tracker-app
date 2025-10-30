@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { Routine } from '@/types/routine';
 import { NotificationScheduleData } from '@/types/notifications';
 import { getNotificationData } from './settingsStorage';
+import { isRoutineDueToday } from './routineFrequencyHelper';
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -134,7 +135,8 @@ const isRoutineHandledToday = (routine: any): boolean => {
  * Get completion status for active routines with streak information
  */
 export const getCompletionStatus = (routines: any[]) => {
-  const activeRoutines = routines.filter(r => r.isActive);
+  // CRITICAL: Only consider routines that are due today based on their frequency
+  const activeRoutines = routines.filter(r => r.isActive && isRoutineDueToday(r));
   const completedToday = activeRoutines.filter(isRoutineCompletedToday);
   const skippedToday = activeRoutines.filter(isRoutineSkippedToday);
   

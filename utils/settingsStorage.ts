@@ -303,6 +303,7 @@ export const createRoutine = async (request: CreateRoutineRequest): Promise<Rout
       icon: request.icon,
       isActive: true,
       reminderTime: request.reminderTime,
+      frequency: { type: 'daily' }, // Default to daily frequency
     };
     
     const updatedRoutines = [...routines, newRoutine];
@@ -667,6 +668,7 @@ export const migrateFromLegacyData = async (): Promise<boolean> => {
         icon: ROUTINE_ICONS[0], // Default icon (💪)
         isActive: true,
         reminderTime: '07:00', // Default reminder time
+        frequency: { type: 'daily' }, // Default to daily frequency
       };
 
       // Save migrated routine

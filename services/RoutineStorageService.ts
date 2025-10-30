@@ -57,6 +57,22 @@ export class RoutineStorageService {
   }
 
   /**
+   * Migrate old routines to include frequency field
+   */
+  private migrateRoutines(routines: Routine[]): Routine[] {
+    return routines.map(routine => {
+      // If routine doesn't have frequency, add default daily frequency
+      if (!routine.frequency) {
+        return {
+          ...routine,
+          frequency: { type: 'daily' as const }
+        };
+      }
+      return routine;
+    });
+  }
+
+  /**
    * Load routines with intelligent caching
    */
   public async getRoutines(): Promise<Routine[]> {
@@ -68,7 +84,10 @@ export class RoutineStorageService {
     try {
       const routinesJson = await AsyncStorage.getItem(this.STORAGE_KEYS.ROUTINES);
       if (routinesJson) {
-        const routines: Routine[] = JSON.parse(routinesJson);
+        let routines: Routine[] = JSON.parse(routinesJson);
+        
+        // Migrate routines if needed
+        routines = this.migrateRoutines(routines);
         
         // Update cache
         this.routinesCache = routines;

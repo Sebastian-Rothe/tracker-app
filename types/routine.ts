@@ -3,6 +3,19 @@
  * Phase 3: Transforming from single to multiple routine tracking
  */
 
+// Frequency Types for flexible routine scheduling
+export type FrequencyType = 'daily' | 'interval' | 'weekly' | 'monthly';
+
+export interface FrequencyConfig {
+  type: FrequencyType;
+  // For 'interval': how many days between each occurrence (e.g., 2 = every 2 days)
+  intervalDays?: number;
+  // For 'weekly': array of weekdays (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+  weekdays?: number[];
+  // For 'monthly': array of days in month (1-31)
+  monthDays?: number[];
+}
+
 export interface Routine {
   id: string;
   name: string;
@@ -16,6 +29,8 @@ export interface Routine {
   icon: string; // Emoji or icon identifier
   isActive: boolean; // Whether routine is currently being tracked
   reminderTime?: string; // Optional time for notifications (HH:MM format)
+  frequency: FrequencyConfig; // Scheduling configuration
+  nextDueDate?: string; // ISO date string - when routine is next due
 }
 
 export interface RoutineState {
