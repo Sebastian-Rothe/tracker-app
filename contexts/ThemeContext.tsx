@@ -62,6 +62,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             setIsAutoMode(false);
             setInternalThemeMode(savedTheme as ThemeMode);
           }
+        } else {
+          // Default to auto mode (System Default) if no preference saved
+          setIsAutoMode(true);
+          setInternalThemeMode(systemColorScheme === 'dark' ? 'dark' : 'light');
         }
         
         if (savedWallpaper) {
