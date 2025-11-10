@@ -97,11 +97,6 @@ export default function SettingsScreen() {
   const [settings, setSettings] = useState<SettingsData>(defaultSettings);
   const [notificationTimeInput, setNotificationTimeInput] = useState<string>('07:00');
   const { theme, themeMode, setThemeMode, isDarkMode, isAutoMode, wallpaper, setWallpaper } = useTheme();
-  
-  // Debug: Show current wallpaper
-  if (__DEV__) {
-    console.log('⚙️ Settings Screen - Current wallpaper:', wallpaper);
-  }
 
   useEffect(() => {
     loadData();

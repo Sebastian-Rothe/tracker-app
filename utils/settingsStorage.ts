@@ -371,7 +371,7 @@ export const deleteRoutine = async (routineId: string): Promise<boolean> => {
     
     // Note: Notifications should be rescheduled externally to avoid circular dependencies
     // Call scheduleRoutineNotifications() from the component after deleting routine
-    console.log('Routine deleted successfully - notifications should be rescheduled externally');
+
     
     return true;
   } catch (error) {
@@ -710,7 +710,7 @@ export const clearLegacyData = async (): Promise<void> => {
       STORAGE_KEYS.STREAK,
       STORAGE_KEYS.LAST_CONFIRMED,
     ]);
-    console.log('Legacy data cleared successfully');
+
   } catch (error) {
     console.error('Error clearing legacy data:', error);
     // Don't throw - this is not critical
@@ -729,7 +729,7 @@ export const performAutoMigration = async (): Promise<void> => {
       // Uncomment if you want to clean up old data
       // await clearLegacyData();
       
-      console.log('Auto-migration completed successfully');
+
     }
   } catch (error) {
     console.error('Auto-migration failed:', error);

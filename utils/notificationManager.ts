@@ -394,7 +394,6 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
     // Check permissions
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
-      console.log('📵 Notification permissions not granted');
       return;
     }
 
@@ -407,23 +406,19 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
     
     // STRICT VALIDATION: No notifications if disabled
     if (!settings.enabled) {
-      console.log('🔕 Notifications disabled by user');
       return;
     }
 
     // Get completion status - REAL-TIME calculation
     const status = getCompletionStatus(routines);
-    console.log(`📊 Routine status: ${status.total} total, ${status.completed} completed, ${status.skipped} skipped, ${status.remaining} remaining`);
     
     // STRICT VALIDATION: No notifications if no active routines
     if (!status.hasActiveRoutines) {
-      console.log('📝 No active routines - skipping notifications');
       return;
     }
     
     // CRITICAL VALIDATION: No notifications if all routines are handled
     if (settings.onlyIfIncomplete && status.isAllHandled) {
-      console.log(`✅ All routines handled - skipping notifications`);
       return;
     }
 
@@ -436,17 +431,14 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
     // Priority 1: Use custom times if set
     if (settings.customTimes && settings.reminderTimes && settings.reminderTimes.length > 0) {
       baseNotificationTimes = [...settings.reminderTimes].sort();
-      console.log(`📅 Using custom times (${baseNotificationTimes.length}): ${baseNotificationTimes.join(', ')}`);
     } 
     // Priority 2: Use multiple reminders if enabled
     else if (settings.multipleReminders && settings.reminderTimes && settings.reminderTimes.length > 1) {
       baseNotificationTimes = [...settings.reminderTimes].sort();
-      console.log(`📅 Using multiple reminders (${baseNotificationTimes.length}): ${baseNotificationTimes.join(', ')}`);
     }
     // Priority 3: Fall back to global time
     else {
       baseNotificationTimes = [settings.globalTime || '07:00'];
-      console.log(`📅 Using single global time: ${baseNotificationTimes[0]}`);
     }
 
     // ========================================================================
@@ -473,14 +465,8 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
         settings.maxEscalationLevel || 6 // Reduced from 8 to 6
       );
       escalationApplied = true;
-      console.log(`📈 Escalation applied: ${baseNotificationTimes.length} base → ${finalNotificationTimes.length} total`);
     } else {
-      const reasons: string[] = [];
-      if (!settings.escalatingReminders) reasons.push('escalation disabled');
-      if (!settings.multipleReminders) reasons.push('multiple reminders disabled');
-      if (settings.customTimes) reasons.push('custom times set');
-      if (status.remaining === 0) reasons.push('all complete');
-      console.log(`📈 Escalation NOT applied (${reasons.join(', ')})`);
+      // Escalation not applied
     }
 
     // ========================================================================
@@ -493,10 +479,6 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
     // Cap maximum notifications to 6 per day (even with escalation)
     const maxNotificationsPerDay = 6;
     const cappedTimes = uniqueTimes.slice(0, maxNotificationsPerDay);
-    
-    if (cappedTimes.length < uniqueTimes.length) {
-      console.log(`⚠️  Capped notifications: ${uniqueTimes.length} → ${cappedTimes.length} (max ${maxNotificationsPerDay}/day)`);
-    }
 
     // ========================================================================
     // STEP 5: SCHEDULE NOTIFICATIONS
@@ -546,8 +528,6 @@ export const scheduleRoutineNotifications = async (): Promise<void> => {
         }
       }
     }
-    
-    console.log(`✅ Scheduled ${scheduledCount} notifications`);
     
   } catch (error) {
     console.error('❌ Error scheduling routine notifications:', error);
