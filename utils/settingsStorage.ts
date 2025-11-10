@@ -415,7 +415,18 @@ export const confirmRoutine = async (routineId: string, confirmed: boolean): Pro
     if (confirmed) {
       // Increase streak if confirmed (only increase if not already confirmed today)
       if (routine.lastConfirmed !== today) {
-        routine.streak += 1;
+        // Check if routine was completed yesterday to maintain streak
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayString = yesterday.toISOString().slice(0, 10);
+        
+        if (routine.lastConfirmed === yesterdayString) {
+          // Consecutive day - increment streak
+          routine.streak += 1;
+        } else {
+          // Not consecutive - start new streak at 1
+          routine.streak = 1;
+        }
       }
       routine.lastConfirmed = today;
       // Clear skip status when confirmed
