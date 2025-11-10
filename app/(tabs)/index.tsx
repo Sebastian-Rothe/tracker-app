@@ -42,7 +42,6 @@ import {
   requestNotificationPermissions 
 } from '@/utils/notificationManager';
 import { checkAndCancelNotificationsIfNeeded } from '@/utils/notificationHelper';
-import { isRoutineDueToday, getFrequencyDescription } from '@/utils/routineFrequencyHelper';
 import { Routine, RoutineState, ROUTINE_COLORS, ROUTINE_ICONS, RoutineColor, RoutineIcon } from '@/types/routine';
 import { Button, Card, Badge, ProgressBar } from '@/components/ui';
 import { Theme } from '@/constants/Theme';
@@ -204,9 +203,9 @@ export default function MultiRoutineTrackerScreen() {
         loadRoutineState(),
       ]);
 
-      // Filter for active routines that are due today based on their frequency
-      const dueToday = loadedRoutines.filter(r => r.isActive && isRoutineDueToday(r));
-      setRoutines(dueToday);
+      // Filter for active routines only (removed frequency check)
+      const activeRoutines = loadedRoutines.filter(r => r.isActive);
+      setRoutines(activeRoutines);
       setRoutineState(state);
 
       // Schedule notifications for active routines (only on first load, not refresh)
@@ -717,11 +716,6 @@ export default function MultiRoutineTrackerScreen() {
                       <Text style={[styles.routineStreak, { color: theme.Colors.primary[500] }]}>
                         🔥 {TEXTS.streakDays(routine.streak)}
                       </Text>
-                      {routine.frequency && routine.frequency.type !== 'daily' && (
-                        <Text style={[styles.routineFrequency, { color: theme.Colors.text.secondary }]}>
-                          📅 {getFrequencyDescription(routine.frequency)}
-                        </Text>
-                      )}
                     </View>
                   </View>
                   {/* Delete button removed from tracker - only available in routines management */}
