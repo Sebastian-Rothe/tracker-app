@@ -20,6 +20,13 @@ export interface Achievement {
     type: 'badge' | 'title' | 'theme';
     value: string;
   };
+  contributingRoutines?: Array<{
+    routineId: string;
+    routineName: string;
+    routineIcon: string;
+    value: number; // z.B. Streak-Wert dieser Routine
+    achievedAt: string; // Wann hat diese Routine das Ziel erreicht
+  }>;
 }
 
 export interface UserProgress {
@@ -359,10 +366,13 @@ const calculateConsecutiveWeeks = (history: any[]): number => {
  */
 export const updateAchievements = async (): Promise<Achievement[]> => {
   try {
-    const [currentAchievements, userProgress] = await Promise.all([
+    const [currentAchievements, userProgress, routines] = await Promise.all([
       loadAchievements(),
       calculateUserProgress(),
+      loadRoutines(),
     ]);
+    
+    const activeRoutines = routines.filter(r => r.isActive);
     
     const updatedAchievements = currentAchievements.map(achievement => {
       const updated = { ...achievement };
@@ -374,6 +384,16 @@ export const updateAchievements = async (): Promise<Achievement[]> => {
       switch (achievement.requirement.type) {
         case 'streak_days':
           currentValue = userProgress.currentStreak;
+          // Track which routines have reached this streak milestone
+          updated.contributingRoutines = activeRoutines
+            .filter(r => (r.streak || 0) >= targetValue)
+            .map(r => ({
+              routineId: r.id,
+              routineName: r.name,
+              routineIcon: r.icon,
+              value: r.streak || 0,
+              achievedAt: r.lastConfirmed || new Date().toISOString().slice(0, 10),
+            }));
           break;
         case 'total_completions':
           currentValue = userProgress.totalCompletions;
@@ -383,6 +403,14 @@ export const updateAchievements = async (): Promise<Achievement[]> => {
           break;
         case 'active_routines':
           currentValue = userProgress.activeRoutines;
+          // List all active routines
+          updated.contributingRoutines = activeRoutines.map(r => ({
+            routineId: r.id,
+            routineName: r.name,
+            routineIcon: r.icon,
+            value: 1,
+            achievedAt: r.createdAt || new Date().toISOString(),
+          }));
           break;
         case 'consecutive_weeks':
           currentValue = userProgress.consecutiveWeeks;

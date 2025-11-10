@@ -44,14 +44,23 @@ export default function AchievementsPage() {
   };
 
   const handleAchievementPress = (achievement: Achievement) => {
+    // Build contributing routines message
+    let contributingInfo = '';
+    if (achievement.contributingRoutines && achievement.contributingRoutines.length > 0) {
+      contributingInfo = '\n\n🎯 Contributing Routines:\n';
+      achievement.contributingRoutines.forEach(routine => {
+        contributingInfo += `${routine.routineIcon} ${routine.routineName}: ${routine.value} days\n`;
+      });
+    }
+    
     const message = achievement.isUnlocked 
-      ? `Achievement unlocked on ${new Date(achievement.unlockedAt!).toLocaleDateString()}`
-      : `Progress: ${Math.round(achievement.progress * 100)}%`;
+      ? `Achievement unlocked on ${new Date(achievement.unlockedAt!).toLocaleDateString()}${contributingInfo}`
+      : `Progress: ${Math.round(achievement.progress * 100)}%${contributingInfo}`;
     
     Alert.alert(
       achievement.title,
       `${achievement.description}\n\n${message}`,
-      [{ text: 'OK' }] // 🚀 NUR OK BUTTON - KEIN SHARE MEHR!
+      [{ text: 'OK' }]
     );
   };
 

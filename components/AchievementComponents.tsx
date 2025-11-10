@@ -129,6 +129,18 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
             Unlocked: {new Date(achievement.unlockedAt).toLocaleDateString()}
           </Text>
         )}
+        
+        {/* Contributing Routines
+        {achievement.contributingRoutines && achievement.contributingRoutines.length > 0 && size === 'large' && (
+          <View style={styles.contributingRoutines}>
+            <Text style={styles.contributingTitle}>🎯 Achieved by:</Text>
+            {achievement.contributingRoutines.map((routine, index) => (
+              <Text key={routine.routineId} style={styles.contributingRoutine}>
+                {routine.routineIcon} {routine.routineName} - {routine.value} days
+              </Text>
+            ))}
+          </View>
+        )} */}
       </View>
       
       {/* Category Badge */}
@@ -337,6 +349,24 @@ const styles = StyleSheet.create({
     color: Theme.Colors.text.tertiary,
     marginTop: Theme.Spacing.sm,
     fontStyle: 'italic',
+  },
+  contributingRoutines: {
+    marginTop: Theme.Spacing.md,
+    padding: Theme.Spacing.sm,
+    backgroundColor: Theme.Colors.gray[50],
+    borderRadius: Theme.BorderRadius.sm,
+  },
+  contributingTitle: {
+    fontSize: Theme.Typography.fontSize.sm,
+    fontWeight: Theme.Typography.fontWeight.semibold,
+    color: Theme.Colors.text.primary,
+    marginBottom: Theme.Spacing.xs,
+  },
+  contributingRoutine: {
+    fontSize: Theme.Typography.fontSize.sm,
+    color: Theme.Colors.text.secondary,
+    marginLeft: Theme.Spacing.sm,
+    marginTop: Theme.Spacing.xs,
   },
   categoryBadge: {
     position: 'absolute',
