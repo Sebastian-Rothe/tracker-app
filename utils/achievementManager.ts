@@ -287,18 +287,51 @@ const calculatePerfectDays = (history: any[], activeRoutines: any[]): number => 
     byDate.get(entry.date)!.push(entry);
   });
   
-  let perfectDays = 0;
+  // Sort dates chronologically
+  const sortedDates = Array.from(byDate.keys()).sort();
   
-  byDate.forEach((dayEntries, date) => {
-    const completedRoutines = dayEntries.filter(e => e.completed).length;
+  let currentStreak = 0;
+  let longestStreak = 0;
+  let previousDate: Date | null = null;
+  
+  sortedDates.forEach(dateStr => {
+    const dayEntries = byDate.get(dateStr)!;
+    const currentDate = new Date(dateStr);
+    
+    // Check if this day was perfect (all routines completed, none skipped)
+    const completedRoutines = dayEntries.filter(e => e.completed && !e.skipped).length;
+    const skippedRoutines = dayEntries.filter(e => e.skipped).length;
     const totalRoutines = activeRoutines.length;
     
-    if (completedRoutines === totalRoutines && totalRoutines > 0) {
-      perfectDays++;
+    const isPerfectDay = completedRoutines === totalRoutines && skippedRoutines === 0 && totalRoutines > 0;
+    
+    if (isPerfectDay) {
+      // Check if this day is consecutive to the previous perfect day
+      if (previousDate === null) {
+        // First perfect day
+        currentStreak = 1;
+      } else {
+        const dayDiff = Math.floor((currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (dayDiff === 1) {
+          // Consecutive day
+          currentStreak++;
+        } else {
+          // Streak broken, start new streak
+          currentStreak = 1;
+        }
+      }
+      
+      // Update longest streak
+      longestStreak = Math.max(longestStreak, currentStreak);
+      previousDate = currentDate;
+    } else {
+      // Day was not perfect, reset streak
+      currentStreak = 0;
+      previousDate = null;
     }
   });
   
-  return perfectDays;
+  return longestStreak;
 };
 
 /**
