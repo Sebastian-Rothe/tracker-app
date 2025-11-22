@@ -6,7 +6,7 @@
     "description": "Track your daily routines with simple streak counters and daily reminders",
     "sdkVersion": "54.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/ic_launcher/android/mipmap-xxxhdpi/ic_launcher.png",
+    "icon": "./assets/images/icon-folder/android/mipmap-xxxhdpi/ic_launcher.png",
     "scheme": "morgenroutine-tracker",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -20,7 +20,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/ic_launcher/android/mipmap-xxxhdpi/ic_launcher_foreground.png",
+        "foregroundImage": "./assets/images/icon-folder/android/mipmap-xxxhdpi/ic_launcher_foreground.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -37,7 +37,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/ic_launcher/android/mipmap-xxxhdpi/ic_launcher.png",
+          "image": "./assets/images/icon-folder/android/mipmap-xxxhdpi/ic_launcher.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -46,7 +46,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/ic_launcher/android/mipmap-xxxhdpi/ic_launcher.png",
+          "icon": "./assets/images/icon-folder/android/mipmap-xxxhdpi/ic_launcher.png",
           "color": "#ffffff",
           "sounds": [],
           "mode": "production"
