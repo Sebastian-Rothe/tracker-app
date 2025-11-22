@@ -76,6 +76,7 @@ const TEXTS = {
   impressum: 'Legal Notice (Impressum)',
   support: 'Support & Contact',
   openSource: 'Open Source',
+  buyMeCoffee: '☕ Buy me a coffee',
   linkError: 'Could not open link',
 };
 
@@ -420,6 +421,13 @@ export default function SettingsScreen() {
             <Ionicons name="logo-github" size={20} color={theme.Colors.primary[600]} />
             <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{TEXTS.openSource}</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.supportButton, { backgroundColor: theme.Colors.warning[500] }]}
+            onPress={() => openLink('https://www.paypal.com/donate/?hosted_button_id=7RMD5JLDZ667N')}
+          >
+            <Text style={styles.supportButtonText}>{TEXTS.buyMeCoffee}</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -596,6 +604,28 @@ const styles = StyleSheet.create({
   linkButtonText: {
     fontSize: 16,
     fontWeight: '500',
+  },
+  supportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 10,
+    marginTop: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  supportButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#fff',
   },
   // Wallpaper styles
   wallpaperGrid: {
