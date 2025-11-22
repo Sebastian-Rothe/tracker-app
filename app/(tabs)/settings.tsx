@@ -70,13 +70,14 @@ const TEXTS = {
   notificationUpdated: 'Notification settings updated successfully!',
   aboutTitle: 'About Routine Tracker',
   aboutDescription: 'A free, privacy-focused habit tracker app. Your data stays on your device.',
-  version: 'Version 1.0.0',
+  personalStory: 'Started as a personal tool to track my own routines, now shared with the world. 100% indie, privacy-first, and always improving based on your feedback.',
+  version: 'Version 1.1.3',
   developer: 'Developed by Sebastian Rothe',
   privacyPolicy: 'Privacy Policy',
   impressum: 'Legal Notice (Impressum)',
   support: 'Support & Contact',
   openSource: 'Open Source',
-  buyMeCoffee: '☕ Buy me a coffee',
+  buyMeCoffee: '💝 Support the Developer',
   linkError: 'Could not open link',
 };
 
@@ -384,6 +385,10 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{TEXTS.aboutTitle}</Text>
         <Text style={[styles.description, { color: theme.Colors.text.secondary }]}>{TEXTS.aboutDescription}</Text>
         
+        <View style={[styles.storyBox, { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[200] }]}>
+          <Text style={[styles.storyText, { color: theme.Colors.text.primary }]}>{TEXTS.personalStory}</Text>
+        </View>
+        
         <View style={styles.aboutInfo}>
           <Text style={[styles.aboutText, { color: theme.Colors.text.secondary }]}>{TEXTS.version}</Text>
           <Text style={[styles.aboutText, { color: theme.Colors.text.secondary }]}>{TEXTS.developer}</Text>
@@ -584,6 +589,17 @@ const styles = StyleSheet.create({
   aboutInfo: {
     marginBottom: 20,
     gap: 4,
+  },
+  storyBox: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 20,
+  },
+  storyText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontStyle: 'italic',
   },
   aboutText: {
     fontSize: 14,
