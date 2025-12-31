@@ -75,28 +75,28 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
   const generateMotivationMessage = (): string => {
     const messages = {
       streak: [
-        "🔥 You're on fire! Keep that streak alive!",
-        "💪 Consistency is key - you're crushing it!",
-        "🌟 Every day counts. You're building something amazing!",
-        "🚀 Your dedication is paying off. Keep going!",
+        t.motivational.streakOnFire,
+        t.motivational.streakConsistency,
+        t.motivational.streakBuilding,
+        t.motivational.streakDedication,
       ],
       completion: [
-        "✨ Great job completing your routines today!",
-        "🎯 You're hitting your targets like a champion!",
-        "🏆 Another successful day in the books!",
-        "💯 Your commitment is inspiring!",
+        t.motivational.completionGreat,
+        t.motivational.completionChampion,
+        t.motivational.completionSuccessful,
+        t.motivational.completionInspiring,
       ],
       encouragement: [
-        "🌱 Small steps lead to big changes!",
-        "⭐ You're building habits that will last a lifetime!",
-        "🎪 Progress, not perfection - you're doing great!",
-        "🌈 Every routine completed is a victory!",
+        t.motivational.encouragementSteps,
+        t.motivational.encouragementHabits,
+        t.motivational.encouragementProgress,
+        t.motivational.encouragementVictory,
       ],
       milestone: [
-        "🎉 Look how far you've come! Amazing progress!",
-        "💎 Your persistence is turning into real results!",
-        "🏅 You're becoming the person you want to be!",
-        "🌟 Your future self will thank you for this dedication!",
+        t.motivational.milestoneProgress,
+        t.motivational.milestonePersistence,
+        t.motivational.milestoneBecoming,
+        t.motivational.milestoneFuture,
       ]
     };
 
@@ -119,12 +119,12 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
   };
 
   const formatStreak = (days: number): string => {
-    if (days === 0) return "Start your journey today!";
-    if (days === 1) return "1 day strong! 💪";
-    if (days < 7) return `${days} days rolling! 🔥`;
-    if (days < 30) return `${days} days streak! 🌟`;
-    if (days < 100) return `${days} days unstoppable! 🚀`;
-    return `${days} days legendary! 👑`;
+    if (days === 0) return t.motivational.streakStart;
+    if (days === 1) return `1 ${t.motivational.streakDayStrong}`;
+    if (days < 7) return `${days} ${t.motivational.streakDaysRolling}`;
+    if (days < 30) return `${days} ${t.motivational.streakDaysStreak}`;
+    if (days < 100) return `${days} ${t.motivational.streakDaysUnstoppable}`;
+    return `${days} ${t.motivational.streakDaysLegendary}`;
   };
 
   return (
