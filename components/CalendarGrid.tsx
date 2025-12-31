@@ -1,13 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
-import { DayData } from '@/utils/historyManager';
+import { DayData, getDailyData } from '@/utils/historyManager';
+import { Routine } from '@/types/routine';
+import { Card } from '@/components/ui';
 
 interface CalendarGridProps {
-  monthData: DayData[];
   onDayPress?: (dayData: DayData) => void;
-  currentMonth: string; // YYYY-MM format
+  activeRoutines: Routine[];
+  onMonthChange?: (month: string) => void;
 }
 
 interface CalendarDayProps {
@@ -69,13 +71,84 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
 };
 
 export const CalendarGrid: React.FC<CalendarGridProps> = ({ 
-  monthData, 
-  onDayPress, 
-  currentMonth 
+  onDayPress,
+  activeRoutines,
+  onMonthChange
 }) => {
   const { theme } = useTheme();
   const screenWidth = Dimensions.get('window').width;
-  const dayWidth = (screenWidth - (Theme.Spacing.lg * 2) - (6 * 4)) / 7; // 7 days, 6 gaps
+  const dayWidth = (screenWidth - (Theme.Spacing.lg * 2) - (6 * 4)) / 7;
+  
+  // Calendar manages its own month state
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [monthData, setMonthData] = useState<DayData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Load data when month or routines change
+  useEffect(() => {
+    if (activeRoutines && activeRoutines.length >= 0) {
+      loadMonthData();
+    }
+  }, [currentMonth, activeRoutines]);
+  
+  const loadMonthData = async () => {
+    if (!activeRoutines || !Array.isArray(activeRoutines)) {
+      console.log('CalendarGrid: activeRoutines not ready');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const [year, month] = currentMonth.split('-').map(Number);
+      const startDate = `${currentMonth}-01`;
+      const endDate = `${currentMonth}-${new Date(year, month, 0).getDate()}`;
+      
+      const dailyData = await getDailyData(startDate, endDate, activeRoutines);
+      setMonthData(dailyData || []);
+      
+      // Notify parent of month change
+      onMonthChange?.(currentMonth);
+    } catch (error) {
+      console.error('Error loading calendar data:', error);
+      setMonthData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    const [year, month] = currentMonth.split('-').map(Number);
+    let newYear = year;
+    let newMonth = month;
+    
+    if (direction === 'prev') {
+      newMonth -= 1;
+      if (newMonth < 1) {
+        newMonth = 12;
+        newYear -= 1;
+      }
+    } else {
+      newMonth += 1;
+      if (newMonth > 12) {
+        newMonth = 1;
+        newYear += 1;
+      }
+    }
+    
+    setCurrentMonth(`${newYear}-${String(newMonth).padStart(2, '0')}`);
+  };
+  
+  const formatMonthTitle = (monthStr: string) => {
+    const [year, monthNum] = monthStr.split('-');
+    const date = new Date(parseInt(year), parseInt(monthNum) - 1);
+    return date.toLocaleDateString('en-US', { 
+      month: 'long', 
+      year: 'numeric' 
+    });
+  };
   
   const today = new Date().toISOString().slice(0, 10);
   const [currentYear, currentMonthNum] = currentMonth.split('-').map(Number);
@@ -132,7 +205,36 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
   return (
-    <View style={[styles.container, { backgroundColor: theme.Colors.surface.card }]}>
+    <Card style={styles.container} shadow="sm">
+      {/* Month Navigation Header */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity 
+          style={styles.navButton} 
+          onPress={() => navigateMonth('prev')}
+          disabled={isLoading}
+        >
+          <Text style={[styles.navButtonText, { color: theme.Colors.text.primary }]}>‹</Text>
+        </TouchableOpacity>
+        
+        <View style={styles.monthTitleContainer}>
+          {isLoading ? (
+            <ActivityIndicator size="small" color={theme.Colors.primary[500]} />
+          ) : (
+            <Text style={[styles.monthTitle, { color: theme.Colors.text.primary }]}>
+              {formatMonthTitle(currentMonth)}
+            </Text>
+          )}
+        </View>
+        
+        <TouchableOpacity 
+          style={styles.navButton} 
+          onPress={() => navigateMonth('next')}
+          disabled={isLoading}
+        >
+          <Text style={[styles.navButtonText, { color: theme.Colors.text.primary }]}>›</Text>
+        </TouchableOpacity>
+      </View>
+      
       {/* Weekday headers */}
       <View style={styles.weekdayRow}>
         {weekdays.map((weekday) => (
@@ -165,22 +267,40 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           </View>
         ))}
       </View>
-      
-
-    </View>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: Theme.BorderRadius.lg,
+    marginHorizontal: Theme.Spacing.lg,
     padding: Theme.Spacing.md,
     marginBottom: Theme.Spacing.lg,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Theme.Spacing.md,
+    paddingHorizontal: Theme.Spacing.sm,
+  },
+  navButton: {
+    padding: Theme.Spacing.sm,
+    paddingHorizontal: Theme.Spacing.md,
+  },
+  navButtonText: {
+    fontSize: 32,
+    fontWeight: Theme.Typography.fontWeight.bold,
+  },
+  monthTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    minHeight: 30,
+    justifyContent: 'center',
+  },
+  monthTitle: {
+    fontSize: Theme.Typography.fontSize.lg,
+    fontWeight: Theme.Typography.fontWeight.bold,
   },
   weekdayRow: {
     flexDirection: 'row',

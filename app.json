@@ -25,7 +25,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.routinetracker.app",
-      "versionCode": 1,
+      "versionCode": 2,
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "WAKE_LOCK"

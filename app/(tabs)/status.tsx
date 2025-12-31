@@ -5,7 +5,6 @@ import {
   StyleSheet, 
   ScrollView, 
   Platform, 
-  TouchableOpacity, 
   Alert,
   RefreshControl 
 } from 'react-native';
@@ -16,13 +15,10 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { CalendarGrid } from '@/components/CalendarGrid';
 import { MotivationalDashboard } from '@/components/MotivationalDashboard';
 import { WallpaperBackground } from '@/components/WallpaperBackground';
-// Performance monitoring imports removed due to infinite render loop
 import { 
-  getDailyData, 
   getMonthlyStats, 
   MonthlyStats,
-  DayData,
-  HistoryEntry 
+  DayData
 } from '@/utils/historyManager';
 import { loadRoutines, loadRoutineState } from '@/utils/settingsStorage';
 import { Routine, RoutineState } from '@/types/routine';
@@ -39,7 +35,6 @@ export default function StatusScreen() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
-  const [monthlyData, setMonthlyData] = useState<DayData[]>([]);
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStats | null>(null);
   const [activeRoutines, setActiveRoutines] = useState<Routine[]>([]);
   const [routineState, setRoutineState] = useState<RoutineState>({
@@ -74,7 +69,7 @@ export default function StatusScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [currentMonth])
+    }, [])
   );
   
   const loadData = async (isRefresh = false) => {
@@ -90,16 +85,7 @@ export default function StatusScreen() {
       setActiveRoutines(active);
       setRoutineState(state);
       
-      // Calculate date range for current month
-      const [year, month] = currentMonth.split('-').map(Number);
-      const startDate = `${currentMonth}-01`;
-      const endDate = `${currentMonth}-${new Date(year, month, 0).getDate()}`;
-      
-      // Load daily data for calendar
-      const dailyData = await getDailyData(startDate, endDate, active);
-      setMonthlyData(dailyData);
-      
-      // Load monthly statistics
+      // Load monthly statistics for current month
       const allStats = await getMonthlyStats();
       const currentStats = allStats.find(s => s.month === currentMonth);
       setMonthlyStats(currentStats || null);
@@ -118,35 +104,14 @@ export default function StatusScreen() {
     loadData(true);
   };
   
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    const [year, month] = currentMonth.split('-').map(Number);
-    let newYear = year;
-    let newMonth = month;
+  // Handle month change from calendar
+  const handleMonthChange = async (month: string) => {
+    setCurrentMonth(month);
     
-    if (direction === 'prev') {
-      newMonth -= 1;
-      if (newMonth < 1) {
-        newMonth = 12;
-        newYear -= 1;
-      }
-    } else {
-      newMonth += 1;
-      if (newMonth > 12) {
-        newMonth = 1;
-        newYear += 1;
-      }
-    }
-    
-    setCurrentMonth(`${newYear}-${String(newMonth).padStart(2, '0')}`);
-  };
-  
-  const formatMonthTitle = (month: string) => {
-    const [year, monthNum] = month.split('-');
-    const date = new Date(parseInt(year), parseInt(monthNum) - 1);
-    return date.toLocaleDateString('en-US', { 
-      month: 'long', 
-      year: 'numeric' 
-    });
+    // Load stats for the new month
+    const allStats = await getMonthlyStats();
+    const currentStats = allStats.find(s => s.month === month);
+    setMonthlyStats(currentStats || null);
   };
   
   const isRoutineCompletedToday = useCallback((routine: Routine): boolean => {
@@ -229,35 +194,14 @@ export default function StatusScreen() {
           totalRoutines={activeRoutines.length}
         />
 
-        {/* Calendar Navigation & Grid */}
-        <Card style={styles.calendarHeader} shadow="sm">
-          <View style={styles.monthNavigation}>
-            <TouchableOpacity 
-              style={styles.navButton} 
-              onPress={() => navigateMonth('prev')}
-            >
-              <Text style={styles.navButtonText}>‹</Text>
-            </TouchableOpacity>
-            
-            <Text style={[styles.monthTitle, { color: theme.Colors.text.primary }]}>
-              {formatMonthTitle(currentMonth)}
-            </Text>
-            
-            <TouchableOpacity 
-              style={styles.navButton} 
-              onPress={() => navigateMonth('next')}
-            >
-              <Text style={styles.navButtonText}>›</Text>
-            </TouchableOpacity>
-          </View>
-        </Card>
-        
-        {/* Calendar Grid */}
-        <CalendarGrid
-          monthData={monthlyData}
-          currentMonth={currentMonth}
-          onDayPress={handleDayPress}
-        />
+        {/* Calendar Grid with built-in navigation */}
+        {!isLoading && (
+          <CalendarGrid
+            activeRoutines={activeRoutines}
+            onDayPress={handleDayPress}
+            onMonthChange={handleMonthChange}
+          />
+        )}
         
       </ScrollView>
     </WallpaperBackground>
@@ -303,37 +247,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: Theme.Typography.fontSize.lg,
     color: Theme.Colors.text.secondary,
-  },
-  calendarHeader: {
-    marginHorizontal: Theme.Spacing.lg,
-    marginBottom: Theme.Spacing.sm,
-    padding: Theme.Spacing.md,
-  },
-  monthNavigation: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  navButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Theme.Colors.primary[500],
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  navButtonText: {
-    color: '#ffffff',
-    fontSize: 24,
-    fontWeight: 'bold',
-    lineHeight: 24,
-    textAlign: 'center',
-    marginTop: -3, // Slight adjustment to center the arrows better
-  },
-  monthTitle: {
-    fontSize: Theme.Typography.fontSize.xl,
-    fontWeight: Theme.Typography.fontWeight.bold,
-    // Color will be applied inline with theme.Colors.text.primary
   },
   content: {
     margin: Theme.Spacing.lg,

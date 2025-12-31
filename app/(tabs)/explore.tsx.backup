@@ -1,10 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   ScrollView, 
   Platform, 
+  TouchableOpacity, 
   Alert,
   RefreshControl 
 } from 'react-native';
@@ -16,13 +17,17 @@ import { CalendarGrid } from '@/components/CalendarGrid';
 import { HistoryStats } from '@/components/HistoryStats';
 import { WallpaperBackground } from '@/components/WallpaperBackground';
 import { 
+  getDailyData, 
   getMonthlyStats, 
+  exportHistoryAsJSON,
   MonthlyStats,
-  DayData
+  DayData,
+  HistoryEntry 
 } from '@/utils/historyManager';
 import { loadRoutines } from '@/utils/settingsStorage';
 import { Routine } from '@/types/routine';
 import { Card } from '@/components/ui';
+// Performance monitoring imports removed due to infinite render loop
 
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
@@ -35,6 +40,7 @@ export default function HistoryScreen() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
+  const [monthlyData, setMonthlyData] = useState<DayData[]>([]);
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStats | null>(null);
   const [activeRoutines, setActiveRoutines] = useState<Routine[]>([]);
   const [selectedDay, setSelectedDay] = useState<DayData | null>(null);
@@ -76,7 +82,16 @@ export default function HistoryScreen() {
       const active = routines.filter(r => r.isActive);
       setActiveRoutines(active);
       
-      // Load monthly statistics for current month
+      // Calculate date range for current month
+      const [year, month] = currentMonth.split('-').map(Number);
+      const startDate = `${currentMonth}-01`;
+      const endDate = `${currentMonth}-${new Date(year, month, 0).getDate()}`;
+      
+      // Load daily data for calendar
+      const dailyData = await getDailyData(startDate, endDate, active);
+      setMonthlyData(dailyData);
+      
+      // Load monthly statistics
       const allStats = await getMonthlyStats();
       const currentStats = allStats.find(s => s.month === currentMonth);
       setMonthlyStats(currentStats || null);
@@ -95,14 +110,87 @@ export default function HistoryScreen() {
     loadData(true);
   };
   
-  // Handle month change from calendar
-  const handleMonthChange = async (month: string) => {
-    setCurrentMonth(month);
+  const navigateMonth = async (direction: 'prev' | 'next') => {
+    const [year, month] = currentMonth.split('-').map(Number);
+    let newYear = year;
+    let newMonth = month;
     
-    // Load stats for the new month
+    if (direction === 'prev') {
+      newMonth -= 1;
+      if (newMonth < 1) {
+        newMonth = 12;
+        newYear -= 1;
+      }
+    } else {
+      newMonth += 1;
+      if (newMonth > 12) {
+        newMonth = 1;
+        newYear += 1;
+      }
+    }
+    
+    const newMonthStr = `${newYear}-${String(newMonth).padStart(2, '0')}`;
+    setCurrentMonth(newMonthStr);
+    
+    // Load data for new month
+    const [yr, mon] = newMonthStr.split('-').map(Number);
+    const startDate = `${newMonthStr}-01`;
+    const endDate = `${newMonthStr}-${new Date(yr, mon, 0).getDate()}`;
+    
+    const dailyData = await getDailyData(startDate, endDate, activeRoutines);
+    setMonthlyData(dailyData);
+    
     const allStats = await getMonthlyStats();
-    const currentStats = allStats.find(s => s.month === month);
+    const currentStats = allStats.find(s => s.month === newMonthStr);
     setMonthlyStats(currentStats || null);
+  };
+  
+  const loadMonthDataForMonth = useCallback(async (month: string) => {
+    try {
+      setIsLoadingCalendar(true);
+      
+      // Load active routines (use cached if available)
+      const active = activeRoutines.length > 0 ? activeRoutines : (await loadRoutines()).filter(r => r.isActive);
+      
+      // Calculate date range for the specified month
+      const [year, monthNum] = month.split('-').map(Number);
+      const startDate = `${month}-01`;
+      const endDate = `${month}-${new Date(year, monthNum, 0).getDate()}`;
+      
+      // Load daily data for calendar
+      const dailyData = await getDailyData(startDate, endDate, active);
+      
+      // Load monthly statistics
+      const allStats = await getMonthlyStats();
+      const currentStats = allStats.find(s => s.month === month);
+      
+      // Batch state updates to minimize re-renders
+      setMonthlyData(dailyData);
+      setMonthlyStats(currentStats || null);
+      setCurrentMonth(month);
+      
+      // Restore scroll position after state update
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ 
+          y: scrollPositionRef.current, 
+          animated: false 
+        });
+      }, 0);
+      
+    } catch (error) {
+      console.error('Error loading month data:', error);
+    } finally {
+      setIsLoadingCalendar(false);
+    }
+  }, [activeRoutines]);
+  
+  const formatMonthTitle = (month: string) => {
+    const [year, monthNum] = month.split('-');
+    const date = new Date(parseInt(year), parseInt(monthNum) - 1);
+    return date.toLocaleDateString('en-US', { 
+      month: 'long', 
+      year: 'numeric' 
+    });
   };
   
   const handleDayPress = (dayData: DayData) => {
@@ -155,12 +243,17 @@ export default function HistoryScreen() {
       paddingRight: insets.right 
     }}>
       <ScrollView 
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: getBottomPadding() }]}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
+        onScroll={(event) => {
+          scrollPositionRef.current = event.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={16}
       >
         {/* Header */}
         <Card style={styles.header} shadow="sm" borderRadius="xl">
@@ -175,41 +268,69 @@ export default function HistoryScreen() {
         {/* Monthly Statistics */}
         <HistoryStats monthlyStats={monthlyStats} />
         
-        {/* Calendar Grid with built-in navigation */}
-        {!isLoading && (
+        {/* Calendar Navigation */}
+        <Card style={styles.calendarHeader} shadow="sm">
+          <View style={styles.monthNavigation}>
+            <TouchableOpacity 
+              style={styles.navButton} 
+              onPress={() => navigateMonth('prev')}
+            >
+              <Text style={styles.navButtonText}>‹</Text>
+            </TouchableOpacity>
+            
+            <Text style={[styles.monthTitle, { color: theme.Colors.text.primary }]}>
+              {formatMonthTitle(currentMonth)}
+            </Text>
+            
+            <TouchableOpacity 
+              style={styles.navButton} 
+              onPress={() => navigateMonth('next')}
+            >
+              <Text style={styles.navButtonText}>›</Text>
+            </TouchableOpacity>
+          </View>
+        </Card>
+        
+        {/* Calendar Grid */}
+        {isLoadingCalendar ? (
+          <Card style={styles.loadingCalendarCard} shadow="sm">
+            <ActivityIndicator size="large" color={theme.Colors.primary[500]} />
+            <Text style={[styles.loadingCalendarText, { color: theme.Colors.text.secondary }]}>
+              Loading calendar...
+            </Text>
+          </Card>
+        ) : (
           <CalendarGrid
-            activeRoutines={activeRoutines}
+            monthData={monthlyData}
+            currentMonth={currentMonth}
             onDayPress={handleDayPress}
-            onMonthChange={handleMonthChange}
           />
         )}
         
         {/* Quick Stats Summary */}
-        {monthlyStats && (
-          <Card style={styles.summaryCard} shadow="sm">
-            <Text style={styles.summaryTitle}>Monthly Summary</Text>
-            <View style={styles.summaryGrid}>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryValue}>
-                  {monthlyStats.completedDays}
-                </Text>
-                <Text style={styles.summaryLabel}>Active Days</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryValue}>
-                  {monthlyStats.totalCompletions}
-                </Text>
-                <Text style={styles.summaryLabel}>Total Completions</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryValue}>
-                  {Math.round(monthlyStats.averageCompletionRate * 100)}%
-                </Text>
-                <Text style={styles.summaryLabel}>Avg. Completion</Text>
-              </View>
+        <Card style={styles.summaryCard} shadow="sm">
+          <Text style={styles.summaryTitle}>Monthly Summary</Text>
+          <View style={styles.summaryGrid}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>
+                {monthlyData.filter(d => d.completionRate > 0).length}
+              </Text>
+              <Text style={styles.summaryLabel}>Active Days</Text>
             </View>
-          </Card>
-        )}
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>
+                {monthlyData.reduce((sum, d) => sum + d.completedRoutines, 0)}
+              </Text>
+              <Text style={styles.summaryLabel}>Total Completions</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>
+                {Math.round((monthlyData.filter(d => d.completionRate === 1).length / Math.max(monthlyData.length, 1)) * 100)}%
+              </Text>
+              <Text style={styles.summaryLabel}>Perfect Days</Text>
+            </View>
+          </View>
+        </Card>
         
       </ScrollView>
     </WallpaperBackground>
@@ -256,6 +377,34 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: Theme.Typography.fontSize.lg,
     color: Theme.Colors.text.secondary,
+  },
+  calendarHeader: {
+    marginHorizontal: Theme.Spacing.lg,
+    marginBottom: Theme.Spacing.sm,
+    padding: Theme.Spacing.md,
+  },
+  monthNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  navButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Theme.Colors.primary[500],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navButtonText: {
+    color: '#ffffff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  monthTitle: {
+    fontSize: Theme.Typography.fontSize.xl,
+    fontWeight: Theme.Typography.fontWeight.bold,
+    // Color will be applied inline with theme.Colors.text.primary
   },
   summaryCard: {
     marginHorizontal: Theme.Spacing.lg,
@@ -309,5 +458,13 @@ const styles = StyleSheet.create({
     fontSize: Theme.Typography.fontSize.base,
     color: Theme.Colors.text.secondary,
     lineHeight: 22,
+  },
+  loadingCalendarCard: {
+    marginHorizontal: Theme.Spacing.lg,
+    marginBottom: Theme.Spacing.lg,
+    padding: Theme.Spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 200,
   },
 });
