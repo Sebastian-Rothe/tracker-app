@@ -1,4 +1,4 @@
-import { en } from './en';
+import { en, Translation } from './en';
 import { de } from './de';
 
 export const translations = {
@@ -6,5 +6,5 @@ export const translations = {
   de,
 };
 
-export type { Translation } from './en';
+export type { Translation };
 export { en, de };

@@ -350,7 +350,7 @@ export const AdvancedNotificationSettings: React.FC = () => {
                   
                   <TouchableOpacity 
                     style={[styles.timePickerButton, { backgroundColor: theme.Colors.primary[500] }]}
-                    onPress={confirmTimeChange}
+                    onPress={confirmIOSTimeChange}
                   >
                     <Text style={[styles.timePickerButtonText, { color: theme.Colors.text.inverse }]}>{t.settings.confirm}</Text>
                   </TouchableOpacity>
