@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { DayData, getDailyData } from '@/utils/historyManager';
 import { Routine } from '@/types/routine';
 import { Card } from '@/components/ui';
@@ -76,6 +77,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   onMonthChange
 }) => {
   const { theme } = useTheme();
+  const { t, language } = useTranslation();
   const screenWidth = Dimensions.get('window').width;
   const dayWidth = (screenWidth - (Theme.Spacing.lg * 2) - (6 * 4)) / 7;
   
@@ -143,11 +145,22 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   
   const formatMonthTitle = (monthStr: string) => {
     const [year, monthNum] = monthStr.split('-');
-    const date = new Date(parseInt(year), parseInt(monthNum) - 1);
-    return date.toLocaleDateString('en-US', { 
-      month: 'long', 
-      year: 'numeric' 
-    });
+    const monthIndex = parseInt(monthNum) - 1;
+    const monthNames = [
+      t.calendar.monthNames.january,
+      t.calendar.monthNames.february,
+      t.calendar.monthNames.march,
+      t.calendar.monthNames.april,
+      t.calendar.monthNames.may,
+      t.calendar.monthNames.june,
+      t.calendar.monthNames.july,
+      t.calendar.monthNames.august,
+      t.calendar.monthNames.september,
+      t.calendar.monthNames.october,
+      t.calendar.monthNames.november,
+      t.calendar.monthNames.december,
+    ];
+    return `${monthNames[monthIndex]} ${year}`;
   };
   
   const today = new Date().toISOString().slice(0, 10);
@@ -202,7 +215,15 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     });
   }
   
-  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekdays = [
+    t.calendar.dayNames.sunday,
+    t.calendar.dayNames.monday,
+    t.calendar.dayNames.tuesday,
+    t.calendar.dayNames.wednesday,
+    t.calendar.dayNames.thursday,
+    t.calendar.dayNames.friday,
+    t.calendar.dayNames.saturday,
+  ];
   
   return (
     <Card style={styles.container} shadow="sm">

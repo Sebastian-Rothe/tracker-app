@@ -16,70 +16,13 @@ import { scheduleRoutineNotifications, cancelAllNotifications } from '@/utils/no
 import {  } from '@/utils/settingsStorage';
 import { routineStorage } from '@/services/RoutineStorageService';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { Ionicons } from '@expo/vector-icons';
 import AdvancedNotificationSettings from '../../components/AdvancedNotificationSettings';
 import { WallpaperType } from '@/constants/Theme';
 import { WallpaperBackground } from '@/components/WallpaperBackground';
 
 const SETTINGS_KEY = 'settings';
-
-// Settings texts
-const TEXTS = {
-  title: 'Settings',
-  themeTitle: 'Appearance',
-  themeDescription: 'Choose your preferred app appearance',
-  lightMode: 'Light Mode',
-  darkMode: 'Dark Mode',
-  autoMode: 'System Default',
-  wallpaperTitle: 'Background Style',
-  wallpaperDescription: 'Choose your background design',
-  wallpaperNone: 'None',
-  wallpaperDeepBlue: 'Deep Blue',
-  wallpaperSunset: 'Sunset Orange', 
-  wallpaperForest: 'Forest Teal',
-  wallpaperPurple: 'Royal Purple',
-  wallpaperNavy: 'Midnight Navy',
-  wallpaperLightSky: 'Light Sky',
-  wallpaperSoftMint: 'Soft Mint',
-  manualStreakTitle: 'Manual Streak Input',
-  manualStreakDescription: 'If you\'ve been following your routine before using this app, you can set your current streak here.',
-  currentStreak: 'Current Streak:',
-  newStreakLabel: 'Enter new streak:',
-  newStreakPlaceholder: '0',
-  updateStreakButton: 'Update Streak',
-  resetDataTitle: 'Reset Data',
-  resetDataDescription: 'This will permanently delete all your progress.',
-  resetButton: 'Reset All Data',
-  confirmReset: 'Confirm Reset',
-  confirmResetMessage: 'Are you sure you want to reset all data? This cannot be undone.',
-  cancel: 'Cancel',
-  success: 'Success',
-  streakUpdated: 'Streak updated successfully!',
-  dataReset: 'All data has been reset.',
-  invalidInput: 'Invalid Input',
-  invalidInputMessage: 'Please enter a valid number between 0 and 9999.',
-  debugTitle: 'Debug Settings',
-  debugMode: 'Debug Mode',
-  debugDescription: 'Show debug information and reset button on main screen.',
-  notificationTitle: 'Notifications',
-  notificationEnabled: 'Enable Daily Reminders',
-  notificationDescription: 'Get daily reminders for your routines.',
-  notificationTimeLabel: 'Reminder Time:',
-  notificationTimeDescription: 'Time when you want to be reminded (24-hour format)',
-  timeInvalid: 'Invalid time format. Please use HH:MM (e.g., 07:30)',
-  notificationUpdated: 'Notification settings updated successfully!',
-  aboutTitle: 'About Routine Tracker',
-  aboutDescription: 'A free, privacy-focused habit tracker app. Your data stays on your device.',
-  personalStory: 'Started as a personal tool to track my own routines, now shared with the world. 100% indie, privacy-first, and always improving based on your feedback.',
-  version: 'Version 1.1.3',
-  developer: 'Developed by Sebastian Rothe',
-  privacyPolicy: 'Privacy Policy',
-  impressum: 'Legal Notice (Impressum)',
-  support: 'Support & Contact',
-  openSource: 'Open Source',
-  buyMeCoffee: '💝 Support the Developer',
-  linkError: 'Could not open link',
-};
 
 interface SettingsData {
   notificationEnabled: boolean;
@@ -99,6 +42,7 @@ export default function SettingsScreen() {
   const [settings, setSettings] = useState<SettingsData>(defaultSettings);
   const [notificationTimeInput, setNotificationTimeInput] = useState<string>('07:00');
   const { theme, themeMode, setThemeMode, isDarkMode, isAutoMode, wallpaper, setWallpaper } = useTheme();
+  const { t, language, setLanguage } = useTranslation();
 
   useEffect(() => {
     loadData();
@@ -130,12 +74,12 @@ export default function SettingsScreen() {
 
   const resetAllData = () => {
     Alert.alert(
-      TEXTS.confirmReset,
-      TEXTS.confirmResetMessage,
+      t.settings.confirmReset,
+      t.settings.confirmResetMessage,
       [
-        { text: TEXTS.cancel, style: 'cancel' },
+        { text: t.common.cancel, style: 'cancel' },
         { 
-          text: TEXTS.confirmReset, 
+          text: t.settings.confirmReset, 
           style: 'destructive',
           onPress: async () => {
             try {
@@ -195,7 +139,7 @@ export default function SettingsScreen() {
 
   const updateNotificationTime = async () => {
     if (!validateTimeFormat(notificationTimeInput)) {
-      Alert.alert(TEXTS.invalidInput, TEXTS.timeInvalid);
+      Alert.alert(t.settings.invalidInput, t.settings.timeInvalid);
       return;
     }
     
@@ -207,7 +151,7 @@ export default function SettingsScreen() {
       await scheduleRoutineNotifications();
     }
     
-    Alert.alert(TEXTS.success, TEXTS.notificationUpdated);
+    Alert.alert(t.common.success, t.settings.notificationUpdated);
   };
 
   const openLink = async (url: string) => {
@@ -216,10 +160,10 @@ export default function SettingsScreen() {
       if (supported) {
         await Linking.openURL(url);
       } else {
-        Alert.alert(TEXTS.linkError, `Cannot open URL: ${url}`);
+        Alert.alert(t.settings.linkError, `Cannot open URL: ${url}`);
       }
     } catch (error) {
-      Alert.alert(TEXTS.linkError, 'An error occurred while opening the link.');
+      Alert.alert(t.settings.linkError, 'An error occurred while opening the link.');
       console.error('Error opening link:', error);
     }
   };
@@ -227,12 +171,44 @@ export default function SettingsScreen() {
   return (
     <WallpaperBackground style={{ flex: 1 }}>
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Text style={[styles.title, { color: theme.Colors.text.primary }]}>{TEXTS.title}</Text>
+      <Text style={[styles.title, { color: theme.Colors.text.primary }]}>{t.settings.title}</Text>
+
+      {/* Language Settings */}
+      <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
+        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{t.settings.languageTitle}</Text>
+        <Text style={[styles.sectionDescription, { color: theme.Colors.text.secondary }]}>{t.settings.languageDescription}</Text>
+        
+        <View style={styles.themeOptions}>
+          <TouchableOpacity
+            style={[
+              styles.themeOption,
+              { borderColor: theme.Colors.surface.border },
+              language === 'en' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setLanguage('en')}
+          >
+            <Ionicons name="language" size={24} color={theme.Colors.text.primary} />
+            <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{t.settings.languageEnglish}</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.themeOption,
+              { borderColor: theme.Colors.surface.border },
+              language === 'de' && { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[500] }
+            ]}
+            onPress={() => setLanguage('de')}
+          >
+            <Ionicons name="language" size={24} color={theme.Colors.text.primary} />
+            <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{t.settings.languageGerman}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Theme Settings */}
       <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
-        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{TEXTS.themeTitle}</Text>
-        <Text style={[styles.sectionDescription, { color: theme.Colors.text.secondary }]}>{TEXTS.themeDescription}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{t.settings.themeTitle}</Text>
+        <Text style={[styles.sectionDescription, { color: theme.Colors.text.secondary }]}>{t.settings.themeDescription}</Text>
         
         <View style={styles.themeOptions}>
           <TouchableOpacity
@@ -244,7 +220,7 @@ export default function SettingsScreen() {
             onPress={() => setThemeMode('light')}
           >
             <Ionicons name="sunny" size={24} color={theme.Colors.text.primary} />
-            <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.lightMode}</Text>
+            <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{t.settings.lightMode}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -256,7 +232,7 @@ export default function SettingsScreen() {
             onPress={() => setThemeMode('dark')}
           >
             <Ionicons name="moon" size={24} color={theme.Colors.text.primary} />
-            <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.darkMode}</Text>
+            <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{t.settings.darkMode}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -268,15 +244,15 @@ export default function SettingsScreen() {
             onPress={() => setThemeMode('auto')}
           >
             <Ionicons name="phone-portrait" size={24} color={theme.Colors.text.primary} />
-            <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.autoMode}</Text>
+            <Text style={[styles.themeOptionText, { color: theme.Colors.text.primary }]}>{t.settings.autoMode}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Wallpaper Settings */}
       <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
-        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperTitle}</Text>
-        <Text style={[styles.sectionDescription, { color: theme.Colors.text.secondary }]}>{TEXTS.wallpaperDescription}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{t.settings.wallpaperTitle}</Text>
+        <Text style={[styles.sectionDescription, { color: theme.Colors.text.secondary }]}>{t.settings.wallpaperDescription}</Text>
         
         <View style={styles.wallpaperGrid}>
           <TouchableOpacity
@@ -288,7 +264,7 @@ export default function SettingsScreen() {
             onPress={() => setWallpaper('none')}
           >
             <View style={[styles.wallpaperPreview, styles.nonePreview]} />
-            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperNone}</Text>
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{t.settings.wallpaperNone}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -300,7 +276,7 @@ export default function SettingsScreen() {
             onPress={() => setWallpaper('deep-blue')}
           >
             <View style={[styles.wallpaperPreview, styles.deepBluePreview]} />
-            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperDeepBlue}</Text>
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{t.settings.wallpaperDeepBlue}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -312,7 +288,7 @@ export default function SettingsScreen() {
             onPress={() => setWallpaper('sunset-orange')}
           >
             <View style={[styles.wallpaperPreview, styles.sunsetPreview]} />
-            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperSunset}</Text>
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{t.settings.wallpaperSunset}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -324,7 +300,7 @@ export default function SettingsScreen() {
             onPress={() => setWallpaper('forest-teal')}
           >
             <View style={[styles.wallpaperPreview, styles.forestPreview]} />
-            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperForest}</Text>
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{t.settings.wallpaperForest}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -336,7 +312,7 @@ export default function SettingsScreen() {
             onPress={() => setWallpaper('royal-purple')}
           >
             <View style={[styles.wallpaperPreview, styles.purplePreview]} />
-            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperPurple}</Text>
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{t.settings.wallpaperPurple}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -348,7 +324,7 @@ export default function SettingsScreen() {
             onPress={() => setWallpaper('midnight-navy')}
           >
             <View style={[styles.wallpaperPreview, styles.navyPreview]} />
-            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperNavy}</Text>
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{t.settings.wallpaperNavy}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -360,7 +336,7 @@ export default function SettingsScreen() {
             onPress={() => setWallpaper('light-sky')}
           >
             <View style={[styles.wallpaperPreview, styles.lightSkyPreview]} />
-            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperLightSky}</Text>
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{t.settings.wallpaperLightSky}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -372,7 +348,7 @@ export default function SettingsScreen() {
             onPress={() => setWallpaper('soft-mint')}
           >
             <View style={[styles.wallpaperPreview, styles.softMintPreview]} />
-            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{TEXTS.wallpaperSoftMint}</Text>
+            <Text style={[styles.wallpaperOptionText, { color: theme.Colors.text.primary }]}>{t.settings.wallpaperSoftMint}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -382,16 +358,16 @@ export default function SettingsScreen() {
 
       {/* About Section */}
       <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
-        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{TEXTS.aboutTitle}</Text>
-        <Text style={[styles.description, { color: theme.Colors.text.secondary }]}>{TEXTS.aboutDescription}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{t.settings.aboutTitle}</Text>
+        <Text style={[styles.description, { color: theme.Colors.text.secondary }]}>{t.settings.aboutDescription}</Text>
         
         <View style={[styles.storyBox, { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[200] }]}>
-          <Text style={[styles.storyText, { color: theme.Colors.text.primary }]}>{TEXTS.personalStory}</Text>
+          <Text style={[styles.storyText, { color: theme.Colors.text.primary }]}>{t.settings.personalStory}</Text>
         </View>
         
         <View style={styles.aboutInfo}>
-          <Text style={[styles.aboutText, { color: theme.Colors.text.secondary }]}>{TEXTS.version}</Text>
-          <Text style={[styles.aboutText, { color: theme.Colors.text.secondary }]}>{TEXTS.developer}</Text>
+          <Text style={[styles.aboutText, { color: theme.Colors.text.secondary }]}>{t.settings.version}</Text>
+          <Text style={[styles.aboutText, { color: theme.Colors.text.secondary }]}>{t.settings.developer}</Text>
         </View>
 
         <View style={styles.linkButtons}>
@@ -400,7 +376,7 @@ export default function SettingsScreen() {
             onPress={() => openLink('https://tracker-app-webpage.netlify.app/datenschutz.html')}
           >
             <Ionicons name="shield-checkmark" size={20} color={theme.Colors.primary[600]} />
-            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{TEXTS.privacyPolicy}</Text>
+            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{t.settings.privacyPolicy}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -408,7 +384,7 @@ export default function SettingsScreen() {
             onPress={() => openLink('https://tracker-app-webpage.netlify.app/impressum.html')}
           >
             <Ionicons name="document-text" size={20} color={theme.Colors.primary[600]} />
-            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{TEXTS.impressum}</Text>
+            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{t.settings.impressum}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -416,7 +392,7 @@ export default function SettingsScreen() {
             onPress={() => openLink('mailto:mail@sebastian-rothe.com?subject=Routine%20Tracker%20Support')}
           >
             <Ionicons name="mail" size={20} color={theme.Colors.primary[600]} />
-            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{TEXTS.support}</Text>
+            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{t.settings.support}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -424,25 +400,25 @@ export default function SettingsScreen() {
             onPress={() => openLink('https://github.com/Sebastian-Rothe/tracker-app')}
           >
             <Ionicons name="logo-github" size={20} color={theme.Colors.primary[600]} />
-            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{TEXTS.openSource}</Text>
+            <Text style={[styles.linkButtonText, { color: theme.Colors.primary[600] }]}>{t.settings.openSource}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={[styles.supportButton, { backgroundColor: theme.Colors.warning[500] }]}
             onPress={() => openLink('https://www.paypal.com/donate/?hosted_button_id=7RMD5JLDZ667N')}
           >
-            <Text style={styles.supportButtonText}>{TEXTS.buyMeCoffee}</Text>
+            <Text style={styles.supportButtonText}>{t.settings.buyMeCoffee}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Reset Data */}
       <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
-        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{TEXTS.resetDataTitle}</Text>
-        <Text style={[styles.description, { color: theme.Colors.text.secondary }]}>{TEXTS.resetDataDescription}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{t.settings.resetDataTitle}</Text>
+        <Text style={[styles.description, { color: theme.Colors.text.secondary }]}>{t.settings.resetDataDescription}</Text>
         
         <TouchableOpacity style={[styles.resetButton, { backgroundColor: theme.Colors.error[500] }]} onPress={resetAllData}>
-          <Text style={[styles.resetButtonText, { color: theme.Colors.text.inverse }]}>{TEXTS.resetButton}</Text>
+          <Text style={[styles.resetButtonText, { color: theme.Colors.text.inverse }]}>{t.settings.resetButton}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

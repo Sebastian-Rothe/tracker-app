@@ -10,6 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { AchievementProvider } from '@/contexts/AchievementContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
+import { LocalizationProvider } from '@/contexts/LocalizationContext';
 import { setupGlobalErrorHandling } from '@/services/ErrorHandling';
 import { requestNotificationPermissions } from '@/utils/notificationManager';
 
@@ -132,9 +133,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AchievementProvider>
-          <RootNavigator />
-        </AchievementProvider>
+        <LocalizationProvider>
+          <AchievementProvider>
+            <RootNavigator />
+          </AchievementProvider>
+        </LocalizationProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

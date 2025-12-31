@@ -14,10 +14,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { scheduleRoutineNotifications, cancelAllNotifications } from '@/utils/notificationManager';
 import { loadSettings, saveSettings, SettingsData } from '@/utils/settingsStorage';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { Ionicons } from '@expo/vector-icons';
 
 export const AdvancedNotificationSettings: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -166,10 +168,10 @@ export const AdvancedNotificationSettings: React.FC = () => {
     setEditingTimeIndex(null);
   };
 
-  const resetToDefaults = async () => {
+  const resetToDefaults = () => {
     Alert.alert(
-      'Reset Notification Settings',
-      'This will reset all notification settings to default values. Continue?',
+      t.settings.resetNotificationSettings,
+      t.settings.resetNotificationConfirm,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -201,7 +203,7 @@ export const AdvancedNotificationSettings: React.FC = () => {
     return (
       <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
         <ActivityIndicator size="large" color={theme.Colors.primary[500]} />
-        <Text style={[styles.loadingText, { color: theme.Colors.text.secondary }]}>Loading notification settings...</Text>
+        <Text style={[styles.loadingText, { color: theme.Colors.text.secondary }]}>{t.settings.loadingNotifications}</Text>
       </View>
     );
   }
@@ -210,15 +212,15 @@ export const AdvancedNotificationSettings: React.FC = () => {
     <View style={[styles.section, { backgroundColor: theme.Colors.surface.card }]}>
       <View style={styles.header}>
         <Ionicons name="notifications" size={24} color={theme.Colors.primary[500]} />
-        <Text style={[styles.title, { color: theme.Colors.text.primary }]}>Notifications</Text>
+        <Text style={[styles.title, { color: theme.Colors.text.primary }]}>{t.settings.notificationTitle}</Text>
       </View>
-      <Text style={[styles.subtitle, { color: theme.Colors.text.secondary }]}>Customize when and how you get reminded</Text>
+      <Text style={[styles.subtitle, { color: theme.Colors.text.secondary }]}>{t.settings.customizeReminders}</Text>
 
       {/* Main Enable/Disable */}
       <View style={styles.switchRow}>
         <View style={styles.switchTextContainer}>
-          <Text style={[styles.switchLabel, { color: theme.Colors.text.primary }]}>📱 Enable Notifications</Text>
-          <Text style={[styles.switchDescription, { color: theme.Colors.text.secondary }]}>Master switch for all notifications</Text>
+          <Text style={[styles.switchLabel, { color: theme.Colors.text.primary }]}>{t.settings.enableNotifications}</Text>
+          <Text style={[styles.switchDescription, { color: theme.Colors.text.secondary }]}>{t.settings.masterSwitch}</Text>
         </View>
         <Switch
           value={settings.notificationEnabled}
@@ -232,14 +234,14 @@ export const AdvancedNotificationSettings: React.FC = () => {
         <>
           {/* Smart Features */}
           <View style={styles.smartFeaturesContainer}>
-            <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>🧠 Smart Features</Text>
+            <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{t.settings.smartFeatures}</Text>
             
             {/* NOTE: "Skip When Complete" option removed - always enabled by design */}
             
             <View style={styles.switchRow}>
               <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchLabel, { color: theme.Colors.text.primary }]}>🔥 Streak Protection</Text>
-                <Text style={[styles.switchDescription, { color: theme.Colors.text.secondary }]}>Extra warnings for streaks at risk</Text>
+                <Text style={[styles.switchLabel, { color: theme.Colors.text.primary }]}>{t.settings.streakProtection}</Text>
+                <Text style={[styles.switchDescription, { color: theme.Colors.text.secondary }]}>{t.settings.streakProtectionDesc}</Text>
               </View>
               <Switch
                 value={settings.streakProtection ?? true}
@@ -251,8 +253,8 @@ export const AdvancedNotificationSettings: React.FC = () => {
 
             <View style={styles.switchRow}>
               <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchLabel, { color: theme.Colors.text.primary }]}>📈 Escalating Reminders</Text>
-                <Text style={[styles.switchDescription, { color: theme.Colors.text.secondary }]}>More frequent reminders as day progresses</Text>
+                <Text style={[styles.switchLabel, { color: theme.Colors.text.primary }]}>{t.settings.escalatingReminders}</Text>
+                <Text style={[styles.switchDescription, { color: theme.Colors.text.secondary }]}>{t.settings.escalatingRemindersDesc}</Text>
               </View>
               <Switch
                 value={settings.escalatingReminders ?? true}
@@ -265,14 +267,14 @@ export const AdvancedNotificationSettings: React.FC = () => {
 
           {/* Timing Settings */}
           <View style={styles.timingContainer}>
-            <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>⏰ Reminder Times</Text>
+            <Text style={[styles.sectionTitle, { color: theme.Colors.text.primary }]}>{t.settings.reminderTimes}</Text>
             
             {/* Timing Info Box */}
             <View style={[styles.infoBox, { backgroundColor: theme.Colors.primary[50], borderColor: theme.Colors.primary[200] }]}>
               <View style={styles.infoContent}>
                 <Ionicons name="information-circle" size={16} color={theme.Colors.primary[600]} style={styles.infoIcon} />
                 <Text style={[styles.infoText, { color: theme.Colors.primary[700] }]}>
-                  Notifications may arrive ±15 minutes from set time for better battery optimization
+                  {t.settings.notificationTimingInfo}
                 </Text>
               </View>
             </View>
@@ -302,7 +304,7 @@ export const AdvancedNotificationSettings: React.FC = () => {
                 style={[styles.addButton, { backgroundColor: theme.Colors.success[500] }]} 
                 onPress={addCustomTime}
               >
-                <Text style={[styles.addButtonText, { color: theme.Colors.text.inverse }]}>+ Add Time</Text>
+                <Text style={[styles.addButtonText, { color: theme.Colors.text.inverse }]}>{t.settings.addTime}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -311,7 +313,7 @@ export const AdvancedNotificationSettings: React.FC = () => {
             style={[styles.resetButton, { backgroundColor: theme.Colors.gray[100] }]} 
             onPress={resetToDefaults}
           >
-            <Text style={[styles.resetButtonText, { color: theme.Colors.text.secondary }]}>↻ Reset to Defaults</Text>
+            <Text style={[styles.resetButtonText, { color: theme.Colors.text.secondary }]}>{t.settings.resetToDefaults}</Text>
           </TouchableOpacity>
         </>
       )}
@@ -326,7 +328,7 @@ export const AdvancedNotificationSettings: React.FC = () => {
           <View style={styles.timePickerModal}>
             <View style={[styles.timePickerContainer, { backgroundColor: theme.Colors.surface.card }]}>
               <Text style={[styles.timePickerTitle, { color: theme.Colors.text.primary }]}>
-                {editingTimeIndex !== null ? 'Edit Reminder Time' : 'Add Reminder Time'}
+                {editingTimeIndex !== null ? t.settings.editReminderTime : t.settings.addReminderTime}
               </Text>
               
               <DateTimePicker
@@ -343,14 +345,14 @@ export const AdvancedNotificationSettings: React.FC = () => {
                     style={[styles.timePickerButton, { backgroundColor: theme.Colors.gray[200] }]}
                     onPress={cancelTimeChange}
                   >
-                    <Text style={[styles.timePickerButtonText, { color: theme.Colors.text.primary }]}>Cancel</Text>
+                    <Text style={[styles.timePickerButtonText, { color: theme.Colors.text.primary }]}>{t.settings.cancel}</Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity 
                     style={[styles.timePickerButton, { backgroundColor: theme.Colors.primary[500] }]}
-                    onPress={confirmIOSTimeChange}
+                    onPress={confirmTimeChange}
                   >
-                    <Text style={[styles.timePickerButtonText, { color: theme.Colors.text.inverse }]}>Done</Text>
+                    <Text style={[styles.timePickerButtonText, { color: theme.Colors.text.inverse }]}>{t.settings.confirm}</Text>
                   </TouchableOpacity>
                 </View>
               )}
