@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { CalendarGrid } from '@/components/CalendarGrid';
 import { MotivationalDashboard } from '@/components/MotivationalDashboard';
 import { WallpaperBackground } from '@/components/WallpaperBackground';
@@ -26,6 +27,7 @@ import { Card } from '@/components/ui';
 
 export default function StatusScreen() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   
   // Performance monitoring removed due to infinite render loop
@@ -92,7 +94,7 @@ export default function StatusScreen() {
       
     } catch (error) {
       console.error('Error loading history data:', error);
-      Alert.alert('Error', 'Failed to load history data');
+      Alert.alert(t.common.error, 'Failed to load history data');
     } finally {
       setIsLoading(false);
       if (isRefresh) setIsRefreshing(false);
@@ -129,7 +131,7 @@ export default function StatusScreen() {
       let message = `Date: ${dayData.date}\n\n`;
       
       if (completedEntries.length > 0) {
-        message += `✅ Completed (${completedEntries.length}):\n`;
+        message += `✅ ${t.explore.completedDays} (${completedEntries.length}):\n`;
         completedEntries.forEach(entry => {
           message += `• ${entry.routineName}\n`;
         });
@@ -143,7 +145,7 @@ export default function StatusScreen() {
         });
       }
       
-      Alert.alert('Day Details', message);
+      Alert.alert(t.explore.selectedDay, message);
     }
   };
 
@@ -156,7 +158,7 @@ export default function StatusScreen() {
         paddingRight: insets.right,
       }}>
         <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: theme.Colors.text.primary }]}>Loading history...</Text>
+          <Text style={[styles.loadingText, { color: theme.Colors.text.secondary }]}>{t.status.loading}</Text>
         </View>
       </WallpaperBackground>
     );
@@ -181,8 +183,8 @@ export default function StatusScreen() {
         <Card style={styles.header} shadow="sm" borderRadius="xl">
           <View style={styles.headerContent}>
             <View>
-              <Text style={[styles.title, { color: theme.Colors.text.primary }]}>Status & Analytics</Text>
-              <Text style={[styles.subtitle, { color: theme.Colors.text.secondary }]}>Your progress and statistics</Text>
+              <Text style={[styles.title, { color: theme.Colors.text.primary }]}>{t.status.title}</Text>
+              <Text style={[styles.subtitle, { color: theme.Colors.text.secondary }]}>{t.status.subtitle}</Text>
             </View>
           </View>
         </Card>

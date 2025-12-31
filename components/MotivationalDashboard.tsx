@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { Achievement, getAchievementStats } from '@/utils/achievementManager';
 import { getMonthlyStats } from '@/utils/historyManager';
 
@@ -21,6 +22,7 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
   style
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [achievementStats, setAchievementStats] = useState({ total: 0, unlocked: 0, progress: 0 });
   const [monthlyStats, setMonthlyStats] = useState({ totalDays: 0, completedDays: 0, completionRate: 0 });
   const [motivationMessage, setMotivationMessage] = useState('');
@@ -147,7 +149,7 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
         }]}>
           <Text style={styles.statIcon}>🔥</Text>
           <Text style={[styles.statValue, { color: theme.Colors.text.primary }]}>{totalStreakDays}</Text>
-          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>Day Streak</Text>
+          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>{t.motivational.dayStreak}</Text>
         </View>
 
         {/* Today's Progress */}
@@ -156,7 +158,7 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
         }]}>
           <Text style={styles.statIcon}>📋</Text>
           <Text style={[styles.statValue, { color: theme.Colors.text.primary }]}>{completedToday}/{totalRoutines}</Text>
-          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>Today</Text>
+          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>{t.motivational.today}</Text>
           <View style={styles.progressBarContainer}>
             <View style={[styles.progressBarBackground, {
               backgroundColor: theme.Colors.surface.overlay
@@ -180,7 +182,7 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
         }]}>
           <Text style={styles.statIcon}>📅</Text>
           <Text style={[styles.statValue, { color: theme.Colors.text.primary }]}>{Math.round(monthlyStats.completionRate * 100)}%</Text>
-          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>Month Avg</Text>
+          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>{t.motivational.monthAvg}</Text>
         </View>
 
         {/* Achievement Progress */}
@@ -189,7 +191,7 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
         }]}>
           <Text style={styles.statIcon}>🏆</Text>
           <Text style={[styles.statValue, { color: theme.Colors.text.primary }]}>{achievementStats.unlocked}</Text>
-          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>Unlocked</Text>
+          <Text style={[styles.statLabel, { color: theme.Colors.text.secondary }]}>{t.motivational.unlocked}</Text>
         </View>
       </View>
 
@@ -199,15 +201,15 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
       }]}>
         <Text style={[styles.milestoneTitle, {
           color: theme.Colors.primary[700]
-        }]}>🎯 Next Milestone</Text>
+        }]}>{t.motivational.nextMilestone}</Text>
         <Text style={[styles.milestoneText, {
           color: theme.Colors.primary[600]
         }]}>
           {(() => {
-            if (totalStreakDays < 7) return `${7 - totalStreakDays} days to Week Warrior! 🔥`;
-            if (totalStreakDays < 30) return `${30 - totalStreakDays} days to Month Master! 👑`;
-            if (totalStreakDays < 100) return `${100 - totalStreakDays} days to Hundred Club! 💯`;
-            return "You're a legend! Keep going! 🌟";
+            if (totalStreakDays < 7) return `${7 - totalStreakDays} ${t.motivational.weekWarrior}`;
+            if (totalStreakDays < 30) return `${30 - totalStreakDays} ${t.motivational.monthMaster}`;
+            if (totalStreakDays < 100) return `${100 - totalStreakDays} ${t.motivational.hundredClub}`;
+            return t.motivational.legend;
           })()}
         </Text>
       </View>

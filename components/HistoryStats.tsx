@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { MonthlyStats } from '@/utils/historyManager';
 
 interface StatsCardProps {
@@ -80,11 +81,12 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
   weeklyData 
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   
   if (!monthlyStats) {
     return (
       <View style={[styles.container, { backgroundColor: theme.Colors.surface.card }]}>
-        <Text style={[styles.noDataText, { color: theme.Colors.text.secondary }]}>No data available yet</Text>
+        <Text style={[styles.noDataText, { color: theme.Colors.text.secondary }]}>{t.historyStats.noData}</Text>
         <Text style={[styles.noDataSubtext, { color: theme.Colors.text.secondary }]}>Complete some routines to see your statistics!</Text>
       </View>
     );
@@ -98,14 +100,14 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
       {/* Main Stats Grid */}
       <View style={styles.statsGrid}>
         <StatsCard
-          title="Current Streak"
-          value={`${monthlyStats.streakDays} days`}
+          title={t.historyStats.currentStreak}
+          value={`${monthlyStats.streakDays} ${t.historyStats.days}`}
           icon="🔥"
           color={Theme.Colors.warning[500]}
         />
         <StatsCard
-          title="Best Streak"
-          value={`${monthlyStats.bestStreak} days`}
+          title={t.historyStats.longestStreak}
+          value={`${monthlyStats.bestStreak} ${t.historyStats.days}`}
           icon="🏆"
           color={Theme.Colors.success[500]}
         />
@@ -119,7 +121,7 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
           color={Theme.Colors.info[500]}
         />
         <StatsCard
-          title="Active Days"
+          title={t.historyStats.completedDays}
           value={`${monthlyStats.completedDays}/${monthlyStats.totalDays}`}
           icon="📅"
           color={Theme.Colors.primary[500]}
@@ -130,7 +132,7 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
       <View style={styles.progressSection}>
         <View style={styles.progressItem}>
           <View style={styles.progressHeader}>
-            <Text style={[styles.progressTitle, { color: theme.Colors.text.primary }]}>Average Completion Rate</Text>
+            <Text style={[styles.progressTitle, { color: theme.Colors.text.primary }]}>{t.historyStats.completionRate}</Text>
             <Text style={[styles.progressValue, { color: theme.Colors.text.primary }]}>{Math.round(completionRate * 100)}%</Text>
           </View>
           <ProgressBar 

@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Theme } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { CalendarGrid } from '@/components/CalendarGrid';
 import { HistoryStats } from '@/components/HistoryStats';
 import { WallpaperBackground } from '@/components/WallpaperBackground';
@@ -27,6 +28,7 @@ import { Card } from '@/components/ui';
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   
   // Performance monitoring removed due to infinite render loop
   
@@ -83,7 +85,7 @@ export default function HistoryScreen() {
       
     } catch (error) {
       console.error('Error loading history data:', error);
-      Alert.alert('Error', 'Failed to load history data');
+      Alert.alert(t.common.error, 'Failed to load history data');
     } finally {
       setIsLoading(false);
       if (isRefresh) setIsRefreshing(false);
@@ -115,7 +117,7 @@ export default function HistoryScreen() {
       let message = `Date: ${dayData.date}\n\n`;
       
       if (completedEntries.length > 0) {
-        message += `✅ Completed (${completedEntries.length}):\n`;
+        message += `✅ ${t.explore.completedDays} (${completedEntries.length}):\n`;
         completedEntries.forEach(entry => {
           message += `• ${entry.routineName}\n`;
         });
@@ -129,7 +131,7 @@ export default function HistoryScreen() {
         });
       }
       
-      Alert.alert('Day Details', message);
+      Alert.alert(t.explore.selectedDay, message);
     }
   };
 
@@ -141,7 +143,7 @@ export default function HistoryScreen() {
         paddingRight: insets.right 
       }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading history...</Text>
+          <Text style={styles.loadingText}>{t.common.loading}</Text>
         </View>
       </View>
     );
@@ -166,7 +168,7 @@ export default function HistoryScreen() {
         <Card style={styles.header} shadow="sm" borderRadius="xl">
           <View style={styles.headerContent}>
             <View>
-              <Text style={styles.title}>History & Analytics</Text>
+              <Text style={styles.title}>{t.explore.title}</Text>
               <Text style={styles.subtitle}>Track your progress over time</Text>
             </View>
           </View>
@@ -187,7 +189,7 @@ export default function HistoryScreen() {
         {/* Quick Stats Summary */}
         {monthlyStats && (
           <Card style={styles.summaryCard} shadow="sm">
-            <Text style={styles.summaryTitle}>Monthly Summary</Text>
+            <Text style={styles.summaryTitle}>{t.explore.summary}</Text>
             <View style={styles.summaryGrid}>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryValue}>
