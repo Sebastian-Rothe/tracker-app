@@ -218,7 +218,8 @@ export const MotivationalDashboard: React.FC<MotivationalDashboardProps> = ({
 const styles = StyleSheet.create({
   container: {
     borderRadius: Theme.BorderRadius.lg,
-    margin: Theme.Spacing.md,
+    marginHorizontal: Theme.Spacing.md,
+    marginBottom: Theme.Spacing.md,
     padding: Theme.Spacing.lg,
     elevation: 3,
     shadowColor: '#000',

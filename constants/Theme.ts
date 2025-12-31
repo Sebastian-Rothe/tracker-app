@@ -340,7 +340,7 @@ export const Spacing = {
   xs: 4,   // 1 unit
   sm: 8,   // 2 units
   md: 12,  // 3 units
-  lg: 16,  // 4 units
+  lg: 14,  // 4 units
   xl: 20,  // 5 units
   '2xl': 24, // 6 units
   '3xl': 32, // 8 units

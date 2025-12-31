@@ -207,8 +207,9 @@ export const HistoryStats: React.FC<HistoryStatsProps> = ({
 const styles = StyleSheet.create({
   container: {
     borderRadius: Theme.BorderRadius.lg,
+    marginHorizontal: Theme.Spacing.md,
+    marginBottom: Theme.Spacing.md,
     padding: Theme.Spacing.lg,
-    marginBottom: Theme.Spacing.lg,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },

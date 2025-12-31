@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   header: {
-    margin: Theme.Spacing.lg,
+    marginHorizontal: Theme.Spacing.md,
     marginBottom: Theme.Spacing.md,
   },
   headerContent: {
@@ -258,8 +258,8 @@ const styles = StyleSheet.create({
     color: Theme.Colors.text.secondary,
   },
   summaryCard: {
-    marginHorizontal: Theme.Spacing.lg,
-    marginBottom: Theme.Spacing.lg,
+    marginHorizontal: Theme.Spacing.md,
+    marginBottom: Theme.Spacing.md,
     padding: Theme.Spacing.lg,
   },
   summaryTitle: {

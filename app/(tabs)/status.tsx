@@ -220,7 +220,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   header: {
-    margin: Theme.Spacing.lg,
+    marginHorizontal: Theme.Spacing.md,
+    marginTop: Theme.Spacing.md,
     marginBottom: Theme.Spacing.md,
   },
   headerContent: {

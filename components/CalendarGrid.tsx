@@ -273,9 +273,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: Theme.Spacing.lg,
+    marginHorizontal: Theme.Spacing.md,
+    marginBottom: Theme.Spacing.md,
     padding: Theme.Spacing.md,
-    marginBottom: Theme.Spacing.lg,
   },
   headerRow: {
     flexDirection: 'row',

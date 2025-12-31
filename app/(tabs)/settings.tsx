@@ -455,12 +455,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    padding: 20,
+    paddingHorizontal: 12,
+    paddingTop: 20,
     paddingBottom: 40,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
+    marginTop: 10,
     marginBottom: 30,
     textAlign: 'center',
     color: '#333',
